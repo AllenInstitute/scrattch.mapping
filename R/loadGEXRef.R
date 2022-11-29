@@ -1,7 +1,7 @@
 #' Read in a reference data set in Allen taxonomy format
 #'
 #' @param refFolder Directory containing the Shiny taxonomy.
-#' @param sample_name_field Field in reference taxonomy that defines the sample_id.
+#' @param sample_id Field in reference taxonomy that defines the sample_id.
 #' @param nGenes Number of variable genes to compute.
 #' @param hGenes User supplied variable gene vector.
 #' @param sub.sample Number of cells to keep per cluster.
@@ -9,7 +9,7 @@
 #' @return Organized reference object ready for mapping against.
 #'
 #' @export
-loadGEXRef = function(refFolder="/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/human_BGplus_20211020", sample_field = "sample_id", nGenes=2000, hGenes=NULL, sub.sample = 1000){ 
+loadGEXRef = function(refFolder, sample_id = "sample_id", nGenes=2000, hGenes=NULL, sub.sample = 1000){ 
     
     ## Read in reference data and annotation files and format correctly
     annoReference = feather(file.path(refFolder,"anno.feather")) 

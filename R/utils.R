@@ -6,7 +6,7 @@
 #'
 #' @return Boolean vector of cells to keep (TRUE) and cells to remove (FALSE)
 #'
-#' @export
+#' @keywords internal
 subsampleCells <- function(cluster.names, subSamp=25, seed=5){
   # Returns a vector of TRUE false for choosing a maximum of subsamp cells in each cluster
   # cluster.names = vector of cluster labels in factor format

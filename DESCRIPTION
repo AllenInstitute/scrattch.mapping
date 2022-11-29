@@ -12,11 +12,7 @@ Authors@R:
            email = "jeremy.miller@alleninstitute.org")
 Description: ADD
 License: GPL-3
-Depends: ArchR,
-    parallel,
-    data.table,
-    assertthat,
-    dplyr
+Depends: 
 Suggests: knitr,
     rmarkdown, 
     testthat

@@ -5,9 +5,8 @@
 \title{Read in a reference data set in Allen taxonomy format}
 \usage{
 loadGEXRef(
- 
-    refFolder = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/human_BGplus_20211020",
-  sample_field = "sample_id",
+  refFolder,
+  sample_id = "sample_id",
   nGenes = 2000,
   hGenes = NULL,
   sub.sample = 1000
@@ -16,13 +15,13 @@ loadGEXRef(
 \arguments{
 \item{refFolder}{Directory containing the Shiny taxonomy.}
 
+\item{sample_id}{Field in reference taxonomy that defines the sample_id.}
+
 \item{nGenes}{Number of variable genes to compute.}
 
 \item{hGenes}{User supplied variable gene vector.}
 
 \item{sub.sample}{Number of cells to keep per cluster.}
-
-\item{sample_name_field}{Field in reference taxonomy that defines the sample_id.}
 }
 \value{
 Organized reference object ready for mapping against.

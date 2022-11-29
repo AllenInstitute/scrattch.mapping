@@ -40,7 +40,7 @@ corrMap = function(GEXRef, query.data){
 #'
 #' @return Correlation mapping results
 #'
-#' @export
+#' @keywords internal
 cor <- function(...) WGCNA::cor(...)
 cor_mapping_wrapper <- function(input_logcpm, reference_medians, nGenes = 1000){
   tmpGenes <- intersect(rownames(input_logcpm), rownames(reference_medians))

@@ -15,3 +15,4 @@ Correlation mapping results
 \description{
 Correlation based cell type mapping wrapper
 }
+\keyword{internal}
