@@ -1,0 +1,27 @@
+Package: shinymapR
+Title: Generalized mapping of annotations from shiny taxonomy to query data.
+Version: 0.1
+Authors@R: 
+    person(given = "Nelson",
+           family = "Johansen",
+           role = c("aut", "cre"),
+           email = "nelson.johansen@alleninstitute.org")
+    person(given = "Jeremy",
+           family = "Miller",
+           role = c("aut", "cre"),
+           email = "jeremy.miller@alleninstitute.org")
+Description: ADD
+License: GPL-3
+Depends: ArchR,
+    parallel,
+    data.table,
+    assertthat,
+    dplyr
+Suggests: knitr,
+    rmarkdown, 
+    testthat
+Encoding: UTF-8
+LazyData: true
+VignetteBuilder: knitr
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
