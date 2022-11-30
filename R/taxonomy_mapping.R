@@ -18,6 +18,7 @@ taxonomy_mapping = function(GEXRef, query.data, corr.map=TRUE, tree.map=TRUE, se
 
     print(paste("==============================","Mapping","======================="))
     print(date())
+    mappingResults=list()
 
     ## Sanity check on user input and taxonomy/reference annotations
     if(!all(label.cols %in% colnames(GEXRef$clusterInfo))){
@@ -33,6 +34,7 @@ taxonomy_mapping = function(GEXRef, query.data, corr.map=TRUE, tree.map=TRUE, se
     ############
     ## ----- Correlation mapping ------------------------------------------------------------------------
     if(corr.map == TRUE){ mappingResults[["Corr"]] = corrMap(GEXRef, query.data) }
+    
     #############
     ## ----- Tree mapping -------------------------------------------------------------------------------
     if(tree.map == TRUE & !is.null(GEXRef$dend)){ mappingResults[["Tree"]] = treeMap(GEXRef, query.data) }
@@ -43,7 +45,7 @@ taxonomy_mapping = function(GEXRef, query.data, corr.map=TRUE, tree.map=TRUE, se
 
     #############
     ## Combine mapping results
-    mappingAnno = Reduce(mappingResults, cbind)
+    mappingAnno = Reduce(cbind, mappingResults)
 
     #############
     ## ---- Convert cell type mappings to subclass, neighborhood (if available), and class -------------------------------
@@ -52,7 +54,7 @@ taxonomy_mapping = function(GEXRef, query.data, corr.map=TRUE, tree.map=TRUE, se
 
     ## Now map back up the tree to subclass and class based on cluster labels
     for(method in names(methods)){
-        convert <- GEXRef$clusterInfo[match(mappingTarget[,methods[names(methods) == method]], GEXRef$clusterInfo$cluster_label), label.cols]
+        convert <- GEXRef$clusterInfo[match(mappingAnno[,methods[names(methods) == method]], GEXRef$clusterInfo$cluster_label), label.cols]
         colnames(convert) <- gsub("label", method, colnames(convert))
         mappingAnno <- cbind(mappingAnno, convert)
     }

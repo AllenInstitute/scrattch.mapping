@@ -8,8 +8,8 @@
 #' @export
 corrMap = function(GEXRef, query.data){
     print("Correlation-based mapping")
-    ## Attempt Tree mapping
-    tryCatch(
+    ## Attempt Correlation mapping
+    mappingTarget = tryCatch(
         expr = {
             clReference  = setNames(factor(GEXRef$annoReference$cluster_label,levels=GEXRef$clustersUse),
                                     colnames(GEXRef$datReference))[GEXRef$kpSamp]
@@ -18,18 +18,19 @@ corrMap = function(GEXRef, query.data){
                                         query.data[GEXRef$varFeatures,]) 
             mappingTarget = data.frame(map.Corr=as.character(corMapTarget[[1]]$pred.cl), 
                                     score.Corr=corMapTarget[[1]]$pred.score)
+            mappingTarget
         },
         error = function(e){ 
             print("Error caught for Correlation mapping.")
             print(e)
+            return(NULL)
         },
         warning = function(w){
         },
         finally = {
-            print("Correlation mapping complete")
-            return(mappingTarget)
         }
     )
+    return(mappingTarget)
 }
 
 #' Correlation based cell type mapping wrapper

@@ -9,7 +9,7 @@
 treeMap = function(GEXRef, query.data){
     print("Tree-based mapping")
     ## Attempt Tree mapping
-    tryCatch(
+    mappingTarget = tryCatch(
         expr = {
             ## Gather marker genes
             allMarkers = unique(unlist(get_dend_markers(GEXRef$dend)))
@@ -24,16 +24,17 @@ treeMap = function(GEXRef, query.data){
             ## Create results data.frame
             mappingTarget = data.frame(map.Tree=as.character(topLeaf$TopLeaf), 
                                        score.Tree=topLeaf$Value)
+            mappingTarget
         },
         error = function(e){ 
             print("Error caught for Tree mapping.")
             print(e)
+            return(NULL)
         },
         warning = function(w){
         },
         finally = {
-            print("Tree mapping complete")
-            return(mappingTarget)
         }
     )
+    return(mappingTarget)
 }

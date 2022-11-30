@@ -11,23 +11,25 @@
 #' @export
 loadGEXRef = function(refFolder, sample_id = "sample_id", nGenes=2000, hGenes=NULL, sub.sample = 1000){ 
     
+    print("Loading reference taxonomy into memory.")
+
     ## Read in reference data and annotation files and format correctly
     annoReference = feather(file.path(refFolder,"anno.feather")) 
     exprReference = feather(file.path(refFolder,"data.feather"))
 
     ## Match meta.data to data
-    annoReference = as.data.frame(annoReference[match(exprReference$sample_id, annoReference$sample_id),])
+    annoReference = as.data.frame(annoReference[match(exprReference[[sample_id]], annoReference[[sample_id]]),])
 
-    # Note: This assumes the sample names are stored in a column called "sample_id". If not, adjust to correct name.
-    datReference = as.matrix(exprReference[,names(exprReference)!=sample_field])  
-    rownames(datReference) = rownames(annoReference) = annoReference$sample_id
+    ## 
+    datReference = as.matrix(exprReference[,names(exprReference)!=sample_id])  
+    rownames(datReference) = rownames(annoReference) = annoReference[[sample_id]]
     datReference = t(datReference)
 
     ## Log2 cpm to normalize the data
     datReference = logCPM(datReference)
 
     ## Consider only genes present in both data sets
-    hGenes = intersect(hGenes, rownames(datReference))
+    if(!is.null(hGenes)){ hGenes = intersect(hGenes, rownames(datReference)) } else { hGenes = rownames(datReference) }
 
     ## Find most variable genes by beta score
     cl          = setNames(annoReference$cluster_label,colnames(datReference))

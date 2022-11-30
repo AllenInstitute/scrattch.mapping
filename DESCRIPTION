@@ -1,4 +1,4 @@
-Package: shinymapR
+Package: scrattch.mapping
 Title: Generalized mapping of annotations from shiny taxonomy to query data.
 Version: 0.1
 Authors@R: 
@@ -12,7 +12,15 @@ Authors@R:
            email = "jeremy.miller@alleninstitute.org")
 Description: ADD
 License: GPL-3
-Depends: 
+Depends: feather,
+    dplyr,
+    patchseqtools,
+    patchSeqQC,
+    scrattch.io,
+    scrattch.hicat,
+    dendextend,
+    Seurat,
+    mfishtools
 Suggests: knitr,
     rmarkdown, 
     testthat

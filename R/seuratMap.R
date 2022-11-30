@@ -6,13 +6,16 @@
 #' @return Seurat mapping results as a data.frame.
 #'
 #' @export
-seuratMap = function(GEXRef, query.data, dims=30, k.weight=15){
+seuratMap = function(GEXRef, query.data, dims=30, k.weight=5){
     print("Seurat-based mapping")
+    ## Build Query Seruat object
+    query.seurat = CreateSeuratObject(query.data[GEXRef$varFeatures,])
+    query.seurat = SetAssayData(query.seurat, slot = "data", new.data = query.data[GEXRef$varFeatures,], assay = "RNA")
     ## Attempt Seurat mapping
-    tryCatch(
+    mappingTarget = tryCatch(
         expr = {
             ## Create a data list for label transfer
-            seurat.list <- list(GEXRef$referenceData[GEXRef$varFeatures,], query.data[GEXRef$varFeatures,])
+            seurat.list <- list(GEXRef$referenceData[GEXRef$varFeatures,], query.seurat)
             names(seurat.list) <- c("Reference", "Query")
 
             ## Compute variable features for each object
@@ -26,16 +29,17 @@ seuratMap = function(GEXRef, query.data, dims=30, k.weight=15){
             ## Create results data.frame
             mappingTarget = data.frame(map.Tree=as.character(predictions$predicted.id), 
                                        score.Tree=predictions$prediction.score.max)
+            mappingTarget
         },
         error = function(e){ 
             print("Error caught for Seurat mapping.")
             print(e)
+            return(NULL)
         },
         warning = function(w){
         },
         finally = {
-            print("Seurat mapping complete")
-            return(mappingTarget)
         }
     )
+    return(mappingTarget)
 }
