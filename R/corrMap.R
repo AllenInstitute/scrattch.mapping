@@ -35,9 +35,9 @@ corrMap = function(GEXRef, query.data){
 
 #' Correlation based cell type mapping wrapper
 #'
-#' @param input_logcpm
-#' @param reference_medians
-#' @param nGenes
+#' @param input_logcpm Inputted log2(CPM+1) values.
+#' @param reference_medians Median expression levels (log2(CPM+1)) of reference cell types.
+#' @param nGenes Number of high variance genes to include.
 #'
 #' @return Correlation mapping results
 #'

@@ -12,18 +12,22 @@ Authors@R:
            email = "jeremy.miller@alleninstitute.org")
 Description: ADD
 License: GPL-3
-Depends: feather,
+Imports: feather,
     dplyr,
-    patchseqtools,
-    patchSeqQC,
-    scrattch.io,
-    scrattch.hicat,
     dendextend,
     Seurat,
-    mfishtools
+    viridis
+DevPackage:
+    AllenInstitute/scrattch.io,
+    AllenInstitute/scrattch.hicat,
+    AllenInstitute/scrattch.vis,
+    AllenInstitute/mfishtools,
+    AllenInstitute/patchseqtools,
+    PavlidisLab/patchSeqQC,
 Suggests: knitr,
     rmarkdown, 
-    testthat
+    testthat,
+    future
 Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr
