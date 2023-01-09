@@ -15,6 +15,7 @@ createSeuratObjectForReferenceFolder(
   feature.set = NULL,
   celltype_colors = NULL,
   metadata_names = setNames(colnames(metadata), colnames(metadata)),
+  subsample = Inf,
   gene_names = rownames(counts),
   cell_names = colnames(counts)
 )
@@ -39,6 +40,8 @@ createSeuratObjectForReferenceFolder(
 \item{celltype_colors}{An optional named character vector where the values correspond to colors and the names correspond to celltypes in celltypeColumn.  If this vector is incomplete, a warning is thrown and it is ignored.}
 
 \item{metadata_names}{An optional named character vector where the vector NAMES correspond to columns in the metadata matrix and the vector VALUES correspond to how these metadata should be displayed in Shiny. This is used for writing the desc.feather file later.}
+
+\item{subsample}{The number of cells to retain per cluster (default is to keep all of them)}
 
 \item{gene_names}{Gene names corresponding to rows in the count matrix (by default, checks the rownames)}
 

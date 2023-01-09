@@ -12,6 +12,7 @@
 #' @param feature.set An optional user supplied gene set otherwise Seurat objects variable features are used for umap generation
 #' @param celltype_colors An optional named character vector where the values correspond to colors and the names correspond to celltypes in celltypeColumn.  If this vector is incomplete, a warning is thrown and it is ignored. 
 #' @param metadata_names An optional named character vector where the vector NAMES correspond to columns in the metadata matrix and the vector VALUES correspond to how these metadata should be displayed in Shiny. This is used for writing the desc.feather file later.
+#' @param subsample The number of cells to retain per cluster (default is to keep all of them)
 #' @param gene_names Gene names corresponding to rows in the count matrix (by default, checks the rownames)
 #' @param cell_names Sample names corresponding to the columns in the count matrix (by default, checks the column names)
 
@@ -29,6 +30,7 @@ createSeuratObjectForReferenceFolder = function(counts,
                                                 feature.set = NULL,
                                                 celltype_colors = NULL,
                                                 metadata_names = setNames(colnames(metadata),colnames(metadata)),
+                                                subsample = Inf,
                                                 gene_names = rownames(counts),
                                                 cell_names = colnames(counts)
                                                 )
@@ -48,15 +50,15 @@ createSeuratObjectForReferenceFolder = function(counts,
   
   # Convert clusterColumn to "cluster" if needed
   if(clusterColumn!="cluster"){
-    eval(parse(text=paste0("seurat.obj$cluster <- seurat.obj$",clusterColumn)))
+    eval(parse(text=paste0("metadata$cluster <- metadata$",clusterColumn)))
   }
   # Convert celltypeColumn to "celltype" if needed
   if(celltypeColumn!="celltype"){
-    eval(parse(text=paste0("seurat.obj$celltype <- seurat.obj$",celltypeColumn)))
+    eval(parse(text=paste0("metadata$celltype <- metadata$",celltypeColumn)))
   }
   # Check if cluster colors are present and complete
   if(!is.null(celltype_colors)){
-    if(length(unique(seurat.obj$celltype))>length(interesect(seurat.obj$celltype,names(celltype_colors)))){
+    if(length(unique(metadata$celltype))>length(interesect(metadata$celltype,names(celltype_colors)))){
       celltype_colors = NULL
       warning("Cluster color vector does not include all celltypes and will be ignored.")
     }
@@ -74,6 +76,13 @@ createSeuratObjectForReferenceFolder = function(counts,
   ## Format the metadata correctly
   metadata <- metadata[cell_names,]
   metadata$sample_id <- cell_names
+  
+  ## Subsample nuclei per cluster, if requested
+  if((subsample > 0)&(subsample < Inf)){
+    kpSub = rownames(metadata)[subsampleCells(metadata$cluster, subsample)]
+    metadata <- metadata[kpSub,]
+    counts   <- counts[,kpSub]
+  }
   
   ## Create and normalize the Seurat object
   seurat.obj <- CreateSeuratObject(counts = counts, meta.data = metadata)
@@ -131,12 +140,11 @@ buildReferenceFolder = function(seurat.obj, shinyFolder, subsample=2000, feature
     if(!"cluster" %in% colnames(seurat.obj@meta.data)){stop("cluster must be defined in the seurat object, set via seurat_clusters or other clustering")}
     if((length(VariableFeatures(seurat.obj)) == 0) & is.null(feature.set)){stop("Compute variable features or supply feature.set")}
 	
-
     ## Ensure directory exists, if not create it
     dir.create(shinyFolder, showWarnings = FALSE)
 
     ## Subsample nuclei per cluster, max
-    if(subsample > 0){
+    if((subsample > 0)&(subsample < Inf)){
         kpSub = colnames(seurat.obj)[subsampleCells(seurat.obj$cluster, subsample)]
     }else{
         kpSub = colnames(seurat.obj)
@@ -176,7 +184,7 @@ buildReferenceFolder = function(seurat.obj, shinyFolder, subsample=2000, feature
     #        meta.data[,col] = as.character(meta.data[,col])
     #    }
     #}
-    # Shouldn't be needed as factors are okay
+    # Shouldn't be needed as factors are okay, and actually suggested for cluster order
 
     ## Run auto_annotate, this changes sample_id to sample_name.
     meta.data = scrattch.io::auto_annotate(meta.data)
