@@ -8,7 +8,8 @@ buildReferenceFolder(
   seurat.obj,
   shinyFolder,
   subsample = 2000,
-  feature.set = NULL
+  feature.set = NULL,
+  save.normalized.data = FALSE
 )
 }
 \arguments{
@@ -18,7 +19,9 @@ buildReferenceFolder(
 
 \item{subsample}{The number of cells to retain per cluster}
 
-\item{feature.set}{An optional user supplied gene set otherwise Seurat obects variable features are used
+\item{feature.set}{An optional user supplied gene set otherwise Seurat obects variable features are used}
+
+\item{save.normalized.data}{Should normalized data (TRUE="data" slot in Seurat object) or raw count matrix (FALSE="counts" slot in Seurat object; default) be saved?
 \subsection{NOTES}{
 
 Seurat object must have the following:
