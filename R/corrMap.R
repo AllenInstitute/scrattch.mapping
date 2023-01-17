@@ -3,6 +3,8 @@
 #' @param GEXRef A reference taxonomy object.
 #' @param query.data A logCPM normalized matrix to be annotated.
 #'
+#' @import scrattch.hicat
+#'
 #' @return Correlation mapping results as a data.frame.
 #'
 #' @export
@@ -11,7 +13,7 @@ corrMap = function(GEXRef, query.data){
     ## Attempt Correlation mapping
     mappingTarget = tryCatch(
         expr = {
-            clReference  = setNames(factor(GEXRef$annoReference$cluster_label,levels=GEXRef$clustersUse),
+            clReference  = setNames(factor(GEXRef$annoReference$cluster_label, levels=GEXRef$clustersUse),
                                     colnames(GEXRef$datReference))[GEXRef$kpSamp]
             corMapTarget = map_by_cor(GEXRef$datReference[GEXRef$varFeatures,GEXRef$kpSamp], 
                                         clReference, 
@@ -38,6 +40,9 @@ corrMap = function(GEXRef, query.data){
 #' @param input_logcpm Inputted log2(CPM+1) values.
 #' @param reference_medians Median expression levels (log2(CPM+1)) of reference cell types.
 #' @param nGenes Number of high variance genes to include.
+#'
+#' @import WGCNA
+#' @import mfishtools
 #'
 #' @return Correlation mapping results
 #'

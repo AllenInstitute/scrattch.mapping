@@ -53,3 +53,10 @@ createSeuratObjectForReferenceFolder(
 \description{
 This function builds a Seurat object from a count matrix and metadata table for use with buildReferenceFolder, along with some other optional inputs. Unless otherwise specific log2(CPM(counts)+1) are saved in the "data" slot of the Seurat object because that is what is used for most downstream analysis.
 }
+\details{
+\subsection{Libraries}{
+
+Seurat
+scrattch.hicat
+}
+}

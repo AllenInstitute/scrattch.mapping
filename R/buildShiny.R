@@ -9,13 +9,16 @@
 #' @param normalizebyLogCPM If TRUE (default) log(CPM+1) is used for normalization. If FALSE, `NormalizeData` Seurat function is used 
 #' @param generateUMAP A boolean (default=TRUE) indicating whether UMAP should be calculated
 #' @param npcs Number of pcs used for building the UMAP (default = 10)
+#' @param cluster.resolution Resolution for louvain clustering algorithm
 #' @param feature.set An optional user supplied gene set otherwise Seurat objects variable features are used for umap generation
 #' @param celltype_colors An optional named character vector where the values correspond to colors and the names correspond to celltypes in celltypeColumn.  If this vector is incomplete, a warning is thrown and it is ignored. 
 #' @param metadata_names An optional named character vector where the vector NAMES correspond to columns in the metadata matrix and the vector VALUES correspond to how these metadata should be displayed in Shiny. This is used for writing the desc.feather file later.
 #' @param subsample The number of cells to retain per cluster (default is to keep all of them)
 #' @param gene_names Gene names corresponding to rows in the count matrix (by default, checks the rownames)
 #' @param cell_names Sample names corresponding to the columns in the count matrix (by default, checks the column names)
-
+#'
+#' @improt Seurat
+#' @import scrattch.hicat
 #' 
 #' @return
 #'
@@ -27,20 +30,14 @@ createSeuratObjectForReferenceFolder = function(counts,
                                                 normalizebyLogCPM = TRUE,
                                                 generateUMAP = TRUE,
                                                 npcs = 10,
+                                                cluster.resolution=0.3,
                                                 feature.set = NULL,
                                                 celltype_colors = NULL,
                                                 metadata_names = setNames(colnames(metadata),colnames(metadata)),
                                                 subsample = Inf,
                                                 gene_names = rownames(counts),
                                                 cell_names = colnames(counts)
-                                                )
-{
-  ## Libraries
-  suppressPackageStartupMessages({
-    library(Seurat)
-    library(scrattch.hicat)
-  })
-  
+                                                ){
   ## Checks
   if(length(cell_names)<dim(counts)[2]){stop("Too few cell names provided.")}
   if(length(gene_names)<dim(counts)[1]){stop("Too few gene names provided.")}
@@ -66,7 +63,7 @@ createSeuratObjectForReferenceFolder = function(counts,
     }
   }
   # Reorder and rename metadata checks
-  if(length(intersect(names(metadata_names),colnames(metadata)))<1){
+  if(length(intersect(names(metadata_names),colnames(metadata))) < 1){
     metadata_names = NULL
     warning("No value metadata names are provided and therefore metadata_names will be ignored.")
   } else {
@@ -92,7 +89,7 @@ createSeuratObjectForReferenceFolder = function(counts,
   print("===== Building Seurat object =====")
   seurat.obj <- suppressWarnings(CreateSeuratObject(counts = counts, meta.data = metadata))
   if (normalizebyLogCPM){
-    seurat.obj@assays$RNA@data <- logCPM(counts)
+    seurat.obj@assays$RNA@data <- scrattch.hicat::logCPM(counts)
   } else {
     seurat.obj <- NormalizeData(object = seurat.obj, verbose=FALSE)
   }
@@ -112,12 +109,18 @@ createSeuratObjectForReferenceFolder = function(counts,
     seurat.obj <- suppressWarnings(RunUMAP(object = seurat.obj, dims = 1:npcs, verbose=FALSE))
   }
 
+  ## Cluster
+  seurat.obj <- FindNeighbors(seurat.obj, dims = 1:npcs, verbose=FALSE)
+  seurat.obj <- FindClusters(seurat.obj, resolution = cluster.resolution, verbose=FALSE)
+  seurat.obj$cluster = seurat.obj$seurat_clusters
+
   ## Add the metadata names and cluster colors to misc for use in buildReferenceFolder
   print("===== Adding misc components =====")
   if(!is.null(metadata_names)) seurat.obj@misc$metadata_names <- metadata_names
   if(!is.null(celltype_colors)) seurat.obj@misc$celltype_colors <- celltype_colors
   
-  seurat.obj
+  ##
+  return(seurat.obj)
 }
 
 
@@ -128,6 +131,14 @@ createSeuratObjectForReferenceFolder = function(counts,
 #' @param subsample The number of cells to retain per cluster
 #' @param feature.set An optional user supplied gene set otherwise Seurat obects variable features are used
 #' @param save.normalized.data Should normalized data (TRUE="data" slot in Seurat object) or raw count matrix (FALSE="counts" slot in Seurat object; default) be saved?
+#'
+#' @import Seurat
+#' @import scrattch.hicat
+#' @import scrattch.io
+#' @import feather
+#' @import tibble
+#' @import dplyr
+#' @import Matrix
 #'
 #' ## NOTES
 #'
@@ -148,19 +159,9 @@ buildReferenceFolder = function(seurat.obj,
                                 feature.set=NULL,
                                 save.normalized.data=FALSE){
 
-  ## Libraries
-  suppressPackageStartupMessages({
-    library(Seurat)
-    library(scrattch.hicat)
-    library(scrattch.io)
-    library(feather)
-    library(tibble)
-    library(dplyr)
-    library(Matrix)
-  })
-  
   ## Checks
   if(!"cluster" %in% colnames(seurat.obj@meta.data)){stop("cluster must be defined in the seurat object, set via seurat_clusters or other clustering")}
+  if(!"celltype" %in% colnames(seurat.obj@meta.data)){print("Setting 'celltype' annotation to provided clustering"); seurat.obj$celltype = seurat.obj$cluster}
   if((length(VariableFeatures(seurat.obj)) == 0) & is.null(feature.set)){stop("Compute variable features or supply feature.set")}
 	
   ## Ensure directory exists, if not create it
@@ -175,7 +176,7 @@ buildReferenceFolder = function(seurat.obj,
 
   ## Get the data and metadata matrices
   seurat.obj = subset(seurat.obj, cells=kpSub)
-  slot = ifelse(save.normalized.data,"data","counts")
+  slot = ifelse(save.normalized.data, "data", "counts")
   tpm.matrix = GetAssayData(seurat.obj, slot, assay="RNA")
   meta.data  = seurat.obj@meta.data
   meta.data$sample_id = colnames(seurat.obj)
@@ -209,8 +210,6 @@ buildReferenceFolder = function(seurat.obj,
   write_feather(norm.data.t, file.path(shinyFolder, "data.feather"))
 
   ## ----------
-  ## Now let's correctly update the annotation file for use with shiny.  We'd like to correctly order things to match the tree first.    
-
   ## Run auto_annotate, this changes sample_id to sample_name.
   meta.data = scrattch.io::auto_annotate(meta.data)
 
@@ -265,8 +264,8 @@ buildReferenceFolder = function(seurat.obj,
   saveRDS(dend, file.path(shinyFolder,"dend.RData"))
 
   ## Output tree order
-  outDend = data.frame(cluster=labels(dend),order=1:length(labels(dend)))
-  write.csv(outDend,file.path(shinyFolder,"ordered_clusters.csv"))
+  outDend = data.frame(cluster = labels(dend), order = 1:length(labels(dend)))
+  write.csv(outDend, file.path(shinyFolder, "ordered_clusters.csv"))
     
   ## Write the desc file.  
   anno_desc = create_desc(meta.data, use_label_columns = TRUE)
@@ -307,7 +306,7 @@ buildReferenceFolder = function(seurat.obj,
   count_gt0 = matrix(0, ncol = length(all_clusters), nrow = nrow(data.tibble))
   count_gt1 = sums = medianmat = count_gt0
 
-  ##
+  ## Compute the number of genes with greater than 0,1 counts, gene sums and medians
   data   = GetAssayData(seurat.obj, "data", assay="RNA")
   counts = GetAssayData(seurat.obj, "counts", assay="RNA")
   for (i in 1:length(all_clusters)) {

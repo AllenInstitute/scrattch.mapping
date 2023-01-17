@@ -21,7 +21,26 @@ buildReferenceFolder(
 
 \item{feature.set}{An optional user supplied gene set otherwise Seurat obects variable features are used}
 
-\item{save.normalized.data}{Should normalized data (TRUE="data" slot in Seurat object) or raw count matrix (FALSE="counts" slot in Seurat object; default) be saved?
+\item{save.normalized.data}{Should normalized data (TRUE="data" slot in Seurat object) or raw count matrix (FALSE="counts" slot in Seurat object; default) be saved?}
+}
+\value{
+
+}
+\description{
+Starting from a Seurat object this function builds the minimum files required for Shiny
+}
+\details{
+\subsection{Libraries}{
+
+library(Seurat)
+library(scrattch.hicat)
+library(scrattch.io)
+library(feather)
+library(tibble)
+library(dplyr)
+library(Matrix)
+}
+
 \subsection{NOTES}{
 
 Seurat object must have the following:
@@ -31,11 +50,5 @@ seurat.obj@meta.data$cluster contains clustering either via seurat or other meth
 seurat.obj@meta.data$sample_id is set via colnames(seurat.obj)
 seurat.obj@meta.data$celltype is the labels to be shown on the dendrogram for each cluster, doesn't need to be 1-1 (but usually is)
 UMAP/tSNE is pulled from: FetchData(seurat.obj, vars=c("UMAP_1","UMAP_2")), simply run Seurats UMAP function or add a new dimensionSlot with the UMAP_ name.
-}}
 }
-\value{
-
-}
-\description{
-Starting from a Seurat object this function builds the minimum files required for Shiny
 }
