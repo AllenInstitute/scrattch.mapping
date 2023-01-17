@@ -4,7 +4,7 @@
 \alias{seuratMap}
 \title{Seurat based mapping}
 \usage{
-seuratMap(GEXRef, query.data, dims = 30, k.weight = 15)
+seuratMap(GEXRef, query.data, dims = 30, k.weight = 5)
 }
 \arguments{
 \item{GEXRef}{A reference taxonomy object.}

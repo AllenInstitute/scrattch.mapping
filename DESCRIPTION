@@ -14,16 +14,22 @@ Description: ADD
 License: GPL-3
 Depends: feather,
     dplyr,
-    patchseqtools,
-    patchSeqQC,
-    scrattch.io,
-    scrattch.hicat,
     dendextend,
     Seurat,
-    mfishtools
+    viridis,
+    feather,
+    tibble,
+    Matrix,
+    scrattch.io,
+    scrattch.hicat,
+    scrattch.vis,
+    mfishtools,
+    patchseqtools,
+    patchSeqQC
 Suggests: knitr,
     rmarkdown, 
-    testthat
+    testthat,
+    future
 Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr

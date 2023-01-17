@@ -1,12 +1,14 @@
+## Test that should be run after "build_test.R"
+
 library(scrattch.mapping)
+library(Seurat)
 
 ## Load in the data to be annotated
 load("/allen/programs/celltypes/workgroups/rnaseqanalysis/EvoGen/BasalGanglia/NHP/pipeline/1001_C06_MTX-2046/1001_C06.RData")
 query.data = as.matrix(GetAssayData(rnaseq.data, "data"))
 
 ## Specify which taxonomies to map against.
-taxonomies = c("/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/human_BGplus_20211020",
-               "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/he_et_al_complete",
+taxonomies = c("/allen/programs/celltypes/workgroups/rnaseqanalysis/EvoGen/shinymap_test",
                "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/he_et_al_msn")
 
 ## Map data against all taxonomies
