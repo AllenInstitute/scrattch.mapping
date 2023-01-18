@@ -12,6 +12,7 @@ createSeuratObjectForReferenceFolder(
   normalizebyLogCPM = TRUE,
   generateUMAP = TRUE,
   npcs = 10,
+  cluster.resolution = 0.3,
   feature.set = NULL,
   celltype_colors = NULL,
   metadata_names = setNames(colnames(metadata), colnames(metadata)),
@@ -35,6 +36,8 @@ createSeuratObjectForReferenceFolder(
 
 \item{npcs}{Number of pcs used for building the UMAP (default = 10)}
 
+\item{cluster.resolution}{Resolution for louvain clustering algorithm}
+
 \item{feature.set}{An optional user supplied gene set otherwise Seurat objects variable features are used for umap generation}
 
 \item{celltype_colors}{An optional named character vector where the values correspond to colors and the names correspond to celltypes in celltypeColumn.  If this vector is incomplete, a warning is thrown and it is ignored.}
@@ -52,11 +55,4 @@ createSeuratObjectForReferenceFolder(
 }
 \description{
 This function builds a Seurat object from a count matrix and metadata table for use with buildReferenceFolder, along with some other optional inputs. Unless otherwise specific log2(CPM(counts)+1) are saved in the "data" slot of the Seurat object because that is what is used for most downstream analysis.
-}
-\details{
-\subsection{Libraries}{
-
-Seurat
-scrattch.hicat
-}
 }

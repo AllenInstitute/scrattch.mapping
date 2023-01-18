@@ -9,6 +9,7 @@ buildReferenceFolder(
   shinyFolder,
   subsample = 2000,
   feature.set = NULL,
+  reorder.dendrogram = FALSE,
   save.normalized.data = FALSE
 )
 }
@@ -21,6 +22,8 @@ buildReferenceFolder(
 
 \item{feature.set}{An optional user supplied gene set otherwise Seurat obects variable features are used}
 
+\item{reorder.dendrogram}{Should dendogram attempt to match a preset order? (Default = FALSE).  If TRUE, the dendrogram attempts to match the celltype factor order as closely as possible (if celltype is a character vector rather than a factor, this will sort clusters alphabetically, which is not ideal).}
+
 \item{save.normalized.data}{Should normalized data (TRUE="data" slot in Seurat object) or raw count matrix (FALSE="counts" slot in Seurat object; default) be saved?}
 }
 \value{
@@ -28,27 +31,4 @@ buildReferenceFolder(
 }
 \description{
 Starting from a Seurat object this function builds the minimum files required for Shiny
-}
-\details{
-\subsection{Libraries}{
-
-library(Seurat)
-library(scrattch.hicat)
-library(scrattch.io)
-library(feather)
-library(tibble)
-library(dplyr)
-library(Matrix)
-}
-
-\subsection{NOTES}{
-
-Seurat object must have the following:
-Expr. data is gathered from: GetAssayData(seurat.obj, "data") and "counts"
-Either VariableFeatures(seurat.obj) or feature.set parameter must be supplied.
-seurat.obj@meta.data$cluster contains clustering either via seurat or other method, used for subsampling and dendrogram
-seurat.obj@meta.data$sample_id is set via colnames(seurat.obj)
-seurat.obj@meta.data$celltype is the labels to be shown on the dendrogram for each cluster, doesn't need to be 1-1 (but usually is)
-UMAP/tSNE is pulled from: FetchData(seurat.obj, vars=c("UMAP_1","UMAP_2")), simply run Seurats UMAP function or add a new dimensionSlot with the UMAP_ name.
-}
 }
