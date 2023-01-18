@@ -241,15 +241,16 @@ buildReferenceFolder = function(seurat.obj,
   }
   
   print("===== Building dendrogram =====")
-  dend.result = scrattch.mapping::build_dend(
-    cl.dat  = medianExpr[feature.set,],
-    cl.cor  = NULL,
-    l.color = use.color,
-    l.rank  = l.rank, 
-    nboot   = 1,
-    ncores  = 1
-  )
-
+  invisible(capture.output({  # Avoid printing lots of numbers to the screen
+    dend.result = scrattch.mapping::build_dend(
+      cl.dat  = medianExpr[feature.set,],
+      cl.cor  = NULL,
+      l.color = use.color,
+      l.rank  = l.rank, 
+      nboot   = 1,
+      ncores  = 1)
+  }))
+  
   ## Output tree
   dend = dend.result$dend
   saveRDS(dend, file.path(shinyFolder,"dend.RData"))
@@ -485,10 +486,11 @@ addDendrogramMarkers = function(dend,
   
   
   print("Build the reference dendrogram")
-  # NOTE: we may want to wrap this somehow so that it doesn't output a bunch of random text to the screen.
-  reference = build_reference(cl=select.cl, norm.dat=norm.data, dend=dend, de.genes=de.genes, 
-                              cl.label=cl.label, up.gene.score=gene.score$up.gene.score, 
-                              down.gene.score=gene.score$down.gene.score, n.markers=30)
+  invisible(capture.output({  # Avoid printing lots of numbers to the screen
+    reference = build_reference(cl=select.cl, norm.dat=norm.data, dend=dend, de.genes=de.genes, 
+                                cl.label=cl.label, up.gene.score=gene.score$up.gene.score, 
+                                down.gene.score=gene.score$down.gene.score, n.markers=30)
+  }))
   labels(reference$dend) <- setNames(colnames(reference$cl.dat),colnames(reference$cl.dat))
   # There is an error introduced somewhere in build_reference, which the above line fixes -- I'm not sure if this is needed and if it is, I should wrap it into build_reference
   
@@ -506,9 +508,11 @@ addDendrogramMarkers = function(dend,
     print("Build membership table of reference vs. reference for use with patch-seq mapping")
     cl.dat     <- reference$cl.dat
     dend       <- reference$dend
-    memb.ref   <- map_dend_membership(dend, cl.dat, map.dat=norm.data, map.cells=names(select.cl),
-                                      mc.cores=mc.cores, bs.num=bs.num, p=p, low.th=low.th)
-    map.df.ref <- summarize_cl(dend, memb.ref, norm.data)
+    invisible(capture.output({  # Avoid printing lots of numbers to the screen
+      memb.ref   <- map_dend_membership(dend, cl.dat, map.dat=norm.data, map.cells=names(select.cl),
+                                        mc.cores=mc.cores, bs.num=bs.num, p=p, low.th=low.th)
+      map.df.ref <- summarize_cl(dend, memb.ref, norm.data)
+    }))
     memb.ref   <- memb.ref[metadata$sample_id,]
     map.df.ref <- map.df.ref[metadata$sample_id,]
     save(memb.ref, map.df.ref, file=paste0(shinyFolder,"membership_information_reference.rda"))
