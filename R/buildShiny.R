@@ -241,12 +241,14 @@ buildReferenceFolder = function(seurat.obj,
   }
   
   print("===== Building dendrogram =====")
-  dend.result = build_dend(cl.dat  = medianExpr[feature.set,],
-                           cl.cor  = NULL,
-                           l.color = use.color,
-                           l.rank  = l.rank, 
-                           nboot   = 1,
-                           ncores  = 1)
+  dend.result = scrattch.mapping::build_dend(
+    cl.dat  = medianExpr[feature.set,],
+    cl.cor  = NULL,
+    l.color = use.color,
+    l.rank  = l.rank, 
+    nboot   = 1,
+    ncores  = 1
+  )
 
   ## Output tree
   dend = dend.result$dend

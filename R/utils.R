@@ -356,6 +356,9 @@ resolve_cl <-
 #' @param ncores 
 #'
 #' @return
+#'
+#' @import dendextend
+#' @import pvclust
 #' 
 #' @export
 #'
