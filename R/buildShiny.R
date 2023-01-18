@@ -4,14 +4,12 @@
 #'
 #' @param counts Count matrix with genes as rows and cells/nuclei as columns
 #' @param metadata Matrix of metadata with rows corresponding to cells/nuclei, and row names corresponding to cell names. IF column names of counts are unspecified, then this matrix must be the same length and ordered in the same way as the counts matrix.  In any case, this must be a superset of counts (e.g., no missing metadata)
-#' @param clusterColumn Column name correspond to the clusters to include in the clustering results
-#' @param celltypeColumn Column name correspond to the cell type names to include in the dendrogram.  By default (and in most cases) this is identical to clusterColumn.
+#' @param clusterColumn Column name corresponding to the cell type names to include in the clustering results.  These names and cluster assignments are used in the dendrogram (default = "cluster").  Note: if there are any other IDs corresponding to these cell types (e.g., a unique ID called "cl" or "cell_type_accession_id" or otherwise), this information should be included as separate columns in the metadata and can be imported into the dendrogram in a separate function if needed.
 #' @param normalizebyLogCPM If TRUE (default) log(CPM+1) is used for normalization. If FALSE, `NormalizeData` Seurat function is used 
+#' @param feature.set An optional user supplied gene set otherwise Seurat objects variable features are used for clustering and umap generation
 #' @param generateUMAP A boolean (default=TRUE) indicating whether UMAP should be calculated
 #' @param npcs Number of pcs used for building the UMAP (default = 10)
-#' @param cluster.resolution Resolution for louvain clustering algorithm
-#' @param feature.set An optional user supplied gene set otherwise Seurat objects variable features are used for umap generation
-#' @param celltype_colors An optional named character vector where the values correspond to colors and the names correspond to celltypes in celltypeColumn.  If this vector is incomplete, a warning is thrown and it is ignored. 
+#' @param cluster_colors An optional named character vector where the values correspond to colors and the names correspond to celltypes in celltypeColumn.  If this vector is incomplete, a warning is thrown and it is ignored. 
 #' @param metadata_names An optional named character vector where the vector NAMES correspond to columns in the metadata matrix and the vector VALUES correspond to how these metadata should be displayed in Shiny. This is used for writing the desc.feather file later.
 #' @param subsample The number of cells to retain per cluster (default is to keep all of them)
 #' @param gene_names Gene names corresponding to rows in the count matrix (by default, checks the rownames)
@@ -26,13 +24,11 @@
 createSeuratObjectForReferenceFolder = function(counts, 
                                                 metadata,
                                                 clusterColumn = "cluster",
-                                                celltypeColumn = clusterColumn,
                                                 normalizebyLogCPM = TRUE,
+                                                feature.set = NULL,
                                                 generateUMAP = TRUE,
                                                 npcs = 10,
-                                                cluster.resolution=0.3,
-                                                feature.set = NULL,
-                                                celltype_colors = NULL,
+                                                cluster_colors = NULL,
                                                 metadata_names = setNames(colnames(metadata),colnames(metadata)),
                                                 subsample = Inf,
                                                 gene_names = rownames(counts),
@@ -51,14 +47,10 @@ createSeuratObjectForReferenceFolder = function(counts,
   if(clusterColumn!="cluster"){
     eval(parse(text=paste0("metadata$cluster <- metadata$",clusterColumn)))
   }
-  # Convert celltypeColumn to "celltype" if needed
-  if(celltypeColumn!="celltype"){
-    eval(parse(text=paste0("metadata$celltype <- metadata$",celltypeColumn)))
-  }
   # Check if cluster colors are present and complete
-  if(!is.null(celltype_colors)){
-    if(length(unique(metadata$celltype))>length(interesect(metadata$celltype,names(celltype_colors)))){
-      celltype_colors = NULL
+  if(!is.null(cluster_colors)){
+    if(length(unique(metadata$cluster))>length(interesect(metadata$cluster,names(cluster_colors)))){
+      cluster_colors = NULL
       warning("Cluster color vector does not include all celltypes and will be ignored.")
     }
   }
@@ -67,8 +59,8 @@ createSeuratObjectForReferenceFolder = function(counts,
     metadata_names = NULL
     warning("No value metadata names are provided and therefore metadata_names will be ignored.")
   } else {
-    metadata_names <- c(setNames(c("cluster","celltype"),c("cluster","celltype")),
-                        metadata_names[!is.element(metadata_names,c(clusterColumn,celltypeColumn))],
+    metadata_names <- c(setNames(c("cluster"),c("cluster")),
+                        metadata_names[!is.element(metadata_names,c(clusterColumn,clusterColumn))],
                         setNames(c("nCount_RNA","nFeature_RNA"),c("nCount_RNA","nFeature_RNA")))
   }
   # Probably need more checks!
@@ -109,15 +101,10 @@ createSeuratObjectForReferenceFolder = function(counts,
     seurat.obj <- suppressWarnings(RunUMAP(object = seurat.obj, dims = 1:npcs, verbose=FALSE))
   }
 
-  ## Cluster
-  seurat.obj <- FindNeighbors(seurat.obj, dims = 1:npcs, verbose=FALSE)
-  seurat.obj <- FindClusters(seurat.obj, resolution = cluster.resolution, verbose=FALSE)
-  seurat.obj$cluster = seurat.obj$seurat_clusters
-
   ## Add the metadata names and cluster colors to misc for use in buildReferenceFolder
   print("===== Adding misc components =====")
   if(!is.null(metadata_names)) seurat.obj@misc$metadata_names <- metadata_names
-  if(!is.null(celltype_colors)) seurat.obj@misc$celltype_colors <- celltype_colors
+  if(!is.null(cluster_colors)) seurat.obj@misc$cluster_colors <- cluster_colors
   
   ##
   return(seurat.obj)
@@ -138,9 +125,8 @@ createSeuratObjectForReferenceFolder = function(counts,
 #' Seurat object must have the following: 
 #'      Expr. data is gathered from: GetAssayData(seurat.obj, "data") and "counts"
 #'      Either VariableFeatures(seurat.obj) or feature.set parameter must be supplied.
-#'      seurat.obj@meta.data$cluster contains clustering either via seurat or other method, used for subsampling and dendrogram
+#'      seurat.obj@meta.data$cluster contains clustering results, used both for subsampling and dendrogram labels
 #'      seurat.obj@meta.data$sample_id is set via colnames(seurat.obj)
-#'      seurat.obj@meta.data$celltype is the labels to be shown on the dendrogram for each cluster, doesn't need to be 1-1 (but usually is)
 #'      UMAP/tSNE is pulled from: FetchData(seurat.obj, vars=c("UMAP_1","UMAP_2")), simply run Seurats UMAP function or add a new dimensionSlot with the UMAP_ name.
 #'
 #' @import Seurat
@@ -162,8 +148,7 @@ buildReferenceFolder = function(seurat.obj,
                                 save.normalized.data=FALSE){
 
   ## Checks
-  if(!"cluster" %in% colnames(seurat.obj@meta.data)){stop("cluster must be defined in the seurat object, set via seurat_clusters or other clustering")}
-  if(!"celltype" %in% colnames(seurat.obj@meta.data)){print("Setting 'celltype' annotation to provided clustering"); seurat.obj$celltype = seurat.obj$cluster}
+  if(!"cluster" %in% colnames(seurat.obj@meta.data)){stop("cluster must be defined in the seurat object")}
   if((length(VariableFeatures(seurat.obj)) == 0) & is.null(feature.set)){stop("Compute variable features or supply feature.set")}
 	
   ## Ensure directory exists, if not create it
@@ -213,6 +198,7 @@ buildReferenceFolder = function(seurat.obj,
 
   ## ----------
   ## Run auto_annotate, this changes sample_id to sample_name.
+  print("===== Format metadata table for R shiny folder =====")
   meta.data = scrattch.io::auto_annotate(meta.data)
 
   ### Convert chars and factors to characters (moved to AFTER auto_annotate, so numbers can be assigned in correct order for factors)
@@ -229,42 +215,38 @@ buildReferenceFolder = function(seurat.obj,
       meta.data[kp,col] = paste0(meta.data[kp,col],"FF")
   }
 
-  ## Adjust the celltype colors (and cluster colors if they are they same) to match celltype_colors, if available
-  if(is.element("celltype_colors",names(seurat.obj@misc))){
-    meta.data$celltype_color <- as.character(seurat.obj@misc$celltype_colors[meta.data$celltype_label])
-    if(sum(meta.data$celltype_label!=meta.data$cluster_label)==0) meta.data$cluster_color <- meta.data$celltype_color
+  ## Adjust the cluster colors to match cluster_colors, if available
+  if(is.element("cluster_colors",names(seurat.obj@misc))){
+    meta.data$cluster_color <- as.character(seurat.obj@misc$cluster_colors[meta.data$cluster_label])
   }
     
-  ## Define the cluster info file
+  ## Get cluster medians
+  medianExpr = get_cl_medians(GetAssayData(seurat.obj, "data"), seurat.obj$cluster) 
+  
+  ## Define the cluster info 
   unique.meta.data = meta.data %>% distinct(cluster_id, 
                                             cluster_label, 
-                                            cluster_color, 
-                                            celltype_label, 
-                                            celltype_color)
+                                            cluster_color)
   rownames(unique.meta.data) = unique.meta.data$cluster_label
-    
-  ## Get cluster medians, proportions, and expressed genes
-  print("===== Building dendrogram =====")
-  medianExpr = get_cl_medians(GetAssayData(seurat.obj, "data"), seurat.obj$cluster)
-  propExpr   = get_cl_prop(GetAssayData(seurat.obj, "data"), seurat.obj$cluster)
-  presentGn  = apply(medianExpr,1,max) > 0
 
-  ## Dendrogram labels
-  colnames(medianExpr) = unique.meta.data[colnames(medianExpr), "celltype_label"]
-
-  if(is.null(feature.set)){feature.set = VariableFeatures(seurat.obj)}
-
-  ## Regenerate the dendrogram with the correct color scheme.  Note that the dendrogram was generated from the entire data set, not the subset data set.  
-  use.color     = setNames(unique.meta.data$celltype_color, unique.meta.data$celltype_label)
-  l.rank        = NULL
+  ## Dendrogram parameters and gene sets
+  use.color = setNames(unique.meta.data$cluster_color, unique.meta.data$cluster_label)[colnames(medianExpr)]
+  l.rank    = NULL
   if(reorder.dendrogram){
-    l.rank = setNames(meta.data$celltype_id[match(unique.meta.data$celltype_label,meta.data$celltype_label)], unique.meta.data$celltype_label)
+    l.rank = setNames(meta.data$cluster_id[match(unique.meta.data$cluster_label,meta.data$cluster_label)], unique.meta.data$cluster_label)
     l.rank = sort(l.rank)
   }
-  dend.result   = build_dend(medianExpr[feature.set,],
-                             cl.cor = NULL,
-                             l.color = use.color,
-                             nboot = 1)
+  if(is.null(feature.set)){
+    feature.set = VariableFeatures(seurat.obj)
+  }
+  
+  print("===== Building dendrogram =====")
+  dend.result = build_dend(cl.dat  = medianExpr[feature.set,],
+                           cl.cor  = NULL,
+                           l.color = use.color,
+                           l.rank  = l.rank, 
+                           nboot   = 1,
+                           ncores  = 1)
 
   ## Output tree
   dend = dend.result$dend
@@ -354,7 +336,7 @@ buildReferenceFolder = function(seurat.obj,
 #' @param dend A dendrogram in R format to which marker genes will be added, or a character string with a file location of "dend.RData"
 #' @param norm.data A matrix of log normalized reference data, or character string with a file location of "data_t.feather".  If a count matrix is provided, the data data will be log normalized.  This should be the data matrix used to generate the dendrogram.
 #' @param metadata Data frame of metadata with rows corresponding to cells/nuclei, and either row names or a column called "sample_id" corresponding to cell names. This matrix must include entries for all cells in norm.data.  Could also be a file.  Columns can be numeric, categorical, or factors.
-#' @param celltypeColumn Column name correspond to the cell type names in the dendrogram (default = "celltype_label"). At least two cells per cell type in the dendrogram must be included.
+#' @param celltypeColumn Column name correspond to the cell type names in the dendrogram (default = "cluster_label"). At least two cells per cell type in the dendrogram must be included.
 #' @param subsample The number of cells to retain per cluster (default = 100)
 #' @param num.markers The maximum number of markers to calculate per pairwise differential calculation per direction (default = 20)
 #' @param de.param Differential expression (DE) parameters for genes and clusters used to define marker genes.  By default the values are set to the 10x nuclei defaults from scrattch.hicat, except with min.cells=2 (see the function `de_param` in the scrattch.hicat for more details).
@@ -385,7 +367,7 @@ buildReferenceFolder = function(seurat.obj,
 addDendrogramMarkers = function(dend,
                                 norm.data,
                                 metadata,
-                                celltypeColumn = "celltype_label",
+                                celltypeColumn = "cluster_label",
                                 subsample = 100,
                                 num.markers = 20,
                                 de.param=scrattch.hicat::de_param(low.th = 1,
@@ -485,7 +467,7 @@ addDendrogramMarkers = function(dend,
   
   print("Define marker genes and gene scores for the tree")
   if((!file.exists(paste0(shinyFolder,"de.genes.rda")))|calculate.de.genes){
-    print("=== NOTE: This step is very slow (sometimes upwards of several hours to several days depending on the size of the dendrogram).  To speed up the calculation, or if it crashes, try decreasing the value of subsample.")
+    print("=== NOTE: This step is very slow (sometimes several hours).  To speed up the calculation, or if it crashes, try decreasing the value of subsample.")
     de.genes = select_markers(norm.dat=norm.data, cl=select.cl, n.markers=num.markers, de.genes = NULL)$de.genes
     save(de.genes, file=paste0(shinyFolder,"de.genes.rda"))  
   } else {
@@ -501,6 +483,7 @@ addDendrogramMarkers = function(dend,
   
   
   print("Build the reference dendrogram")
+  # NOTE: we may want to wrap this somehow so that it doesn't output a bunch of random text to the screen.
   reference = build_reference(cl=select.cl, norm.dat=norm.data, dend=dend, de.genes=de.genes, 
                               cl.label=cl.label, up.gene.score=gene.score$up.gene.score, 
                               down.gene.score=gene.score$down.gene.score, n.markers=30)
@@ -516,8 +499,7 @@ addDendrogramMarkers = function(dend,
   if(save.shiny.output){
     print("Save the reference dendrogram")
     save(reference, file=paste0(shinyFolder,"reference.rda"))
-    #reference$cl.dat  # These are the cluster means that are used for mapping comparisons
-    #reference$dend    # This is the dendrogram with marker genes attached
+
     
     print("Build membership table of reference vs. reference for use with patch-seq mapping")
     cl.dat     <- reference$cl.dat

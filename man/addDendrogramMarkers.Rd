@@ -8,7 +8,7 @@ addDendrogramMarkers(
   dend,
   norm.data,
   metadata,
-  celltypeColumn = "celltype_label",
+  celltypeColumn = "cluster_label",
   subsample = 100,
   num.markers = 20,
   de.param = scrattch.hicat::de_param(low.th = 1, padj.th = 0.01, lfc.th = 1, q1.th =
@@ -29,7 +29,7 @@ addDendrogramMarkers(
 
 \item{metadata}{Data frame of metadata with rows corresponding to cells/nuclei, and either row names or a column called "sample_id" corresponding to cell names. This matrix must include entries for all cells in norm.data.  Could also be a file.  Columns can be numeric, categorical, or factors.}
 
-\item{celltypeColumn}{Column name correspond to the cell type names in the dendrogram (default = "celltype_label"). At least two cells per cell type in the dendrogram must be included.}
+\item{celltypeColumn}{Column name correspond to the cell type names in the dendrogram (default = "cluster_label"). At least two cells per cell type in the dendrogram must be included.}
 
 \item{subsample}{The number of cells to retain per cluster (default = 100)}
 

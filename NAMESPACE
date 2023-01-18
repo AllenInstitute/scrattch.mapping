@@ -2,6 +2,7 @@
 
 export(addDendrogramMarkers)
 export(buildReferenceFolder)
+export(build_dend)
 export(build_reference)
 export(corrMap)
 export(createSeuratObjectForReferenceFolder)

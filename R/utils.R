@@ -342,3 +342,54 @@ resolve_cl <-
     }
     return(mapped.cl)
   }
+
+
+
+
+#' Build dend (updated to specify dendextend version of "set")
+#'
+#' @param cl.dat 
+#' @param cl.cor 
+#' @param l.rank 
+#' @param l.color 
+#' @param nboot 
+#' @param ncores 
+#'
+#' @return
+#' 
+#' @export
+#'
+build_dend <- function(cl.dat, cl.cor=NULL, l.rank=NULL, l.color=NULL, nboot=100, ncores=1)
+{
+  if(is.null(cl.cor)){
+    cl.cor = cor(cl.dat)
+  }
+  pvclust.result=NULL
+  if(nboot > 0){
+    require(pvclust)
+    parallel= FALSE
+    if(ncores > 1){
+      parallel = as.integer(ncores)
+    }
+    pvclust.result <- pvclust::pvclust(cl.dat, method.dist = "cor" ,method.hclust = "average", nboot=nboot, parallel=parallel)
+    dend = as.dendrogram(pvclust.result$hclust)
+    dend = label_dend(dend)$dend
+    dend = dend %>% pvclust_show_signif_gradient(pvclust.result, signif_type = "bp", signif_col_fun=colorRampPalette(c("white","gray","darkred","black")))
+  }
+  else{
+    cl.hc = hclust(as.dist(1-cl.cor),method="average")      
+    dend = as.dendrogram(cl.hc)
+  }
+  dend = dend %>% dendextend::set("labels_cex", 0.7)
+  if(!is.null(l.color)){
+    dend = dend %>% dendextend::set("labels_col", l.color[labels(dend)])
+  }
+  dend = dend %>% dendextend::set("leaves_pch", 19) %>% dendextend::set("leaves_cex", 0.5)
+  if(!is.null(l.color)){
+    dend = dend %>% dendextend::set("leaves_col", l.color[labels(dend)])
+  }
+  if(!is.null(l.rank)){
+    dend =reorder_dend(dend,l.rank)
+  }
+  return(list(dend=dend, cl.cor=cl.cor, pvclust.result=pvclust.result))
+}
