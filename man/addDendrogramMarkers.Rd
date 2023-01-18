@@ -45,7 +45,17 @@ addDendrogramMarkers(
 
 \item{bs.num, p, low.th}{Extra variables for the \code{map_dend_membership} function in scrattch.hicat.  Defaults are set reasonably.}
 
-\item{shinyFolder}{The location to save shiny output, if desired}
+\item{shinyFolder}{The location to save shiny output, if desired
+
+NOTES
+
+If save.shiny.output=TRUE, the following files will be generated:
+reference.rda, which includes a variable \code{reference} as follows:
+reference$cl.dat - These are the cluster means that are used for mapping comparisons
+reference$dend   - This is the dendrogram with marker genes attached
+membership_information_reference.rda, which includes two variables
+\code{memb.ref}   - matrix indicating how much confusion there is the mapping between each cell all of the nodes in the tree (including all cell types) when comparing clustering and mapping results with various subsamplings of the data
+\code{map.df.ref} - Result of tree mapping for each cell in the reference against the clustering tree, including various statistics and marker gene evidence.  This is the same output that comes from tree mapping.#'}
 }
 \value{
 An updated dendrogram variable that is the same as \code{dend} except with marker genes added to each node.

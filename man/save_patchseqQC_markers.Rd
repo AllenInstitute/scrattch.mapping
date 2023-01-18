@@ -30,7 +30,15 @@ save_patchseqQC_markers(
 
 \item{num.markers}{The maximum number of markers to calculate per node per direction (default = 50)}
 
-\item{shinyFolder}{= The location to save shiny output (default = current working directory).}
+\item{shinyFolder}{= The location to save shiny output (default = current working directory).
+
+Nothing is returned; however an R data object called "QC_markers.RData" is returned with the following variables
+markers,
+countsQC,
+cpmQC,
+classBr,
+subclassF,
+allMarkers,}
 }
 \description{
 This function write a file called \code{QC_markers.RData} that contains all the variables required for applying the patchseq QC algorithm \code{pathseqtools} (which is an more flexible version of the \code{patchSeqQC} algorithm).  This is only used for patch-seq analysis.

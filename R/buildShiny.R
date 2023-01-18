@@ -17,7 +17,7 @@
 #' @param gene_names Gene names corresponding to rows in the count matrix (by default, checks the rownames)
 #' @param cell_names Sample names corresponding to the columns in the count matrix (by default, checks the column names)
 #'
-#' @improt Seurat
+#' @import Seurat
 #' @import scrattch.hicat
 #' 
 #' @return
@@ -126,21 +126,13 @@ createSeuratObjectForReferenceFolder = function(counts,
 
 #' Starting from a Seurat object this function builds the minimum files required for Shiny
 #'
-#' @param seurat.obj A Seurat object as specified in the notes, or as output from `createSeuratObjectForReferenceFolder`
+#' @param seurat.obj A Seurat object as specified in the notes, or as output from "createSeuratObjectForReferenceFolder"
 #' @param shinyFolder The location to save Shiny objects, e.g. "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/NHP_BG_20220104/"
 #' @param subsample The number of cells to retain per cluster
 #' @param feature.set An optional user supplied gene set otherwise Seurat obects variable features are used
 #' @param reorder.dendrogram Should dendogram attempt to match a preset order? (Default = FALSE).  If TRUE, the dendrogram attempts to match the celltype factor order as closely as possible (if celltype is a character vector rather than a factor, this will sort clusters alphabetically, which is not ideal).
 #' @param save.normalized.data Should normalized data (TRUE="data" slot in Seurat object) or raw count matrix (FALSE="counts" slot in Seurat object; default) be saved?
-#'
-#' @import Seurat
-#' @import scrattch.hicat
-#' @import scrattch.io
-#' @import feather
-#' @import tibble
-#' @import dplyr
-#' @import Matrix
-#'
+#' 
 #' ## NOTES
 #'
 #' Seurat object must have the following: 
@@ -150,6 +142,14 @@ createSeuratObjectForReferenceFolder = function(counts,
 #'      seurat.obj@meta.data$sample_id is set via colnames(seurat.obj)
 #'      seurat.obj@meta.data$celltype is the labels to be shown on the dendrogram for each cluster, doesn't need to be 1-1 (but usually is)
 #'      UMAP/tSNE is pulled from: FetchData(seurat.obj, vars=c("UMAP_1","UMAP_2")), simply run Seurats UMAP function or add a new dimensionSlot with the UMAP_ name.
+#'
+#' @import Seurat
+#' @import scrattch.hicat
+#' @import scrattch.io
+#' @import feather
+#' @import tibble
+#' @import dplyr
+#' @import Matrix
 #' 
 #' @return
 #'
@@ -363,13 +363,8 @@ buildReferenceFolder = function(seurat.obj,
 #' @param mc.cores Number of cores to use for running this function to speed things up.  Default = 1.  Values>1 are only supported in an UNIX environment and require and `foreach` and `doParallel` R libraries.
 #' @param bs.num,p,low.th Extra variables for the `map_dend_membership` function in scrattch.hicat.  Defaults are set reasonably.
 #' @param shinyFolder The location to save shiny output, if desired
-#' 
-#' @import feather
-#' @import scrattch.hicat
-#' @import MatrixGenerics
-#' @import dendextend
 #'
-#' ## NOTES
+#' NOTES
 #'
 #' If save.shiny.output=TRUE, the following files will be generated:
 #'   reference.rda, which includes a variable `reference` as follows:
@@ -377,7 +372,12 @@ buildReferenceFolder = function(seurat.obj,
 #'       reference$dend   - This is the dendrogram with marker genes attached
 #'   membership_information_reference.rda, which includes two variables
 #'       `memb.ref`   - matrix indicating how much confusion there is the mapping between each cell all of the nodes in the tree (including all cell types) when comparing clustering and mapping results with various subsamplings of the data
-#'       `map.df.ref` - Result of tree mapping for each cell in the reference against the clustering tree, including various statistics and marker gene evidence.  This is the same output that comes from tree mapping.
+#'       `map.df.ref` - Result of tree mapping for each cell in the reference against the clustering tree, including various statistics and marker gene evidence.  This is the same output that comes from tree mapping.#'
+#' 
+#' @import feather
+#' @import scrattch.hicat
+#' @import MatrixGenerics
+#' @import dendextend
 #'
 #' @return An updated dendrogram variable that is the same as `dend` except with marker genes added to each node.
 #'
@@ -551,11 +551,17 @@ addDendrogramMarkers = function(dend,
 #' @param num.markers The maximum number of markers to calculate per node per direction (default = 50)
 #' @param shinyFolder = The location to save shiny output (default = current working directory).
 #' 
+#' Nothing is returned; however an R data object called "QC_markers.RData" is returned with the following variables
+#' markers, 
+#' countsQC, 
+#' cpmQC, 
+#' classBr, 
+#' subclassF, 
+#' allMarkers, 
+#' 
 #' @import patchseqtools
 #' @import scrattch.hicat
 #'
-#' Nothing is returned; however an R data object called "QC_markers.RData"
-#' markers, countsQC, cpmQC, classBr, subclassF, allMarkers, 
 #'
 #' @export
 save_patchseqQC_markers = function(counts,

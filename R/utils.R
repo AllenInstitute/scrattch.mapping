@@ -124,9 +124,8 @@ revert_dend_label <- function(dend, value, attribute="label")
 #' @import foreach
 #'
 #' @return
+#' 
 #' @export
-#'
-#' @examples
 map_dend_membership <-
   function(dend,
            cl.dat,
@@ -183,7 +182,6 @@ map_dend_membership <-
 #' @return
 #' @export
 #'
-#' @examples
 map_dend <-
   function(dend,
            cl.dat,
@@ -251,9 +249,9 @@ map_dend <-
 #' @param seed - random seed for reproducibility
 #'
 #' @return
-#' @Export
+#' 
+#' @export
 #'
-#' @examples
 resolve_cl <-
   function(cl.g,
            cl.dat,
