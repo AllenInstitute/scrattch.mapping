@@ -278,6 +278,7 @@ buildReferenceFolder = function(seurat.obj,
   ## Minor reformatting of metadata file, then write metadata file
   meta.data$cluster = meta.data$cluster_label; 
   colnames(meta.data)[colnames(meta.data)=="sample_name"] <- "sample_name_old" # Rename "sample_name" to avoid shiny crashing
+  meta.data$sample_id = meta.data$sample_name_old
   meta.data$cluster_id <- as.numeric(factor(meta.data$cluster_label,levels=labels(dend))) # Reorder cluster ids to match dendrogram
   write_feather(meta.data, file.path(shinyFolder,"anno.feather"))
 
