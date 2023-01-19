@@ -1,0 +1,208 @@
+---
+title: "Create reference directory for mapping"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Create reference directory for mapping}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc} 
+---
+  
+`scrattch.mapping` offers functions to convert completed single cell/nucleus RNA-seq analysis (e.g., a counts matrix + cell type assignments) into a standard reference taxonomy compatible with various mapping techniques, as well as functions to perform such mapping analyses.  Several functions are also provided for conversion of output results into data and folder formats compatabile with Allen Institute R shiny tools.  
+  
+The `scrattch.mapping` package is one component of the scrattch suite of packages for `S`ingle `C`ell `R`NA-seq `A`nalysis for `T`ranscriptomic `T`ype `CH`aracterization from the Allen Institute.  
+  
+For this vignette, we use the dataset published in [Tasic, et al. (2016) Nature Neuroscience](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4985242/), which is available in the [tasic2016data package](https://github.com/AllenInstitute/tasic2016data):  
+  
+```{r install data package if needed}
+if(!"tasic2016data" %in% rownames(installed.packages())) {
+  devtools::install_github("AllenInstitute/tasic2016data")
+}
+suppressPackageStartupMessages({
+  library(tasic2016data)
+})
+```
+  
+  
+This vignette also creates taxonomy standards published in [Miller, et al. (2020) eLife](https://elifesciences.org/articles/59928) using the [CCN R package](https://github.com/AllenInstitute/CCN).
+  
+```{r install CCN if needed}
+if(!"CCN" %in% rownames(installed.packages())) {
+  ## Imported packages
+  packages <- c("remotes","jsonlite","data.table","ggplot2","dendextend","dplyr","BiocManager")
+  packages <- packages[!(packages %in% installed.packages()[,"Package"])]
+  if(length(packages)>0) install.packages(new.packages, repos='http://cran.us.r-project.org')
+  BiocManager::install("rols", update=FALSE)
+
+  ## CCN install
+  remotes::install_github("AllenInstitute/CCN", build_vignettes = TRUE)
+}
+suppressPackageStartupMessages({
+  library(CCN)
+})
+```
+  
+  
+### Workspace set-up  
+  
+First, let's create a director in the current working directory to store the reference taxonomy files.  
+  
+```{r create reference directory}
+refFolder <- paste0(getwd(),"/reference/")
+dir.create(refFolder, showWarnings = FALSE)
+setwd(refFolder)
+print(refFolder)
+```
+
+  
+Load libraries and set options.  
+  
+```{r load libraries, warning=FALSE}
+suppressPackageStartupMessages({
+  library("scrattch.mapping")
+})
+options(stringsAsFactors = FALSE)
+options(future.globals.maxSize = 4000 * 1024^2)  # Can adjust this value if needed, depending on number of cells
+options(future.rng.onMisuse="ignore")
+```
+  
+  
+Read in the reference data (in this case we will use the Tasic 2016 data, which includes ~1800 cells from mouse primary visual cortex), and exclude unclustered cells.  
+  
+```{r load tasic data}
+annotations <- tasic_2016_anno
+counts      <- tasic_2016_counts  # uncomment if using CPM below
+annotations <- annotations[match(colnames(counts),annotations$sample_name),]  # Put them in the correct order
+rownames(annotations) <- annotations$sample_name  
+
+kp          <- annotations$broad_type!="Unclassified"
+counts      <- counts[,kp]
+annotations <- annotations[kp,]
+```
+  
+  
+Now we are going to rename some of the annotations to match current Allen Institute terminology.  This is not strictly necessary, but is useful.  
+  
+```{r add level annotations}
+# Rename the primary cell type to "cluster"
+clusters            <- annotations$primary_type_label[match(1:49,annotations$primary_type_id)]
+annotations$cluster <- factor(annotations$primary_type_label, levels=clusters)
+
+# Retain cluster colors
+cluster_colors <- setNames(annotations$primary_type_color[match(1:49,annotations$primary_type_id)], clusters)
+
+# Create a class label that groups all non-neurons together
+annotations$class <- annotations$broad_type
+annotations$class[!is.element(annotations$class,c("GABA-ergic Neuron","Glutamatergic Neuron"))] = "Non-neuronal"
+
+# Create a subclass label (e.g., intermediate resolution between class and cell type)
+subclass <- c(rep("CGE",9),rep("MGE",13),"CGE",rep("Exc IT",10),rep("Exc non-IT",9),rep("NN",7))
+subclass <- setNames(subclass,annotations$cluster[match(1:49,annotations$cluster_id)])
+subclass <- subclass[annotations$cluster]
+subclass[annotations$class=="Non-neuronal"] <- annotations$broad_type[annotations$class=="Non-neuronal"]
+annotations$subclass <- gsub("Oligodendrocyte Precursor Cell","OPC",subclass)
+head(data.frame(annotations[,c("cluster","subclass","class")]))
+```
+  
+  
+## Generate the reference directory
+
+For the first step we convert the counts and annotations variables into a Seurat object of a particular format.  This is then used as input into functions for generating files in the reference directory and for creating a dendrogram.
+
+```{r create Seurat object}
+seurat_object <- createSeuratObjectForReferenceFolder(  
+  counts = counts,
+  metadata = annotations,
+  subsample = 100,  # This is the number of cells per cluster
+  cluster_colors = cluster_colors  # Colors are generated if not provided
+  # clusterColumn = "cluster"   # Remaining values are defaults and are commented out
+  #normalizebyLogCPM = TRUE,  
+  #feature.set = NULL,
+  #generateUMAP = TRUE,
+  #npcs = 10,
+  #metadata_names = setNames(colnames(metadata),colnames(metadata)),
+  #gene_names = rownames(counts),
+  #cell_names = colnames(counts)
+)
+```
+  
+  
+Next, create the reference folder with all associated files, and a preliminary dendrogram.  The dendrogram will get updated in later functions.
+  
+```{r build reference folder} 
+buildReferenceFolder(seurat.obj  = seurat_object, 
+                     shinyFolder = refFolder, 
+                     subsample   = 100,   # Default for subsampling 
+                     feature.set = NULL,  # Default to use "VariableFeatures" function in Seurat
+                     reorder.dendrogram = TRUE,  # This will match the factor order of the clusters to the extent possible
+                     save.normalized.data = FALSE) # FALSE saves the raw counts, which is what we need (default)
+```
+  
+  
+Now we annotate the dendrogram with marker genes.  This is only required for using tree mapping, and is critical if this reference is to be used for processing Patch-seq data from the Allen Institute.  For other mapping strategies, this is not needed.  Note that we can either pull data and metadata from variables or directly from the reference folder.  This example pulls from the reference folder.  
+  
+```{r add dendrogram markers}
+dend <- addDendrogramMarkers(dend     = readRDS(paste0(refFolder,"dend.RData")), 
+                             norm.data= paste0(refFolder,"data_t.feather"),
+                             metadata = paste0(refFolder,"anno.feather"),
+                             shinyFolder = refFolder, 
+                             subsample= 25) # To speed up calculations a bit
+```
+
+  
+Now define this as a standardized taxonomy and output the relevant zip file (see CCN library for more information).    
+  
+```{r CCN, fig.height=6,fig.width=10}
+## Create taxonomy and nomenclature standards for this taxonomy
+taxonomy_id       <- "CCN202301170"          # Taxonomy ID of format CCN<YYYYMMDD><T>
+taxonomy_author   <- "Bosiljka Tasic"         # Person uploading the data and taxonomy
+taxonomy_citation <- "10.1038/nn.4216"       # DOI of relavent taxonomy citation, if any
+first_label       <- setNames("RNA", 1)      # Prefix for cell set label (adjust text label only)
+structure         <- "primary visual cortex" # Brain structure.  Ontology tag is auto-generated.
+
+# Some metadata variables (probably this doesn't need to be edited)
+metadata         <- as.data.frame(read_feather(paste0(refFolder,"anno.feather")))
+metadata_columns <- c("subclass_label", "class_label")
+metadata_order   <- c("subclass_order", "class_order")  
+cluster_column   <- "cluster_label" 
+
+# Named vector of cell to cell type assignments (can be auto-generated, but better to include)
+cell_assignment  <- setNames(metadata$cluster_label,metadata$sample_name)
+
+# This line of code will run all the scripts, output the relevant zip file to nomenclature.zip in your working directory, and return the same variables for further manipulation in R.
+ccn_output <- apply_CCN(dend = dend,
+                        cell_assignment = cell_assignment,
+                        metadata    = metadata,
+                        first_label = first_label,
+                        taxonomy_id = taxonomy_id,
+                        taxonomy_author = taxonomy_author,
+                        taxonomy_citation = taxonomy_citation,
+                        structure   = structure,
+                        metadata_columns = metadata_columns,
+                        metadata_order = metadata_order,
+                        cluster_column = cluster_column,
+                        ccn_filename = paste0(refFolder,"nomenclature.zip"))
+
+plot_dend(ccn_output$final_dendrogram,node_size = 3)
+```
+
+  
+Finally, we collect some files need for applying patchSeqQC to patch-seq data. This is not needed for mapping, but is an important QC step when comparing  
+
+```{r patchseqQC set up}
+save_patchseqQC_markers(counts = paste0(refFolder,"data_t.feather"),  # can also read matrix directly
+                        metadata = paste0(refFolder,"anno.feather"),  # can also read matrix directly
+                        subsample = 100,  # Default of 100 is reasonable
+                        subclass.column = "subclass_label",  # default
+                        class.column = "class_label",  # default
+                        off.target.types = "Non-neuronal",  # default is various iterations of non-neuronal
+                        num.markers = 50,     # Default of 50 is probably fine
+                        shinyFolder = refFolder)
+```
+
+  
+Output session info.  
+  
+```{r session info}
+sessionInfo()
+```
+
