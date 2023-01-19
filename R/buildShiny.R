@@ -43,13 +43,17 @@ createSeuratObjectForReferenceFolder = function(counts,
     stop("Either missing metadata, incorrectely named, or unnamed metadata rows.")
   }
   
+  # Check if clusterColumn exists
+  if(!is.element(clusterColumn,colnames(metadata))){
+    stop(paste0(clusterColumn," is not one of the metadata columns present."))
+  }
   # Convert clusterColumn to "cluster" if needed
   if(clusterColumn!="cluster"){
     eval(parse(text=paste0("metadata$cluster <- metadata$",clusterColumn)))
   }
   # Check if cluster colors are present and complete
   if(!is.null(cluster_colors)){
-    if(length(unique(metadata$cluster))>length(interesect(metadata$cluster,names(cluster_colors)))){
+    if(length(unique(metadata$cluster))>length(intersect(metadata$cluster,names(cluster_colors)))){
       cluster_colors = NULL
       warning("Cluster color vector does not include all celltypes and will be ignored.")
     }
@@ -136,6 +140,7 @@ createSeuratObjectForReferenceFolder = function(counts,
 #' @import tibble
 #' @import dplyr
 #' @import Matrix
+#' @import pvclust
 #' 
 #' @return
 #'
@@ -470,8 +475,10 @@ addDendrogramMarkers = function(dend,
   
   print("Define marker genes and gene scores for the tree")
   if((!file.exists(paste0(shinyFolder,"de.genes.rda")))|calculate.de.genes){
-    print("=== NOTE: This step is very slow (sometimes several hours).  To speed up the calculation, or if it crashes, try decreasing the value of subsample.")
-    de.genes = select_markers(norm.dat=norm.data, cl=select.cl, n.markers=num.markers, de.genes = NULL)$de.genes
+    print("=== NOTE: This step can be very slow (several minute to many hours).")
+    print("      To speed up the calculation (or if it crashes) try decreasing the value of subsample.")
+    de.genes = select_markers(norm.dat=norm.data, cl=select.cl, n.markers=num.markers, 
+                              de.param = de.param, de.genes = NULL)$de.genes
     save(de.genes, file=paste0(shinyFolder,"de.genes.rda"))  
   } else {
     load(paste0(shinyFolder,"de.genes.rda"))
