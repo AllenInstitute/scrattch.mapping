@@ -23,5 +23,7 @@ Genearlized mapping scripts for RNA-seq and Patch-seq data
 - [x] Write in a module for making the taxonomy compatible with tree mapping (adding markers to dendrogram). Perhaps this should be done after the taxonomy is made for generalization. (JM: I was planning to take this one)
 - [x] Add stand-alone scripts for patch-seq QC to package
 - [x] Output feather with gene counts along with required Shiny files for use with scVI/scANVI etc. I’ve had to manually make a few of these for the older BG taxonomies.
-- [ ] This might be the same thing, but also output files for viewing data in existing patch-seq shiny folder format
+- [ ] This might be the same thing, but also output files for viewing data in existing patch-seq shiny folder format. 
+- [ ] Standardize output from multiple modes of mapping (RNA, Patch-Seq, spatial?)
+- [ ] Implement new tree mapping (Code from CK)
 - [ ] Dockerize.
