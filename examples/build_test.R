@@ -1,9 +1,6 @@
 library(scrattch.mapping)
 library(Seurat)
 
-##
-source("/home/nelson.johansen/scripts/R/scrattch-map_dev/scrattch-mapping/R/buildShiny.R")
-
 ## Load in the data to be annotated
 load("/allen/programs/celltypes/workgroups/rnaseqanalysis/EvoGen/BasalGanglia/NHP/pipeline/1001_C06_MTX-2046/1001_C06.RData")
 
