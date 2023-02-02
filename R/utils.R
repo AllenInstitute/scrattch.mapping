@@ -22,9 +22,6 @@ subsampleCells <- function(cluster.names, subSamp=25, seed=5){
   return(kpSamp)
 }
 
-
-
-
 ##################################################################################################################
 ## The functions below are mapping function from scrattch.hicat dev_zy branch that are required for tree mapping
 
@@ -34,8 +31,6 @@ subsampleCells <- function(cluster.names, subSamp=25, seed=5){
 #library(randomForest)
 #library(doMC)     # for parallelization in Unix environments
 #library(foreach)  # for parallelization in Unix environments
-
-
 
 
 #' Function for building the standard reference format, including adding marker genes to the clustering tree
@@ -342,9 +337,6 @@ resolve_cl <-
     }
     return(mapped.cl)
   }
-
-
-
 
 #' Build dend (updated to specify dendextend version of "set")
 #'
