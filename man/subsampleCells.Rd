@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{subsampleCells}
 \alias{subsampleCells}
-\title{' Function to subsample cells}
+\title{Function to subsample cells}
 \usage{
 subsampleCells(cluster.names, subSamp = 25, seed = 5)
 }
@@ -17,6 +17,6 @@ subsampleCells(cluster.names, subSamp = 25, seed = 5)
 Boolean vector of cells to keep (TRUE) and cells to remove (FALSE)
 }
 \description{
-' Function to subsample cells
+Function to subsample cells
 }
 \keyword{internal}

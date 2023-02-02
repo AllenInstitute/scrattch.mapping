@@ -8,12 +8,11 @@ createSeuratObjectForReferenceFolder(
   counts,
   metadata,
   clusterColumn = "cluster",
-  celltypeColumn = clusterColumn,
   normalizebyLogCPM = TRUE,
+  feature.set = NULL,
   generateUMAP = TRUE,
   npcs = 10,
-  feature.set = NULL,
-  celltype_colors = NULL,
+  cluster_colors = NULL,
   metadata_names = setNames(colnames(metadata), colnames(metadata)),
   subsample = Inf,
   gene_names = rownames(counts),
@@ -25,19 +24,17 @@ createSeuratObjectForReferenceFolder(
 
 \item{metadata}{Matrix of metadata with rows corresponding to cells/nuclei, and row names corresponding to cell names. IF column names of counts are unspecified, then this matrix must be the same length and ordered in the same way as the counts matrix.  In any case, this must be a superset of counts (e.g., no missing metadata)}
 
-\item{clusterColumn}{Column name correspond to the clusters to include in the clustering results}
-
-\item{celltypeColumn}{Column name correspond to the cell type names to include in the dendrogram.  By default (and in most cases) this is identical to clusterColumn.}
+\item{clusterColumn}{Column name corresponding to the cell type names to include in the clustering results.  These names and cluster assignments are used in the dendrogram (default = "cluster").  Note: if there are any other IDs corresponding to these cell types (e.g., a unique ID called "cl" or "cell_type_accession_id" or otherwise), this information should be included as separate columns in the metadata and can be imported into the dendrogram in a separate function if needed.}
 
 \item{normalizebyLogCPM}{If TRUE (default) log(CPM+1) is used for normalization. If FALSE, \code{NormalizeData} Seurat function is used}
+
+\item{feature.set}{An optional user supplied gene set otherwise Seurat objects variable features are used for clustering and umap generation}
 
 \item{generateUMAP}{A boolean (default=TRUE) indicating whether UMAP should be calculated}
 
 \item{npcs}{Number of pcs used for building the UMAP (default = 10)}
 
-\item{feature.set}{An optional user supplied gene set otherwise Seurat objects variable features are used for umap generation}
-
-\item{celltype_colors}{An optional named character vector where the values correspond to colors and the names correspond to celltypes in celltypeColumn.  If this vector is incomplete, a warning is thrown and it is ignored.}
+\item{cluster_colors}{An optional named character vector where the values correspond to colors and the names correspond to celltypes in celltypeColumn.  If this vector is incomplete, a warning is thrown and it is ignored.}
 
 \item{metadata_names}{An optional named character vector where the vector NAMES correspond to columns in the metadata matrix and the vector VALUES correspond to how these metadata should be displayed in Shiny. This is used for writing the desc.feather file later.}
 
@@ -52,11 +49,4 @@ createSeuratObjectForReferenceFolder(
 }
 \description{
 This function builds a Seurat object from a count matrix and metadata table for use with buildReferenceFolder, along with some other optional inputs. Unless otherwise specific log2(CPM(counts)+1) are saved in the "data" slot of the Seurat object because that is what is used for most downstream analysis.
-}
-\details{
-\subsection{Libraries}{
-
-Seurat
-scrattch.hicat
-}
 }

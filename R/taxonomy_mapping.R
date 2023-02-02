@@ -54,7 +54,7 @@ taxonomy_mapping = function(GEXRef, query.data, corr.map=TRUE, tree.map=TRUE, se
 
     ## Now map back up the tree to subclass and class based on cluster labels
     for(method in names(methods)){
-        convert <- GEXRef$clusterInfo[match(mappingAnno[,methods[names(methods) == method]], GEXRef$clusterInfo$cluster_label), label.cols]
+        convert <- GEXRef$clusterInfo[match(mappingAnno[,methods[names(methods) == method]], GEXRef$clusterInfo$cluster_label), label.cols, drop=F]
         colnames(convert) <- gsub("label", method, colnames(convert))
         mappingAnno <- cbind(mappingAnno, convert)
     }

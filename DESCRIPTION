@@ -20,6 +20,9 @@ Depends: feather,
     feather,
     tibble,
     Matrix,
+    MatrixGenerics,
+    randomForest,
+    foreach,
     scrattch.io,
     scrattch.hicat,
     scrattch.vis,
@@ -29,7 +32,9 @@ Depends: feather,
 Suggests: knitr,
     rmarkdown, 
     testthat,
-    future
+    future,
+    parallel,
+    doMC
 Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr
