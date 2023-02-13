@@ -5,18 +5,16 @@
 \title{Cell type annotation and initial QC}
 \usage{
 taxonomy_mapping(
-  GEXRef,
+  AIT.anndata,
   query.data,
   corr.map = TRUE,
   tree.map = TRUE,
   seurat.map = TRUE,
-  label.cols = c("cluster_label", "subclass_label", "class_label"),
-  dims = 30,
-  k.weight = 15
+  label.cols = c("cluster_label", "subclass_label", "class_label")
 )
 }
 \arguments{
-\item{GEXRef}{A reference taxonomy object.}
+\item{AIT.anndata}{A reference taxonomy object.}
 
 \item{query.data}{A logCPM normalized matrix to be annotated.}
 
@@ -27,10 +25,6 @@ taxonomy_mapping(
 \item{seurat.map}{Should seurat mapping be performed?}
 
 \item{label.cols}{Column names of annotations to map against}
-
-\item{dims}{Number of PCA dimensions for Seurat mapping.}
-
-\item{k.weight}{K neighborhood weight for Seurat mapping.}
 }
 \value{
 Mapping results from all methods.
