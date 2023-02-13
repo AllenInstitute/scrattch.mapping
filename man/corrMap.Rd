@@ -4,10 +4,10 @@
 \alias{corrMap}
 \title{Correlation based mapping}
 \usage{
-corrMap(GEXRef, query.data)
+corrMap(AIT.anndata, query.data)
 }
 \arguments{
-\item{GEXRef}{A reference taxonomy object.}
+\item{AIT.anndata}{A reference taxonomy anndata object.}
 
 \item{query.data}{A logCPM normalized matrix to be annotated.}
 }
