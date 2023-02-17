@@ -11,7 +11,7 @@ treeMap = function(AIT.anndata, query.data){
     ## Attempt Tree mapping
     mappingTarget = tryCatch(
         expr = {
-            ## Load dendrogam
+            ## Load dendrogram
             load(AIT.anndata$uns$dend)
             dend = reference$dend
             clReference  = setNames(factor(AIT.anndata$obs$cluster_label, levels=AIT.anndata$uns$clustersUse),

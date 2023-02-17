@@ -28,7 +28,8 @@ Depends: feather,
     scrattch.vis,
     mfishtools,
     patchseqtools,
-    patchSeqQC
+    patchSeqQC,
+    umap
 Suggests: knitr,
     rmarkdown, 
     testthat,

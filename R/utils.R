@@ -22,6 +22,28 @@ subsampleCells <- function(cluster.names, subSamp=25, seed=5){
   return(kpSamp)
 }
 
+#' Get top genes by beta (binary) score
+#'
+#' @param data A count (or CPM or logCPM) matrix
+#' @param cluster.names A vector of cluster names in the reference taxonomy.
+#' @param gene.count The number of top genes to return (Default=2000)
+#'
+#' @return Boolean vector of cells to keep (TRUE) and cells to remove (FALSE)
+#'
+#' @keywords external
+#' 
+#' @export
+top_binary_genes <- function(data, cluster.names, gene.count=2000){
+  cluster.names <- setNames(as.factor(cluster.names),colnames(data))
+  propExpr  <- get_cl_prop(data,cluster.names)
+  betaScore <- getBetaScore(propExpr,returnScore=FALSE)
+  betaScore <- sort(betaScore)
+  top.genes <- names(betaScore)[1:gene.count]
+  return(top.genes)
+}
+
+
+
 ##################################################################################################################
 ## The functions below are mapping function from scrattch.hicat dev_zy branch that are required for tree mapping
 
