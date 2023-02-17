@@ -33,7 +33,7 @@ buildReference = function(counts,
                           reorder.dendrogram = FALSE){
 
   ## Checks
-  if(!"cluster" %in% colnames(meta.data)){stop("cluster must be defined in the seurat object")}
+  if(!"cluster" %in% colnames(meta.data)){stop("cluster must be defined in the meta.data object")}
   if(is.null(feature.set)){stop("Compute variable features and supply feature.set")}
   if(!all(colnames(counts) == rownames(meta.data))){stop("Colnames of `counts` and rownames of `meta.data` do not match.")}
 	

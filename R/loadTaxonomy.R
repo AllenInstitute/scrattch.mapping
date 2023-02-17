@@ -86,6 +86,7 @@ loadTaxonomy = function(refFolder, sample_id = "sample_id", nGenes=2000, hGenes=
       ),
       uns = list(
         dend = file.path(refFolder,"reference.rda"),
+        QC_markers  = file.path(refFolder,"QC_markers.RData"), # Includes variables for patchseqQC
         clustersUse = clustersUse,
         clusterInfo = clusterInfo
       )

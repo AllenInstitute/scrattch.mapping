@@ -41,7 +41,7 @@ addDendrogramMarkers(
 
 \item{save.shiny.output}{Should standard output files be generated and saved to the directory (default=TRUE).  These are not required for tree mapping, but are required for building a patch-seq shiny instance.  This is only tested in a UNIX environment.  See notes.}
 
-\item{mc.cores}{Number of cores to use for running this function to speed things up.  Default = 1.  Values>1 are only supported in an UNIX environment and require and \code{foreach} and \code{doParallel} R libraries.}
+\item{mc.cores}{Number of cores to use for running this function to speed things up.  Default = 1.  Values>1 are only supported in an UNIX environment and require \code{foreach} and \code{doParallel} R libraries.}
 
 \item{bs.num, p, low.th}{Extra variables for the \code{map_dend_membership} function in scrattch.hicat.  Defaults are set reasonably.}
 
