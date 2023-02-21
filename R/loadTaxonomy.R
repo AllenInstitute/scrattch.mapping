@@ -2,44 +2,59 @@
 #'
 #' @param refFolder Directory containing the Shiny taxonomy.
 #' @param sample_id Field in reference taxonomy that defines the sample_id.
-#' @param nGenes Number of variable genes to compute.
-#' @param hGenes User supplied variable gene vector.
+#' @param nGenes Number of variable (binary) genes to compute. If hGenes is provided and nGenes>length(hGenes), then no filtering is applied.
+#' @param hGenes User supplied variable gene vector.  Acts as a filter prior to selecting variable genes.
 #' @param sub.sample Number of cells to keep per cluster.
+#' @param gene_id Field in counts.feather that defines the gene_id.
 #'
 #' @return Organized reference object ready for mapping against.
 #'
 #' @export
-loadTaxonomy = function(refFolder, sample_id = "sample_id", nGenes=2000, hGenes=NULL, sub.sample = 1000){ 
+loadTaxonomy = function(refFolder, 
+                        sample_id = "sample_id", 
+                        nGenes=2000, 
+                        hGenes=NULL, 
+                        sub.sample = 1000,  # I'm not sure this is needed here...
+                        gene_id = "gene"){ 
     
     print("Loading reference taxonomy into memory.")
 
     ## Read in reference data and annotation files and format correctly
-    annoReference = feather(file.path(refFolder,"anno.feather")) 
-    exprReference = feather(file.path(refFolder,"data.feather"))
+    annoReference   = feather(file.path(refFolder,"anno.feather")) 
+    exprReference   = feather(file.path(refFolder,"data_t.feather"))
+    countsReference = feather(file.path(refFolder,"counts.feather"))
 
+    ## Convert log2CPM-normalized data from data_t.RData and counts.feather from RData into matrices
+    datReference = as.matrix(exprReference[,names(exprReference)!=gene_id])  
+    countsReference = as.matrix(countsReference[,names(countsReference)!=gene_id])
+    rownames(datReference) = rownames(countsReference) = exprReference[[gene_id]]
+    
     ## Match meta.data to data
-    annoReference = as.data.frame(annoReference[match(exprReference[[sample_id]], annoReference[[sample_id]]),])
-
-    ## 
-    datReference = as.matrix(exprReference[,names(exprReference)!=sample_id])  
-    rownames(datReference) = rownames(annoReference) = annoReference[[sample_id]]
-    datReference = t(datReference)
-
-    # ## Log2 cpm to normalize the data
-    # datReference = logCPM(datReference)
+    annoReference = as.data.frame(annoReference[match(colnames(datReference), annoReference[[sample_id]]),])
+    rownames(annoReference) = annoReference[[sample_id]]
 
     ## Consider only genes present in both data sets
-    if(!is.null(hGenes)){ hGenes = intersect(hGenes, rownames(datReference)) } else { hGenes = rownames(datReference) }
+    if(!is.null(hGenes)){ 
+      hGenes = intersect(hGenes, rownames(datReference)) 
+    } else { 
+      hGenes = rownames(datReference) 
+    }
 
-    ## Find most variable genes by beta score
+    ## Find most variable genes by beta score, if ngenes<length(hgenes)
     cl          = setNames(annoReference$cluster_label,colnames(datReference))
-    propExpr    = get_cl_prop(datReference[hGenes,], cl)
-    betaScore   = getBetaScore(propExpr)
-    betaOut     = data.frame(Gene=hGenes,BetaScore=betaScore[hGenes])
-    betaOut     = betaOut[order(-betaScore),]
-    varFeatures = betaOut$Gene[1:nGenes]
+    if(nGenes<length(hGenes)){ # Calculate variable genes
+      propExpr    = get_cl_prop(datReference[hGenes,], cl)
+      betaScore   = getBetaScore(propExpr)
+      betaOut     = data.frame(Gene=hGenes,BetaScore=betaScore[hGenes])
+      betaOut     = betaOut[order(-betaScore),]
+      varFeatures = betaOut$Gene[1:min(nGenes,length(betaOut))]
+    } else {
+      varFeatures = hGenes
+    }
 
     ## Read in the dendrogram for tree mapping and cluster order
+    # NOTE: This section may need to be updated to read "dend.RData" once redundancies are sorted out
+    # NOTE: Technically this section isn't used at all right now.  We need to sort our conversion between R and python file formats
     if(!file.exists(file.path(refFolder,"reference.rda"))){
       dend = NULL
       clustersUse = unique(annoReference$cluster_label)
@@ -67,7 +82,29 @@ loadTaxonomy = function(refFolder, sample_id = "sample_id", nGenes=2000, hGenes=
       )
     }
 
-    ## Create a Seurat object for the reference data set subset to a max of 1000 cells per cluster
+    ## Read in the umap
+    if(!file.exists(file.path(refFolder,"tsne.feather"))){
+      umap = NULL
+    }else{
+      tryCatch(
+        expr = {
+          umap = read_feather("tsne.feather")
+          rownames(umap) = umap[,sample_id]
+          umap = umap[rownames(annoReference),]
+        },
+        error = function(e){ 
+          print("Error caught for umap loading.")
+          umap = NULL
+        },
+        warning = function(w){
+        },
+        finally = {
+          print("Done loading UMAP")
+        }
+      )
+    }
+    
+    ## Create an annData object for the reference data set subset to a max of sub.sample cells per cluster
     kpSamp = subsampleCells(annoReference$cluster_label, sub.sample)
     annoReference$kpSamp = kpSamp
 
@@ -79,14 +116,14 @@ loadTaxonomy = function(refFolder, sample_id = "sample_id", nGenes=2000, hGenes=
                        "highly_variable_genes" = rownames(datReference) %in% varFeatures, 
                        row.names=rownames(datReference)),
       layers = list(
-        #counts = NA
+        counts = t(countsReference) # Counts. We may want to keep genes as rows and not transpose this
       ),
       obsm = list(
-        #umap = NA
+        umap = umap # A data frame with sample_id, and 2D coordinates for umap (or comparable) representation(s)
       ),
       uns = list(
-        dend = file.path(refFolder,"reference.rda"),
-        QC_markers  = file.path(refFolder,"QC_markers.RData"), # Includes variables for patchseqQC
+        dend = file.path(refFolder,"reference.rda"),  # FILE NAME with dendrogram
+        QC_markers  = file.path(refFolder,"QC_markers.RData"), # FILE NAME with variables for patchseqQC
         clustersUse = clustersUse,
         clusterInfo = clusterInfo
       )

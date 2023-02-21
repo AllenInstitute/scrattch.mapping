@@ -9,7 +9,8 @@ loadTaxonomy(
   sample_id = "sample_id",
   nGenes = 2000,
   hGenes = NULL,
-  sub.sample = 1000
+  sub.sample = 1000,
+  gene_id = "gene"
 )
 }
 \arguments{
@@ -17,11 +18,13 @@ loadTaxonomy(
 
 \item{sample_id}{Field in reference taxonomy that defines the sample_id.}
 
-\item{nGenes}{Number of variable genes to compute.}
+\item{nGenes}{Number of variable (binary) genes to compute. If hGenes is provided and nGenes>length(hGenes), then no filtering is applied.}
 
-\item{hGenes}{User supplied variable gene vector.}
+\item{hGenes}{User supplied variable gene vector.  Acts as a filter prior to selecting variable genes.}
 
 \item{sub.sample}{Number of cells to keep per cluster.}
+
+\item{gene_id}{Field in counts.feather that defines the gene_id.}
 }
 \value{
 Organized reference object ready for mapping against.

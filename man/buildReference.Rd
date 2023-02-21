@@ -2,7 +2,7 @@
 % Please edit documentation in R/buildShiny.R
 \name{buildReference}
 \alias{buildReference}
-\title{Starting from a Seurat object this function builds the minimum files required for Shiny}
+\title{This function builds the minimum files required for Shiny}
 \usage{
 buildReference(
   counts,
@@ -39,5 +39,5 @@ buildReference(
 
 }
 \description{
-Starting from a Seurat object this function builds the minimum files required for Shiny
+This function builds the minimum files required for Shiny
 }

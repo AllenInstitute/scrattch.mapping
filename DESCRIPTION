@@ -13,6 +13,7 @@ Authors@R:
 Description: ADD
 License: GPL-3
 Depends: feather,
+    anndata,
     dplyr,
     dendextend,
     Seurat,
