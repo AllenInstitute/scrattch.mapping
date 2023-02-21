@@ -106,7 +106,7 @@ head(data.frame(annotations[,c("cluster","subclass","class")]))
   
 Finally, prior to generating the taxonomy, we need to define a set of variable genes and build a 2-dimensional representation of the data.  To do this we use binary genes and the `umap` R library, respectively, although other options could also be used (for example, the Seurat R package often provides comparable or better looking results).  
   
-```{r create Seurat object, fig.height=8, fig.width=10}
+```{r create UMAP representation, fig.height=8, fig.width=10}
 ## Get top 1000 genes by a beta (binary) score
 binary.genes <- top_binary_genes(counts,annotations$cluster,1000)
 
@@ -153,7 +153,7 @@ dend <- addDendrogramMarkers(dend     = readRDS(paste0(refFolder,"dend.RData")),
   
 Now define this as a standardized taxonomy and output the relevant zip file (see CCN library for more information).    
   
-```{r CCN, fig.height=6,fig.width=10}
+```{r CCN, fig.height=6,fig.width=10, warning=FALSE}
 ## Create taxonomy and nomenclature standards for this taxonomy
 taxonomy_id       <- "CCN202301170"          # Taxonomy ID of format CCN<YYYYMMDD><T>
 taxonomy_author   <- "Bosiljka Tasic"        # Person uploading the data and taxonomy
@@ -209,7 +209,7 @@ writePatchseqQCmarkers(counts = paste0(refFolder,"counts.feather"),  # can also 
   
 Finally, we read this information to a compact annData format compatible with both R and python.  **This annData object is the input file for all mapping algorithms in this package, and a to-be-created parallel python package.**.  
   
-```{r create annData object}
+```{r create annData object, eval=FALSE}
 AIT.anndata <- loadTaxonomy(refFolder, 
                             nGenes=2000, 
                             hGenes=NULL) # Can use this if there is specific set of variable genes to provide
