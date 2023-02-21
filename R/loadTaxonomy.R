@@ -2,8 +2,7 @@
 #'
 #' @param refFolder Directory containing the Shiny taxonomy.
 #' @param sample_id Field in reference taxonomy that defines the sample_id.
-#' @param nGenes Number of variable (binary) genes to compute. If hGenes is provided and nGenes>length(hGenes), then no filtering is applied.
-#' @param hGenes User supplied variable gene vector.  Acts as a filter prior to selecting variable genes.
+#' @param hGenes User supplied variable gene vector.  If not provided, then all genes are used.
 #' @param sub.sample Number of cells to keep per cluster.
 #' @param gene_id Field in counts.feather that defines the gene_id.
 #'
@@ -12,7 +11,6 @@
 #' @export
 loadTaxonomy = function(refFolder, 
                         sample_id = "sample_id", 
-                        nGenes=2000, 
                         hGenes=NULL, 
                         sub.sample = 1000,  # I'm not sure this is needed here...
                         gene_id = "gene"){ 
@@ -21,35 +19,25 @@ loadTaxonomy = function(refFolder,
 
     ## Read in reference data and annotation files and format correctly
     annoReference   = feather(file.path(refFolder,"anno.feather")) 
-    exprReference   = feather(file.path(refFolder,"data_t.feather"))
-    countsReference = feather(file.path(refFolder,"counts.feather"))
+    exprReference   = feather(file.path(refFolder,"data.feather"))
+    countsReference = feather(file.path(refFolder,"counts.feather"))  # Note that this is transposed relative to data.feather
 
-    ## Convert log2CPM-normalized data from data_t.RData and counts.feather from RData into matrices
-    datReference = as.matrix(exprReference[,names(exprReference)!=gene_id])  
-    countsReference = as.matrix(countsReference[,names(countsReference)!=gene_id])
-    rownames(datReference) = rownames(countsReference) = exprReference[[gene_id]]
+    ## Convert log2CPM-normalized data into a matrix
+    datReference = as.matrix(exprReference[,names(exprReference)!=sample_id])  
     
     ## Match meta.data to data
-    annoReference = as.data.frame(annoReference[match(colnames(datReference), annoReference[[sample_id]]),])
-    rownames(annoReference) = annoReference[[sample_id]]
+    annoReference = as.data.frame(annoReference[match(exprReference[[sample_id]], annoReference[[sample_id]]),])
+    rownames(annoReference) = rownames(datReference) = annoReference[[sample_id]]
+    
+    ## Convert count data into a matrix
+    countsReference = as.matrix(countsReference[,names(countsReference)!=gene_id])
+    rownames(countsReference) = colnames(datReference)
 
     ## Consider only genes present in both data sets
     if(!is.null(hGenes)){ 
-      hGenes = intersect(hGenes, rownames(datReference)) 
+      varFeatures = intersect(hGenes, rownames(datReference)) 
     } else { 
-      hGenes = rownames(datReference) 
-    }
-
-    ## Find most variable genes by beta score, if ngenes<length(hgenes)
-    cl          = setNames(annoReference$cluster_label,colnames(datReference))
-    if(nGenes<length(hGenes)){ # Calculate variable genes
-      propExpr    = get_cl_prop(datReference[hGenes,], cl)
-      betaScore   = getBetaScore(propExpr)
-      betaOut     = data.frame(Gene=hGenes,BetaScore=betaScore[hGenes])
-      betaOut     = betaOut[order(-betaScore),]
-      varFeatures = betaOut$Gene[1:min(nGenes,length(betaOut))]
-    } else {
-      varFeatures = hGenes
+      varFeatures = rownames(datReference) 
     }
 
     ## Read in the dendrogram for tree mapping and cluster order
@@ -105,12 +93,13 @@ loadTaxonomy = function(refFolder,
     }
     
     ## Create an annData object for the reference data set subset to a max of sub.sample cells per cluster
+    # NOTE: I'm not sure this is needed
     kpSamp = subsampleCells(annoReference$cluster_label, sub.sample)
     annoReference$kpSamp = kpSamp
 
     ## Build reference object
     AIT.anndata = AnnData(
-      X = t(datReference),
+      X = datReference,
       obs = annoReference,
       var = data.frame("gene" = rownames(datReference), 
                        "highly_variable_genes" = rownames(datReference) %in% varFeatures, 

@@ -211,8 +211,7 @@ Finally, we read this information to a compact annData format compatible with bo
   
 ```{r create annData object, eval=FALSE}
 AIT.anndata <- loadTaxonomy(refFolder, 
-                            nGenes=2000, 
-                            hGenes=NULL) # Can use this if there is specific set of variable genes to provide
+                            hGenes=binary.genes)
 ```
 
   
