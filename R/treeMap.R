@@ -18,12 +18,14 @@ treeMap = function(AIT.anndata, query.data){
                                     AIT.anndata$obs_names)[AIT.anndata$obs$kpSamp]
             ## Gather marker genes
             allMarkers = unique(unlist(get_dend_markers(dend)))
-            allMarkers = intersect(allMarkers, AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes])
+            #allMarkers = intersect(allMarkers, AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes]) # Do not use variable genes here!
             ## Perform tree mapping
-            membNode = rfTreeMapping(dend, 
-                                     t(AIT.anndata$X[AIT.anndata$obs$kpSamp, allMarkers]), 
-                                     clReference, 
-                                     query.data[allMarkers,])
+            invisible(capture.output({  # Avoid printing lots of numbers to the screen
+              membNode = rfTreeMapping(dend, 
+                                       t(AIT.anndata$X[AIT.anndata$obs$kpSamp, allMarkers]), 
+                                       clReference, 
+                                       query.data[allMarkers,])
+            },type="message"))
             ## Gather results
             topLeaf = getTopMatch(membNode[,AIT.anndata$uns$clustersUse])
             topLeaf = topLeaf[colnames(query.data),]

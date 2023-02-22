@@ -34,8 +34,8 @@ seuratMap = function(AIT.anndata, query.data, dims=30, k.weight=5){
             predictions    <- TransferData(anchorset = Target.anchors, refdata = seurat.list[["Reference"]]$cluster_label, 
                                                   dims = 1:dims, verbose=FALSE, k.weight=k.weight)
             ## Create results data.frame
-            mappingTarget = data.frame(map.Tree=as.character(predictions$predicted.id), 
-                                       score.Tree=predictions$prediction.score.max)
+            mappingTarget = data.frame(map.Seurat=as.character(predictions$predicted.id), 
+                                       score.Seurat=predictions$prediction.score.max)
             mappingTarget
         },
         error = function(e){ 
