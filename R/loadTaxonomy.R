@@ -72,17 +72,19 @@ loadTaxonomy = function(refFolder,
   
   ## Read in the umap
   if(!file.exists(file.path(refFolder,"tsne.feather"))){
-    umap = NULL
+    umap.coords = NULL
   }else{
     tryCatch(
       expr = {
-        umap = as.data.frame(read_feather("tsne.feather"))
-        rownames(umap) = umap[,sample_id]
-        umap = umap[rownames(annoReference),]
+        umap.coords = as.data.frame(read_feather(file.path(refFolder,"tsne.feather")))
+        rownames(umap.coords) = umap.coords[,sample_id]
+        umap.coords = umap.coords[rownames(annoReference),]
       },
       error = function(e){ 
-        print("Error caught for umap loading.")
-        umap = NULL
+        print("Error caught for umap loading. Setting all UMAP values to 0.")
+        l = length(rownames(annoReference))
+        umap.coords = data.frame(sample_id=rownames(annoReference),all_x=rep(0,l),all_y=rep(0,l))
+        rownames(umap.coords) = umap.coords[,sample_id]
       },
       warning = function(w){
       },
@@ -90,6 +92,12 @@ loadTaxonomy = function(refFolder,
         print("Done loading UMAP")
       }
     )
+  }
+  # This next bit should NOT be needed, but the anndata crashes without it
+  if(is_tibble(umap.coords)){
+    umap.coords = as.data.frame(umap.coords)
+    print(class(umap.coords))
+    rownames(umap.coords) = umap.coords[,sample_id]
   }
   
   ## Create an annData object for the reference data set subset to a max of sub.sample cells per cluster
@@ -108,7 +116,7 @@ loadTaxonomy = function(refFolder,
       counts = t(countsReference) # Counts. We may want to keep genes as rows and not transpose this
     ),
     obsm = list(
-      umap = umap # A data frame with sample_id, and 2D coordinates for umap (or comparable) representation(s)
+      umap = umap.coords # A data frame with sample_id, and 2D coordinates for umap (or comparable) representation(s)
     ),
     uns = list(
       dend        = file.path(refFolder,"reference.rda"),  # FILE NAME with dendrogram
