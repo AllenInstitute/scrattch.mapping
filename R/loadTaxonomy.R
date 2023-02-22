@@ -35,9 +35,9 @@ loadTaxonomy = function(refFolder,
   
   ## Consider only genes present in both data sets
   if(!is.null(hGenes)){ 
-    varFeatures = intersect(hGenes, rownames(datReference)) 
+    varFeatures = intersect(hGenes, colnames(datReference)) 
   } else { 
-    varFeatures = rownames(datReference) 
+    varFeatures = colnames(datReference) 
   }
   
   ## Read in the dendrogram for tree mapping and cluster order
