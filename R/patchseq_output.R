@@ -5,7 +5,7 @@
 #' @param query.data A logCPM normalized matrix to be annotated.
 #' @param query.metadata A data frame of metadata for the query data.  
 #' @param query.mapping Mapping results from `taxonomy_mapping()` or other mapping functions (optional).  If provided row names must match column names in query.data.
-#' @param applyPatchseqQC Boolean indicating whether patchseq QC metrics should be calculated (default) or not.
+#' @param doPatchseqQC Boolean indicating whether patch-seq QC metrics should be calculated (default) or not.
 #' @param metadata_names An optional named character vector where the vector NAMES correspond to columns in the metadata matrix and the vector VALUES correspond to how these metadata should be displayed in Shiny. This is used for writing the desc.feather file later.
 #' @param mc.cores Number of cores to use for running this function to speed things up.  Default = 1.  Values>1 are only supported in an UNIX environment and require `foreach` and `doParallel` R libraries.
 #' @param bs.num,p,low.th Extra variables for the `map_dend_membership` function in scrattch.hicat.  Defaults are set reasonably.
@@ -13,32 +13,30 @@
 #' This function writes files to the mappingFolder directory for visualization with molgen-shiny tools
 #' --- anno.feather - query metadata
 #' --- data.feather - query data
-#' --- dend.RData - dendrogram (copied from reference)
+#' --- dend.RData   - dendrogram (copied from reference)
 #' --- desc.feather - table indicating which anno columns to share
 #' --- memb.feather - tree mapping of each query cell to each tree node (not just the best matching type like in treeMap)
 #' --- tsne.feather - low dimensional coordinates for data
 #' --- tsne_desc.feather - table indicating which low-D representations to share
 #' 
-#' @return
-#'
 #' @export
 buildMappingDirectory = function(AIT.anndata, 
                                  mappingFolder,
                                  query.data,
                                  query.metadata,
                                  query.mapping=NULL,
-                                 applyPatchseqQC = TRUE,
+                                 doPatchseqQC = TRUE,
                                  metadata_names = NULL,
                                  mc.cores=1,
                                  bs.num=100, p=0.7, low.th=0.15
                                  ){
   
   ## Checks
-  if(!all(colnames(counts) == rownames(query.metadata))){stop("Colnames of `counts` and rownames of `query.metadata` do not match.")}
-  if(applyPatchseqQC!=TRUE) applyPatchseqQC=FALSE
+  if(!all(colnames(query.data) == rownames(query.metadata))){stop("Colnames of `query.data` and rownames of `query.metadata` do not match.")}
+  if(doPatchseqQC!=TRUE) doPatchseqQC=FALSE
   # Merge mapping metadata inputs
   if(length(setdiff(colnames(query.mapping),colnames(query.metadata)))>0){
-    if(!all(colnames(counts) == rownames(query.metadata))){stop("Colnames of `counts` and rownames of `query.mapping` do not match.")}
+    if(!all(colnames(query.data) == rownames(query.metadata))){stop("Colnames of `query.data` and rownames of `query.mapping` do not match.")}
     query.metadata <- cbind(query.metadata,query.mapping[,setdiff(colnames(query.mapping),colnames(query.metadata))])
     query.metadata[,colnames(query.mapping)] <- query.mapping # Overwrite any columns in query.metadata with same name in query.mapping
   }
@@ -53,7 +51,7 @@ buildMappingDirectory = function(AIT.anndata,
   saveRDS(dend, file.path(mappingFolder,"dend.RData"))
   
   ## Convert query.data to CPM
-  if(class(query.data)=="data.frame"){stop("`query.data` should be a matrix or a sparse matrix, not a data.frame.")}
+  if(is.element("data.frame",class(query.data))){stop("`query.data` should be a matrix or a sparse matrix, not a data.frame.")}
   if(max(query.data)<20){
     warning("`query.data` should not be log2-normalized. Converting back to linear space.")
     if (is.matrix(query.data)) {
@@ -74,10 +72,10 @@ buildMappingDirectory = function(AIT.anndata,
   }))
   memb.ref <- memb.ref[sample_id,]
   memb     <- as.tibble(data.frame(sample_id,memb.ref))
-  write_feather(memb, paste0(pdir,"memb.feather"))
+  write_feather(memb, paste0(mappingFolder,"memb.feather"))  # This might need to be memb.ref... will test
 
   ## Assign top cluster here to the metadata "cluster" column
-  top_cluster <- getTopMatch(memb[,labels(dend)])
+  top_cluster <- getTopMatch(memb.ref[,intersect(labels(dend),colnames(memb.ref))])
   colnames(top_cluster) <- c("cluster","cluster_score")
   query.metadata <- cbind(query.metadata[,setdiff(colnames(query.metadata),c("cluster","cluster_score"))],top_cluster[sample_id,])
   
@@ -102,12 +100,11 @@ buildMappingDirectory = function(AIT.anndata,
   write_feather(norm.data.t, file.path(mappingFolder, "data.feather"))
   
   ## Apply PatchseqQC if desired
-  if(applyPatchseqQC){
+  if(doPatchseqQC){
     query.metadata <- applyPatchseqQC(AIT.anndata, query.data, query.metadata)
   }  
   
   ## Process and output metadata and desc files
-  
   # Auto_annotate the data
   meta.data = scrattch.io::auto_annotate(query.metadata)
   
@@ -129,7 +126,7 @@ buildMappingDirectory = function(AIT.anndata,
   for(lab in label.cols){
     cnt <- setNames(rep(0,ln),colnames(meta.data))
     for (i in 1:ln) if(mean(is.element(meta.data[,i],(AIT.anndata$obs[,lab])))==1){
-      col <- gsub("_color","",colnames(meta.data)[i])
+      col <- gsub("_label","",colnames(meta.data)[i])
       print(col)
       meta.data[,paste0(col,"_color")] <- AIT.anndata$obs[,gsub("_label","_color",lab)][match(meta.data[,paste0(col,"_label")],AIT.anndata$obs[,lab])]
     }
@@ -153,64 +150,39 @@ buildMappingDirectory = function(AIT.anndata,
   meta.data$cluster_id <- as.numeric(factor(meta.data$cluster_label,levels=labels(dend))) # Reorder cluster ids to match dendrogram
   write_feather(meta.data, file.path(mappingFolder,"anno.feather"))
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   ## Project mapped data into existing umap (if it exists) or generate new umap otherwise
+  binary.genes <- AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes]
+  ref.umap     <- as.matrix(AIT.anndata$obsm[["umap"]][,colnames(AIT.anndata$obsm[["umap"]])!="sample_id"])
+  rownames(ref.umap) <- rownames(AIT.anndata$obsm[["umap"]])
+  ref.umap[is.na(ref.umap)] <- 0
   
-  if(file.exists(paste0(refFolder,""))){
+  npcs         <- min(30,length(binary.genes))
+  query.pcs    <- prcomp(logCPM(query.cpm)[binary.genes,], scale = TRUE)$rotation
+  
+  if(diff(range(ref.umap))>0){
+    ## Project mapped data into existing umap space
+    reference.logcpm <- t(AIT.anndata$X[,binary.genes])
+    reference.pcs    <- prcomp(reference.logcpm, scale = TRUE)$rotation
+    reference.umap   <- umap(pcs[,1:npcs])
+    reference.umap$layout <- ref.umap[rownames(reference.umap$layout),]
+    
+    query.umap <- predict(reference.umap, query.pcs[,1:npcs])
     
   } else {
-    ## Get top 1000 genes by a beta (binary) score
-    binary.genes <- top_binary_genes(counts,annotations$cluster,1000)
-    
-    ## Calculate a UMAP based on these binary genes.
-    npcs <- 30
-    pcs  <- prcomp(logCPM(counts)[binary.genes,], scale = TRUE)$rotation
-    umap.coords <- umap(pcs[,1:npcs])$layout
-    
-    ## View the output as a sanity check
-    plot(umap.coords[,1],umap.coords[,2],col=annotations$primary_type_color, pch=19, cex=0.5,
-         main="",xlab="UMAP 1", ylab="UMAP 2")
+    ## Calculate a UMAP based on PCS of variable genes
+    query.umap <- umap(query.pcs[,1:npcs])$layout
   }
 
   ## Write the UMAP coordinates.  
-    
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  print("===== Building umap/tsne feathers (precalculated) =====")
-  tsne      = data.frame(sample_id = rownames(umap.coords),
-                         all_x = umap.coords[,1],
-                         all_y = umap.coords[,2])
+  tsne      = data.frame(sample_id = rownames(query.umap),
+                         all_x = query.umap[,1],
+                         all_y = query.umap[,2])
   tsne      = tsne[match(meta.data$sample_id, tsne$sample_id),]
   tsne_desc = data.frame(base = "all",
                          name = "All Cells UMAP")
   
   write_feather(tsne, file.path(mappingFolder,"tsne.feather"))
   write_feather(tsne_desc, file.path(mappingFolder,"tsne_desc.feather"))
-  
-  
 }
 
 
@@ -232,20 +204,12 @@ applyPatchseqQC = function(AIT.anndata,
                            query.metadata,
                            verbose=FALSE){
   
-  ## Load libraries (not done)
-  #library(dplyr)
-  #library(patchseqtools)  # devtools::install_github("AllenInstitute/patchseqtools")
-  #library(patchSeqQC)     # devtools::install_github('PavlidisLab/patchSeqQC')
-  #library(scrattch.io)    # devtools::install_github("AllenInstitute/scrattch"); scrattch::install_scrattch_deps(); scrattch::install_scrattch()
-  #library(scrattch.hicat)
-  #options(stringsAsFactors = FALSE)
-  
   ## Checks
-  if(!all(colnames(counts) == rownames(meta.data))){stop("Colnames of `counts` and rownames of `meta.data` do not match.")}
+  if(!all(colnames(query.data) == rownames(query.metadata))){stop("Colnames of `query.data` and rownames of `meta.data` do not match.")}
   if(!file.exists(AIT.anndata$uns$QC_markers)){stop("QC_markers file must be provided in AIT.anndata.")}
   
   ## Convert query.data to CPM
-  if(class(query.data)=="data.frame"){stop("`query.data` should be a matrix or a sparse matrix, not a data.frame.")}
+  if(is.element("data.frame",class(query.data))){stop("`query.data` should be a matrix or a sparse matrix, not a data.frame.")}
   if(max(query.data)<20){
     warning("`query.data` should not be log2-normalized. Converting back to linear space.")
     if (is.matrix(query.data)) {
@@ -268,18 +232,18 @@ applyPatchseqQC = function(AIT.anndata,
   rownames(tmp)       <- make.names(rownames(tmp))
   facs_df             <- as.data.frame(t(tmp[allMarkers,])+1)
   facs_df$sample_id   <- rownames(facs_df)
-  facs_df$major_type  <- as.character(classBr)    
-  facs_df$contam_type <- as.character(subclassF)  
+  facs_df$major_type  <- make.names(classBr)    
+  facs_df$contam_type <- make.names(subclassF)  
   
   tmp              <- cpm(query.cpm) #
   rownames(tmp)    <- make.names(rownames(tmp))
   allMarkers       <- intersect(allMarkers,rownames(tmp))  # To account for differences in transcriptome
-  pat_df           <- as.data.frame(t(tmp[allMarkers,annoPat_all$sample_id])+1)
+  pat_df           <- as.data.frame(t(tmp[allMarkers,query.metadata$sample_id])+1)
   pat_df$sample_id <- rownames(pat_df)
   
   
   if(verbose) print("Define which type each patch-seq cell is assigned to, based on maximal marker expression.")  
-  nm          <- names(markers)
+  nm          <- names(markers) <- make.names(names(markers))
   isOn        <- substr(nm,nchar(nm)-2,nchar(nm))=="_on"
   useThese    <- nm[isOn&(!is.element(nm,paste0(nm,"_on")))]
   subclassDat <- calcContamAllTypes(pat_df, markers[useThese])  # Identify subclass based on marker gene expression
@@ -287,7 +251,7 @@ applyPatchseqQC = function(AIT.anndata,
   subclass    <- gsub("_on","",subclass)
   
   pat_df$contam_type <- subclass  
-  pat_df$major_type  <- as.character(classBr)[match(pat_df$contam_type,as.character(subclassF))]
+  pat_df$major_type  <- make.names(classBr)[match(pat_df$contam_type,make.names(subclassF))]
   pat_df$contam_type <- paste0(pat_df$contam_type,"_on")
   
   
@@ -301,7 +265,7 @@ applyPatchseqQC = function(AIT.anndata,
   
   if(verbose) print("Set NMS>0.4 flag and determine most contaminated type")
   qcMetrics$Norm_Marker_Sum.0.4 <- c(TRUE,FALSE)[(qcMetrics$marker_sum_norm<0.40)+1]
-  cls               <- sort(setdiff(classBr,c("GABAergic","Glutamatergic")))
+  cls               <- make.names(sort(intersect(classBr,subclassF)))
   contaminationType <- cls[apply(qcMetrics[,cls],1,which.max)]
   qcMetrics$contaminationType   <- contaminationType
   
@@ -323,5 +287,4 @@ applyPatchseqQC = function(AIT.anndata,
   
   if(verbose) print("Return the updated annotations")
   return(annoNew)
-  
 }

@@ -17,8 +17,6 @@
 #' @import dplyr
 #' @import Matrix
 #' @import pvclust
-#' 
-#' @return
 #'
 #' @export
 buildReference = function(counts,

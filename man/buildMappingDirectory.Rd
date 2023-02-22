@@ -6,11 +6,11 @@
 \usage{
 buildMappingDirectory(
   AIT.anndata,
-  shinyFolder,
+  mappingFolder,
   query.data,
   query.metadata,
-  mappingAnno = NULL,
-  applyPatchseqQC = TRUE,
+  query.mapping = NULL,
+  doPatchseqQC = TRUE,
   metadata_names = NULL,
   mc.cores = 1,
   bs.num = 100,
@@ -21,15 +21,15 @@ buildMappingDirectory(
 \arguments{
 \item{AIT.anndata}{A reference taxonomy object.}
 
-\item{shinyFolder}{The location to save Shiny objects for patch-seq (or other query data) results, e.g. "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/star/human/human_patchseq_MTG_JAM_TEST/current/"}
+\item{mappingFolder}{The location to save output files for patch-seq (or other query data) results, e.g. "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/star/human/human_patchseq_MTG_JAM_TEST/current/"}
 
 \item{query.data}{A logCPM normalized matrix to be annotated.}
 
 \item{query.metadata}{A data frame of metadata for the query data.}
 
-\item{mappingAnno}{Mapping results from \code{taxonomy_mapping()} or other mapping functions (optional).  If provided row names must match column names in query.data.}
+\item{query.mapping}{Mapping results from \code{taxonomy_mapping()} or other mapping functions (optional).  If provided row names must match column names in query.data.}
 
-\item{applyPatchseqQC}{Boolean indicating whether patchseq QC metrics should be calculated (default) or not.}
+\item{doPatchseqQC}{Boolean indicating whether patch-seq QC metrics should be calculated (default) or not.}
 
 \item{metadata_names}{An optional named character vector where the vector NAMES correspond to columns in the metadata matrix and the vector VALUES correspond to how these metadata should be displayed in Shiny. This is used for writing the desc.feather file later.}
 
@@ -37,17 +37,14 @@ buildMappingDirectory(
 
 \item{bs.num, p, low.th}{Extra variables for the \code{map_dend_membership} function in scrattch.hicat.  Defaults are set reasonably.
 
-This function writes files to the shinyFolder directory for visualization with molgen-shiny tools
+This function writes files to the mappingFolder directory for visualization with molgen-shiny tools
 --- anno.feather - query metadata
 --- data.feather - query data
---- dend.RData - dendrogram (copied from reference)
+--- dend.RData   - dendrogram (copied from reference)
 --- desc.feather - table indicating which anno columns to share
 --- memb.feather - tree mapping of each query cell to each tree node (not just the best matching type like in treeMap)
 --- tsne.feather - low dimensional coordinates for data
 --- tsne_desc.feather - table indicating which low-D representations to share}
-}
-\value{
-
 }
 \description{
 Starting from an anndata object this function builds the minimum files required for patch-seq shiny

@@ -27,7 +27,7 @@ build_dend(
 \item{ncores}{}
 }
 \value{
-
+dendrogram and a couple of related things
 }
 \description{
 Build dend (updated to specify dendextend version of "set")

@@ -140,7 +140,7 @@ revert_dend_label <- function(dend, value, attribute="label")
 #'
 #' @import foreach
 #'
-#' @return
+#' @return membership table
 #' 
 #' @export
 map_dend_membership <-
@@ -196,7 +196,8 @@ map_dend_membership <-
 #' @param default.markers 
 #' @param seed = random seed
 #'
-#' @return
+#' @return tree mapping to the dendrogram table (cells x nodes with values as probabilities)
+#' 
 #' @export
 #'
 map_dend <-
@@ -265,7 +266,7 @@ map_dend <-
 #' @param low.th 
 #' @param seed - random seed for reproducibility
 #'
-#' @return
+#' @return mapped.cl output
 #' 
 #' @export
 #'
@@ -369,7 +370,7 @@ resolve_cl <-
 #' @param nboot 
 #' @param ncores 
 #'
-#' @return
+#' @return dendrogram and a couple of related things
 #'
 #' @import dendextend
 #' @import pvclust

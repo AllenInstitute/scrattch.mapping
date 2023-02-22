@@ -37,7 +37,7 @@ map_dend_membership(
 \item{dat}{}
 }
 \value{
-
+membership table
 }
 \description{
 Title
