@@ -76,7 +76,7 @@ loadTaxonomy = function(refFolder,
     }else{
       tryCatch(
         expr = {
-          umap = read_feather("tsne.feather")
+          umap = as.data.frame(read_feather("tsne.feather"))
           rownames(umap) = umap[,sample_id]
           umap = umap[rownames(annoReference),]
         },
@@ -101,9 +101,9 @@ loadTaxonomy = function(refFolder,
     AIT.anndata = AnnData(
       X = datReference,
       obs = annoReference,
-      var = data.frame("gene" = rownames(datReference), 
-                       "highly_variable_genes" = rownames(datReference) %in% varFeatures, 
-                       row.names=rownames(datReference)),
+      var = data.frame("gene" = colnames(datReference), 
+                       "highly_variable_genes" = colnames(datReference) %in% varFeatures, 
+                       row.names=colnames(datReference)),
       layers = list(
         counts = t(countsReference) # Counts. We may want to keep genes as rows and not transpose this
       ),
@@ -111,7 +111,7 @@ loadTaxonomy = function(refFolder,
         umap = umap # A data frame with sample_id, and 2D coordinates for umap (or comparable) representation(s)
       ),
       uns = list(
-        dend = file.path(refFolder,"reference.rda"),  # FILE NAME with dendrogram
+        dend        = file.path(refFolder,"reference.rda"),  # FILE NAME with dendrogram
         QC_markers  = file.path(refFolder,"QC_markers.RData"), # FILE NAME with variables for patchseqQC
         clustersUse = clustersUse,
         clusterInfo = clusterInfo
