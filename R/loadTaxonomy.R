@@ -79,6 +79,8 @@ loadTaxonomy = function(refFolder,
           umap = read_feather("tsne.feather")
           rownames(umap) = umap[,sample_id]
           umap = umap[rownames(annoReference),]
+          umap = as.data.frame(umap)
+          rownames(umap) <- rownames(annoReference)
         },
         error = function(e){ 
           print("Error caught for umap loading.")
@@ -101,9 +103,9 @@ loadTaxonomy = function(refFolder,
     AIT.anndata = AnnData(
       X = datReference,
       obs = annoReference,
-      var = data.frame("gene" = rownames(datReference), 
-                       "highly_variable_genes" = rownames(datReference) %in% varFeatures, 
-                       row.names=rownames(datReference)),
+      var = data.frame("gene" = colnames(datReference), 
+                       "highly_variable_genes" = colnames(datReference) %in% varFeatures, 
+                       row.names=colnames(datReference)),
       layers = list(
         counts = t(countsReference) # Counts. We may want to keep genes as rows and not transpose this
       ),
