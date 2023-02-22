@@ -1,16 +1,16 @@
 #' Starting from an anndata object this function builds the minimum files required for patch-seq shiny
 #'
 #' @param AIT.anndata A reference taxonomy object.
-#' @param shinyFolder The location to save Shiny objects for patch-seq (or other query data) results, e.g. "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/star/human/human_patchseq_MTG_JAM_TEST/current/"
+#' @param mappingFolder The location to save output files for patch-seq (or other query data) results, e.g. "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/star/human/human_patchseq_MTG_JAM_TEST/current/"
 #' @param query.data A logCPM normalized matrix to be annotated.
 #' @param query.metadata A data frame of metadata for the query data.  
-#' @param mappingAnno Mapping results from `taxonomy_mapping()` or other mapping functions (optional).  If provided row names must match column names in query.data.
+#' @param query.mapping Mapping results from `taxonomy_mapping()` or other mapping functions (optional).  If provided row names must match column names in query.data.
 #' @param applyPatchseqQC Boolean indicating whether patchseq QC metrics should be calculated (default) or not.
 #' @param metadata_names An optional named character vector where the vector NAMES correspond to columns in the metadata matrix and the vector VALUES correspond to how these metadata should be displayed in Shiny. This is used for writing the desc.feather file later.
 #' @param mc.cores Number of cores to use for running this function to speed things up.  Default = 1.  Values>1 are only supported in an UNIX environment and require `foreach` and `doParallel` R libraries.
 #' @param bs.num,p,low.th Extra variables for the `map_dend_membership` function in scrattch.hicat.  Defaults are set reasonably.
 #' 
-#' This function writes files to the shinyFolder directory for visualization with molgen-shiny tools
+#' This function writes files to the mappingFolder directory for visualization with molgen-shiny tools
 #' --- anno.feather - query metadata
 #' --- data.feather - query data
 #' --- dend.RData - dendrogram (copied from reference)
@@ -23,10 +23,10 @@
 #'
 #' @export
 buildMappingDirectory = function(AIT.anndata, 
-                                 shinyFolder,
+                                 mappingFolder,
                                  query.data,
                                  query.metadata,
-                                 mappingAnno=NULL,
+                                 query.mapping=NULL,
                                  applyPatchseqQC = TRUE,
                                  metadata_names = NULL,
                                  mc.cores=1,
@@ -37,20 +37,20 @@ buildMappingDirectory = function(AIT.anndata,
   if(!all(colnames(counts) == rownames(query.metadata))){stop("Colnames of `counts` and rownames of `query.metadata` do not match.")}
   if(applyPatchseqQC!=TRUE) applyPatchseqQC=FALSE
   # Merge mapping metadata inputs
-  if(length(setdiff(colnames(mappingAnno),colnames(query.metadata)))>0){
-    if(!all(colnames(counts) == rownames(query.metadata))){stop("Colnames of `counts` and rownames of `mappingAnno` do not match.")}
-    query.metadata <- cbind(query.metadata,mappingAnno[,setdiff(colnames(mappingAnno),colnames(query.metadata))])
-    query.metadata[,colnames(mappingAnno)] <- mappingAnno # Overwrite any columns in query.metadata with same name in mappingAnno
+  if(length(setdiff(colnames(query.mapping),colnames(query.metadata)))>0){
+    if(!all(colnames(counts) == rownames(query.metadata))){stop("Colnames of `counts` and rownames of `query.mapping` do not match.")}
+    query.metadata <- cbind(query.metadata,query.mapping[,setdiff(colnames(query.mapping),colnames(query.metadata))])
+    query.metadata[,colnames(query.mapping)] <- query.mapping # Overwrite any columns in query.metadata with same name in query.mapping
   }
   
   ## Ensure directory exists, if not create it
-  dir.create(shinyFolder, showWarnings = FALSE)
+  dir.create(mappingFolder, showWarnings = FALSE)
   
   ## Read in the reference tree and copy to new directory
   load(AIT.anndata$uns$dend)
   dend   <- reference$dend
   cl.dat <- reference$cl.dat # Used below for creating the memb.feather file
-  saveRDS(dend, file.path(shinyFolder,"dend.RData"))
+  saveRDS(dend, file.path(mappingFolder,"dend.RData"))
   
   ## Convert query.data to CPM
   if(class(query.data)=="data.frame"){stop("`query.data` should be a matrix or a sparse matrix, not a data.frame.")}
@@ -99,7 +99,7 @@ buildMappingDirectory = function(AIT.anndata,
   norm.data.t = as_tibble(norm.data.t)
   norm.data.t = cbind(sample_id, norm.data.t)
   norm.data.t = as_tibble(norm.data.t)
-  write_feather(norm.data.t, file.path(shinyFolder, "data.feather"))
+  write_feather(norm.data.t, file.path(mappingFolder, "data.feather"))
   
   ## Apply PatchseqQC if desired
   if(applyPatchseqQC){
@@ -144,19 +144,59 @@ buildMappingDirectory = function(AIT.anndata,
     desc <- desc[!is.na(desc$base),]  # Remove missing values
     anno_desc <- desc
   }
-  write_feather(anno_desc, file.path(shinyFolder,"desc.feather"))
+  write_feather(anno_desc, file.path(mappingFolder,"desc.feather"))
   
   ## Minor reformatting of metadata file, then write metadata file
   meta.data$cluster = meta.data$cluster_label; 
   colnames(meta.data)[colnames(meta.data)=="sample_name"] <- "sample_name_old" # Rename "sample_name" to avoid shiny crashing
   if(!is.element("sample_id", colnames(meta.data))){ meta.data$sample_id = meta.data$sample_name_old } ## Sanity check for sample_id
   meta.data$cluster_id <- as.numeric(factor(meta.data$cluster_label,levels=labels(dend))) # Reorder cluster ids to match dendrogram
-  write_feather(meta.data, file.path(shinyFolder,"anno.feather"))
+  write_feather(meta.data, file.path(mappingFolder,"anno.feather"))
   
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  ## Project mapped data into existing umap (if it exists) or generate new umap otherwise
+  
+  if(file.exists(paste0(refFolder,""))){
+    
+  } else {
+    ## Get top 1000 genes by a beta (binary) score
+    binary.genes <- top_binary_genes(counts,annotations$cluster,1000)
+    
+    ## Calculate a UMAP based on these binary genes.
+    npcs <- 30
+    pcs  <- prcomp(logCPM(counts)[binary.genes,], scale = TRUE)$rotation
+    umap.coords <- umap(pcs[,1:npcs])$layout
+    
+    ## View the output as a sanity check
+    plot(umap.coords[,1],umap.coords[,2],col=annotations$primary_type_color, pch=19, cex=0.5,
+         main="",xlab="UMAP 1", ylab="UMAP 2")
+  }
+
   ## Write the UMAP coordinates.  
+    
   
   
-  # CALCULATE UMAP HERE
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   
   print("===== Building umap/tsne feathers (precalculated) =====")
@@ -167,8 +207,8 @@ buildMappingDirectory = function(AIT.anndata,
   tsne_desc = data.frame(base = "all",
                          name = "All Cells UMAP")
   
-  write_feather(tsne, file.path(shinyFolder,"tsne.feather"))
-  write_feather(tsne_desc, file.path(shinyFolder,"tsne_desc.feather"))
+  write_feather(tsne, file.path(mappingFolder,"tsne.feather"))
+  write_feather(tsne_desc, file.path(mappingFolder,"tsne_desc.feather"))
   
   
 }

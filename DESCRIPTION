@@ -30,6 +30,7 @@ Depends: feather,
     mfishtools,
     patchseqtools,
     patchSeqQC,
+    Seurat,
     umap
 Suggests: knitr,
     rmarkdown, 
