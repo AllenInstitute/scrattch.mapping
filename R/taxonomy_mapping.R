@@ -4,7 +4,7 @@
 #'
 #' @param AIT.anndata A reference taxonomy object.
 #' @param query.data A logCPM normalized matrix to be annotated.
-#' @param label.cols Column names of annotations to map against
+#' @param label.cols Column names of annotations to map against.  Note that this only works for metadata that represent clusters or groups of clusters (e.g., subclass, supertype, neighborhood, class)
 #' @param corr.map Should correlation mapping be performed?
 #' @param tree.map Should tree mapping be performed?
 #' @param seurat.map Should seurat mapping be performed?

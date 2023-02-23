@@ -15,7 +15,8 @@ buildMappingDirectory(
   mc.cores = 1,
   bs.num = 100,
   p = 0.7,
-  low.th = 0.15
+  low.th = 0.15,
+  min.confidence = 0.5
 )
 }
 \arguments{
@@ -35,7 +36,9 @@ buildMappingDirectory(
 
 \item{mc.cores}{Number of cores to use for running this function to speed things up.  Default = 1.  Values>1 are only supported in an UNIX environment and require \code{foreach} and \code{doParallel} R libraries.}
 
-\item{bs.num, p, low.th}{Extra variables for the \code{map_dend_membership} function in scrattch.hicat.  Defaults are set reasonably.
+\item{bs.num, p, low.th}{Extra variables for the \code{map_dend_membership} function in scrattch.hicat.  Defaults are set reasonably.}
+
+\item{min.confidence}{Probability below which a cell cannot be assigned to a cell type (default 0.7).  In other words, if no cell types have probabilties greater than resolution.index, then the assigned cluster will be an internal node of the dendrogram.
 
 This function writes files to the mappingFolder directory for visualization with molgen-shiny tools
 --- anno.feather - query metadata

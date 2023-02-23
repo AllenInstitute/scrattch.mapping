@@ -24,7 +24,7 @@ taxonomy_mapping(
 
 \item{seurat.map}{Should seurat mapping be performed?}
 
-\item{label.cols}{Column names of annotations to map against}
+\item{label.cols}{Column names of annotations to map against.  Note that this only works for metadata that represent clusters or groups of clusters (e.g., subclass, supertype, neighborhood, class)}
 }
 \value{
 Mapping results from all methods.

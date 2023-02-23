@@ -9,6 +9,7 @@
 #' @param metadata_names An optional named character vector where the vector NAMES correspond to columns in the metadata matrix and the vector VALUES correspond to how these metadata should be displayed in Shiny. This is used for writing the desc.feather file later.
 #' @param mc.cores Number of cores to use for running this function to speed things up.  Default = 1.  Values>1 are only supported in an UNIX environment and require `foreach` and `doParallel` R libraries.
 #' @param bs.num,p,low.th Extra variables for the `map_dend_membership` function in scrattch.hicat.  Defaults are set reasonably.
+#' @param min.confidence Probability below which a cell cannot be assigned to a cell type (default 0.7).  In other words, if no cell types have probabilties greater than resolution.index, then the assigned cluster will be an internal node of the dendrogram. 
 #' 
 #' This function writes files to the mappingFolder directory for visualization with molgen-shiny tools
 #' --- anno.feather - query metadata
@@ -28,7 +29,8 @@ buildMappingDirectory = function(AIT.anndata,
                                  doPatchseqQC = TRUE,
                                  metadata_names = NULL,
                                  mc.cores=1,
-                                 bs.num=100, p=0.7, low.th=0.15
+                                 bs.num=100, p=0.7, low.th=0.15,
+                                 min.confidence = 0.5
                                  ){
   
   ## Checks
@@ -71,26 +73,44 @@ buildMappingDirectory = function(AIT.anndata,
                                       mc.cores=mc.cores, bs.num=bs.num, p=p, low.th=low.th)
   }))
   memb.ref <- memb.ref[sample_id,]
-  memb     <- as.tibble(data.frame(sample_id,memb.ref))
-  write_feather(memb, paste0(mappingFolder,"memb.feather"))  # This might need to be memb.ref... will test
-
-  ## Assign top cluster here to the metadata "cluster" column
-  top_cluster <- getTopMatch(memb.ref[,intersect(labels(dend),colnames(memb.ref))])
-  colnames(top_cluster) <- c("cluster","cluster_score")
-  query.metadata <- cbind(query.metadata[,setdiff(colnames(query.metadata),c("cluster","cluster_score"))],top_cluster[sample_id,])
+  memb     <- data.frame(sample_id,as.data.frame.matrix(memb.ref)) 
+  colnames(memb) <- c("sample_id",colnames(memb.ref))
+  write_feather(as_tibble(memb), paste0(mappingFolder,"memb.feather")) 
   
-  ## Convert reference data to CPM
-  #reference.cpm <- t(AIT.anndata$X)
-  #if(max(reference.cpm)<20){
-  #  warning("Reference data should not be log2-normalized. Converting back to linear space.")
-  #  if (is.matrix(query.data)) {
-  #    reference.cpm <- 2^reference.cpm - 1
-  #  }
-  #  else {
-  #    reference.cpm@x <- 2^reference.cpm@x - 1
-  #  }
-  #}
-  #reference.cpm <- cpm(reference.cpm)
+  ## Assign lowest done (or leaf) on tree with confidence > min.confidence to the metadata "cluster" column
+  confident_match <- apply(memb,1,function(x){
+    i = max(which(x>=min.confidence))
+    c(colnames(memb)[i],x[i])
+  })
+  confident_match <- as.data.frame(t(confident_match))
+  #getTopMatch(memb.ref[,intersect(labels(dend),colnames(memb.ref))]) # If we want to require leaf node, this line replaces above
+  colnames(confident_match) <- c("cluster","cluster_score")
+  query.metadata <- cbind(query.metadata[,setdiff(colnames(query.metadata),c("cluster","cluster_score"))],confident_match[sample_id,])
+  
+  ## Define resolution index and cluster order, and update metadata
+  invisible(capture.output({  # Avoid printing lots of numbers to the screen
+    # Get shiny's cluster_ids for each node
+    cl.order = dend %>% get_nodes_attr("label")
+    cluster_anno_ordered = data.frame(cluster_label=cl.order,
+                                      cluster_id=1:length(cl.order))
+    rownames(cluster_anno_ordered) = cl.order
+    nodes.ids.df = data.frame(cluster_height = get_nodes_attr(dend,"height"),
+                              cluster_label = get_nodes_attr(dend,"label"))
+    nodes.ids.df$res.index = 1 - (nodes.ids.df$cluster_height / attr(dend,"height"))
+    # Join the memb with the cluster names and cluster res index
+    cluster_node_anno <- cluster_anno_ordered %>%
+      left_join(nodes.ids.df) %>%
+      select(cluster_label, cluster_id, res.index)
+    # Ordered by dend and higher res first
+    idx1 = which(cluster_node_anno$res.index>=0.8)
+    idx2 = which(cluster_node_anno$res.index<0.8)
+    idx3 = which(is.na(cluster_node_anno$res.index))
+    cluster_node_anno = cluster_node_anno[c(idx1,idx2,idx3),]
+    cluster_node_anno$cluster_id = 1:length(cluster_node_anno$cluster_label)
+  }))
+  # Add this stuff to the meta.data file
+  query.metadata$res.index <- cluster_node_anno$res.index[match(query.metadata$cluster,cluster_node_anno$cluster_label)]
+  query.metadata$cluster   <- droplevels(factor(query.metadata$cluster,levels=cluster_node_anno$cluster_label))
   
   ## Output query data feather
   norm.data.t = t(as.matrix(query.cpm))
@@ -120,14 +140,14 @@ buildMappingDirectory = function(AIT.anndata,
     meta.data[kp,col] = paste0(meta.data[kp,col],"FF")
   }
   
-  print("Adjust the cluster colors to match cluster_colors in the reference taxonomy.")
+  # Adjust the cluster colors to match cluster_colors in the reference taxonomy
   ln  <- dim(meta.data)[2]
   label.cols <- intersect(c("cluster_label","subclass_label", "class_label"),colnames(meta.data))
   for(lab in label.cols){
     cnt <- setNames(rep(0,ln),colnames(meta.data))
     for (i in 1:ln) if(mean(is.element(meta.data[,i],(AIT.anndata$obs[,lab])))==1){
       col <- gsub("_label","",colnames(meta.data)[i])
-      print(col)
+      print(paste("Colors updated for:",col))
       meta.data[,paste0(col,"_color")] <- AIT.anndata$obs[,gsub("_label","_color",lab)][match(meta.data[,paste0(col,"_label")],AIT.anndata$obs[,lab])]
     }
   }
@@ -144,10 +164,9 @@ buildMappingDirectory = function(AIT.anndata,
   write_feather(anno_desc, file.path(mappingFolder,"desc.feather"))
   
   ## Minor reformatting of metadata file, then write metadata file
-  meta.data$cluster = meta.data$cluster_label; 
+  meta.data$cluster = meta.data$cluster_label; # Not sure why this is needed
   colnames(meta.data)[colnames(meta.data)=="sample_name"] <- "sample_name_old" # Rename "sample_name" to avoid shiny crashing
   if(!is.element("sample_id", colnames(meta.data))){ meta.data$sample_id = meta.data$sample_name_old } ## Sanity check for sample_id
-  meta.data$cluster_id <- as.numeric(factor(meta.data$cluster_label,levels=labels(dend))) # Reorder cluster ids to match dendrogram
   write_feather(meta.data, file.path(mappingFolder,"anno.feather"))
   
   ## Project mapped data into existing umap (if it exists) or generate new umap otherwise
@@ -163,7 +182,7 @@ buildMappingDirectory = function(AIT.anndata,
     ## Project mapped data into existing umap space
     reference.logcpm <- t(AIT.anndata$X[,binary.genes])
     reference.pcs    <- prcomp(reference.logcpm, scale = TRUE)$rotation
-    reference.umap   <- umap(pcs[,1:npcs])
+    reference.umap   <- umap(reference.pcs[,1:npcs])
     reference.umap$layout <- ref.umap[rownames(reference.umap$layout),]
     
     query.umap <- predict(reference.umap, query.pcs[,1:npcs])
