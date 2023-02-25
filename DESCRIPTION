@@ -31,6 +31,7 @@ Depends: feather,
     patchseqtools,
     patchSeqQC,
     Seurat,
+    cowplot,
     umap
 Suggests: knitr,
     rmarkdown, 
