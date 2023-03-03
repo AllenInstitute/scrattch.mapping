@@ -35,7 +35,7 @@ First, set the working directory to store the results of the comparisons.
   
 ```{r create reference directory}
 # REPLACE THIS LINE WITH the reference directory folder from "Map patch-seq data and output directory"
-refFolder <- paste0(getwd(),"/reference/")  
+refFolder <- paste0(system.file(package = 'scrattch.mapping'),"/reference/")  
 # Replace this line with wherever you'd like your comparison output
 mappingFolder <- paste0(refFolder,"/comparisons/")
 dir.create(mappingFolder, showWarnings = FALSE)

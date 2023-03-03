@@ -47,7 +47,8 @@ suppressPackageStartupMessages({
 First, let's create a directory in the current working directory to store the reference taxonomy files.  
   
 ```{r create reference directory}
-refFolder <- paste0(getwd(),"/reference/")
+# Replace link below with link to directory
+refFolder <- paste0(system.file(package = 'scrattch.mapping'),"/reference/") 
 dir.create(refFolder, showWarnings = FALSE)
 print(refFolder)
 ```
