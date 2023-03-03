@@ -2,7 +2,7 @@
 % Please edit documentation in R/buildShiny.R
 \name{buildReference}
 \alias{buildReference}
-\title{Starting from a Seurat object this function builds the minimum files required for Shiny}
+\title{This function builds the minimum files required for Shiny}
 \usage{
 buildReference(
   counts,
@@ -35,9 +35,6 @@ buildReference(
 
 \item{reorder.dendrogram}{Should dendogram attempt to match a preset order? (Default = FALSE).  If TRUE, the dendrogram attempts to match the celltype factor order as closely as possible (if celltype is a character vector rather than a factor, this will sort clusters alphabetically, which is not ideal).}
 }
-\value{
-
-}
 \description{
-Starting from a Seurat object this function builds the minimum files required for Shiny
+This function builds the minimum files required for Shiny
 }

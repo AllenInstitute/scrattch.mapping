@@ -1,0 +1,251 @@
+---
+title: "Comparing multiple mapping methods"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Comparing multiple mapping methods}
+  %\VignetteEncoding{UTF-8} 
+---
+
+`scrattch.mapping` offers functions to convert completed single cell/nucleus RNA-seq analysis (e.g., a counts matrix + cell type assignments) into a standard reference taxonomy compatible with various mapping techniques, as well as functions to perform such mapping analyses.  Several functions are also provided for conversion of output results into data and folder formats compatabile with Allen Institute R shiny tools.  
+  
+The `scrattch.mapping` package is one component of the scrattch suite of packages for `S`ingle `C`ell `R`NA-seq `A`nalysis for `T`ranscriptomic `T`ype `CH`aracterization from the Allen Institute.  
+  
+This vignette goes through how to compare and contrast the results of various mapping algorithms, and how to use ground truth (if available) to aid in selection of optimal mapping results. Here we use the entirely of tasic2016data as an example so that we can have "ground truth" clustering results to compare against, but in practice this information is typically not available.  Ideally other 
+
+**The vignette "Map patch-seq data and output directory" must be run prior to running this vignette, as the output reference taxonomy files are required for mapping.**
+
+We compare a total of 4 clustering/mapping methods, all of which are implememted as part of `scrattch-mapping`:  
+
+1. **(Clustering results)**: This is the clustering results presented in Tasic et al 2016, and is considered ground-truth for the purposes of all comparisons in this analysis.  
+2. **Tree mapping**: This is the primary method used for mapping of the Patch-seq cells collected at the Allen Institute.  The general idea is similar to a decision tree. Cells work their way down the FACS-based dendrogram node by node, and at each node are passed to the right or left based on evidence from differentially expressed genes specific to that node.  This analysis repeated 100 times using different subsets of the data.  For this analysis, the cell type that a cell gets mapped to in the highest proportion of iterations is defined as the mapped type ("topleaf"), and the proportion of of times that cell is mapped to that leaf is the confidence score ("bootstrap support").  
+3. **Correlation mapping**: For this method each cell is (Pearson) correlated against the cluster centroids for each FACS cell type using a subset of genes.  The cluster with the highest correlation is defined as the mapped cluster and the correlation value is this cluster is defined as the confidence score.  
+4. **Seurat mapping**: The standard workflow for label transfer from Seurat (https://satijalab.org/seurat/v3.1/integration.html; Butler et al. Nature Biotechnology 2018, PMID: 29608179) was used to transfer the labels from reference to query.  
+  
+A key component of this comparison is what should be considered "ground truth", as all clustering and mapping results can be considered different ways of grouping cells based on gene expression.  For this vignette, we consider the following items as ground truth:  
+
+1. **FACS cluster assignment**: This is the main ground truth used as it is the basis for all the mappings.  
+2. **Mouse genotype**: We are making certain assumptions about mouse genotype.  First, as a whole (but not necessarily for every cell) we expect the distance between cells collected from the same mouse genotype (transgenic-line) to be lower than cells collected from different mouse genotypes, and therefore that these cells will tend to map to the same or similar cell types.  
+3. **Consensus of mapping results**: It is generally expected that mapping results that are consistent between different mapping strategies will be more indicative of acceptable ground truth.  
+  
+
+## Workspace set-up
+  
+First, set the working directory to store the results of the comparisons.  
+  
+```{r create reference directory}
+# REPLACE THIS LINE WITH the reference directory folder from "Map patch-seq data and output directory"
+refFolder <- paste0(getwd(),"/reference/")  
+# Replace this line with wherever you'd like your comparison output
+mappingFolder <- paste0(refFolder,"/comparisons/")
+dir.create(mappingFolder, showWarnings = FALSE)
+print(mappingFolder)
+```
+
+  
+Load libraries and set options.  
+  
+```{r load libraries, warning=FALSE}
+suppressPackageStartupMessages({
+  library("scrattch.mapping")
+})
+options(stringsAsFactors = FALSE)
+options(future.globals.maxSize = 4000 * 1024^2)  # Can adjust this value if needed, or omit, depending on number of cells
+options(future.rng.onMisuse="ignore")
+```
+  
+  
+Read in the reference taxonomy.  This can be any reference, but in this case we load the one based from tasic2016data generated in the "Map patch-seq data and output directory" vignette.  
+  
+```{r load reference taxonomy}
+AIT.anndata <- read_h5ad(file.path(refFolder,"reference.h5ad"))
+```
+  
+  
+Read in the data for mapping.  In this case we are going to map all the reference data back onto itself so that we have a ground truth for the mapping.
+  
+```{r load tasic data }
+query.metadata <- AIT.anndata$obs
+query.logCPM   <- t(AIT.anndata$X)  # Stored as gene x cell in anndata, so must be transposed
+```
+  
+The query and reference data sets are now loaded and ready to go!  
+  
+## Map query data 
+  
+Mapping can be done in one step using the "taxonomy_mapping" function to apply Seurat mapping, tree mapping, and correlation mapping.  Let's do that here.  
+  
+```{r general mapping}
+query.mapping <- taxonomy_mapping(AIT.anndata= AIT.anndata,
+                                  query.data = query.logCPM, 
+                                  corr.map   = TRUE, # Flags for which mapping algorithms to run
+                                  tree.map   = TRUE, 
+                                  seurat.map = TRUE, 
+                                  label.cols = c("cluster_label","subclass_label", "class_label") # Columns to map against
+)
+head(query.mapping)
+```
+  
+In this case the prediction scores are saved in "score.METHOD" and the mapping results are saved in "cluster_METHOD" (with roll-ups for subclass and class).  This table is the input that will be used for all the comparisons.  For convenience we will append the initial clustering results to this table, and will convert all cluster character vectors to factors to preserve cluster order  
+  
+```{r append clustering}
+query.mapping$cluster <- query.metadata$cluster
+clusters <- levels(query.metadata$cluster)
+
+methods  <- c("cluster","cluster_Corr", "cluster_Seurat","cluster_Tree")
+names(methods) <- c("Clustering","Correlation.Mapping","Seurat.Mapping","Tree.Mapping")
+for(m in methods)
+  query.mapping[,m] <- factor(query.mapping[,m],levels=clusters)
+```
+  
+  
+## Mapping comparisons
+  
+These next few sections represent different ways of comparing mapping algorithms together. We first assess what proportion of cells are assigned to the same type for each pair of methods.  
+  
+```{r quick method comparison facs}
+compare <- matrix(0,nrow=4,ncol=4)
+rownames(compare) <- colnames(compare) <- names(methods)
+for(m1 in 1:4) for(m2 in 1:4) 
+  compare[m1,m2] = mean(query.mapping[,methods[m1]]==query.mapping[,methods[m2]])
+data.frame(compare)
+```    
+  
+The level of agreement between different mapping methods is high.  Tree-mapping algorithm seems to be the least consistent with other algorithms, and notably has a lower fraction of cells which match the initial cluster calls than any other method.  
+  
+If we assume the clustering is the "ground truth" result for FACs data, then one strategy for assessing the quality of the mapping strategies is the extent to which the results are clustering consistently.  Above we saw that the overall agreement with tree-mapping was lowest.  Let's begin here by digging in to specific pairwise cluster comparisons.  
+   
+```{r plot comparison, fig.height=5, fig.width=16}
+p <- map <- list()
+clust <- query.mapping[,methods[1]]
+for (i in 1:3){
+  map[[i]] <- query.mapping[,methods[i+1]]
+  p[[i]]   <- compare_plot(map[[i]],clust) + xlab(names(methods[i+1])) + ylab("Clustering")
+}
+plot_grid(p[[1]], p[[2]], p[[3]], ncol=3)
+```  
+  
+By this visualization, there are few obvious pairwise off-target issues for any mapping strategies (as expected), except for some confusion of nearby types in tree mapping.  
+  
+  
+```{r visualize heatmap, fig.height=8, fig.width=8}
+for (i in 1:3){
+  compare_heatmap(map[[i]],clust,xlab="Tree mapping",ylab="Clustering", cex.lab=0.3)
+}
+```   
+  
+Using this measure, we find that the total of all off-target percentages is actually highest with Tree-mapping, with correlation-based mapping showing the next best recapitulation of initial cluster calls.  It is also worth noting that a subset of the off-diagonal matrix looks similar across all mapping methods suggesting some consistent confusion of certain pairs of types and (potentially) ambiguous initial clustering.  
+  
+  
+### Assessment of cluster compactness
+  
+Another strategy for potentially assessing quality of mapping is to determine how consistent gene expression is within cells of a particular group.  There are several assumptions that go into this calculation, but the general idea is that cells from the same group would be expected to have similar gene expression patterns, and that a lower measurement of within-group distance is generally better than a higher measurement.  
+  
+First let's assess this value per cell for the clustering and mapping results.  
+  
+```{r calculate cluster compactness}
+variable.features <- colnames(AIT.anndata$X)[AIT.anndata$var$highly_variable_genes]
+compactness       <- compactness_distance(query.logCPM, clust, variable.features=variable.features)
+for(i in 1:3)
+  compactness <- cbind(compactness, compactness_distance(query.logCPM, map[[i]], variable.features=variable.features))
+colnames(compactness) <- names(methods)
+```
+  
+  
+Next let's see how this value compares between the different methods.  
+  
+```{r cluster compactness comparison, fig.height=5, fig.width=5}
+par(mfrow=c(4,1))
+par(mar=c(1,4,0.1,0.1))
+for (i in 1:4){
+  plot(density(compactness[,i]),xlim=c(0,0.5),ylim=c(0,7),lwd=3,main="",xlab="",ylab=names(methods)[i])
+  abline(v=(0:5)/10,col="grey",lty="dotted")
+  abline(v=median(compactness[,i]),lwd=2,col="green")
+}
+```
+  
+The results from this metric are nearly identical across methods.  
+  
+  
+### Consideration of transgenic line as ground truth  
+  
+Another strategy for potentially assessing quality of mapping vs. clustering is by using transgenic line information as ground truth.  While we know that most transgenic lines have some off-target expression (e.g., Sst-Cre is found in a small number of Pvalb cells) it is reasonable to assume that computational methods that have less off-target expression **as a whole** are more likely to be accurate, even if this assumption is broken for some transgenic lines in some cases.  More generally, it is common for   
+  
+Here we define the *transgenic distance* of a cell as the average (Pearson) correlation-based distance between the assigned cluster centroid (median) and the cluster centroid of all other cells from the same transgenic line (genotype), using the variable genes.  This can also be calculated using the compactness_distance by setting the query.secondary variable as transgenic line.  
+
+```{r calculate transgenic distance}
+query.secondary <- paste(query.metadata$cre_driver_1_label,query.metadata$tdTomato_label)
+trans.distance  <- compactness_distance(query.logCPM, clust, query.secondary, variable.features=variable.features)
+for(i in 1:3)
+  trans.distance <- cbind(trans.distance, compactness_distance(query.logCPM, map[[i]], query.secondary, variable.features=variable.features))
+colnames(trans.distance) <- names(methods)
+```
+  
+  
+Next let's see how this value compares between the different methods.  
+  
+```{r transgenic distance comparison, fig.height=5, fig.width=5}
+par(mfrow=c(4,1))
+par(mar=c(1,4,0.1,0.1))
+for (i in 1:4){
+  plot(density(trans.distance[,i]),xlim=c(0,0.5),ylim=c(0,7),lwd=3,main="",xlab="",ylab=names(methods)[i])
+  abline(v=(0:5)/10,col="grey",lty="dotted")
+  abline(v=median(trans.distance[,i]),lwd=2,col="green")
+}
+```
+  
+The results from this metric are nearly identical across methods as well.  
+  
+  
+### Consistency of 'confidence' calls
+  
+A final strategy for comparing mapping strategies is to see how well the various confidence calls match between methods.  It is worth noting that these values are measuring different things for different methods and that this comparison does not necessarily access how "good" a cell or method is, but rather how confidently a cell is mapped to a specific cluster (for any of a number of reasons), and agreement in these numbers could be for multiple technical or biological reasons. As part of tasic2016data, an assessment of whether a cell is "core" (e.g., representative of a cluster) or "intermediate" (e.g., partially repressentative of multiple clusters) is provided.  
+  
+```{r FACS value comparison, fig.height=5, fig.width=5}
+core = setNames(substr(query.metadata$core_intermediate_label,1,5),colnames(query.logCPM))
+df = NULL
+for (n in c("Corr","Seurat","Tree")){
+  df = rbind(df,data.frame(core=core, score=query.mapping[,paste0("score.",n)], method=n))
+}
+e  <- ggplot(df, aes(x = method, y = score))
+e2 <- e + geom_boxplot(aes(fill = core), position = position_dodge(0.9)) +
+  scale_fill_manual(values = c("#999999", "#E69F00"))
+e2
+```
+  
+There is a big difference in values for the core and intermediate cells in all of the metrics, except correlation-based mapping.  This essentially shows that quantitative metrics of confidence match expectations and are generally in agreement between methods, even if the absolute meanings may differ. 
+  
+We can also visualize these results by cluster to get a sense of for which clusters cells are mapped with highest confidence based on each method.  Again, it won’t be clear which method is correct, but this will be a useful assessment of potential biases (for good or bad!) in the different methods.  
+  
+```{r vis plots, warning=FALSE, fig.height=6, fig.width=8}
+# Need to format the mapping results for plotting.
+columns <- c("correlation_mapping","seurat_mapping","tree_mapping")
+plotDat <- data.frame(sample_name = rownames(query.mapping), 
+                      tree_mapping = query.mapping$score.Corr, 
+                      seurat_mapping = query.mapping$score.Seurat, 
+                      correlation_mapping = query.mapping$score.Tree)  
+annoDat <- data.frame(sample_name = rownames(query.mapping), 
+                      tree_mapping = query.mapping$cluster_Corr, 
+                      seurat_mapping = query.mapping$cluster_Seurat, 
+                      correlation_mapping = query.mapping$cluster_Tree)
+for(cn in columns){
+  annoDat <- annotate_cat(annoDat,cn)
+  annoDat[,paste0(cn,"_id")] <- query.metadata$cluster_id[match(annoDat[,paste0(cn,"_label")],query.metadata$cluster_label)]
+  annoDat[,paste0(cn,"_color")] <- query.metadata$cluster_color[match(annoDat[,paste0(cn,"_label")],query.metadata$cluster_label)]
+}
+
+# Now make the plots
+for (i in 1:3)
+  p[[i]] = group_quasirandom_plot(plotDat,annoDat,columns[i],columns[i],log_scale=FALSE, max_width=5,label_height=15)
+plot_grid(p[[1]],p[[2]],p[[3]],ncol = 1)
+```
+
+These metrics differ from method to method and from cell type to cell type.  
+  
+  
+Output session information.  
+  
+```{r sessionInfo}
+sessionInfo()
+```
+  

@@ -7,9 +7,9 @@
 loadTaxonomy(
   refFolder,
   sample_id = "sample_id",
-  nGenes = 2000,
   hGenes = NULL,
-  sub.sample = 1000
+  sub.sample = 1000,
+  gene_id = "gene"
 )
 }
 \arguments{
@@ -17,11 +17,11 @@ loadTaxonomy(
 
 \item{sample_id}{Field in reference taxonomy that defines the sample_id.}
 
-\item{nGenes}{Number of variable genes to compute.}
-
-\item{hGenes}{User supplied variable gene vector.}
+\item{hGenes}{User supplied variable gene vector.  If not provided, then all genes are used.}
 
 \item{sub.sample}{Number of cells to keep per cluster.}
+
+\item{gene_id}{Field in counts.feather that defines the gene_id.}
 }
 \value{
 Organized reference object ready for mapping against.

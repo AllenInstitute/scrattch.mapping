@@ -9,7 +9,7 @@
 #' @param de.param Differential expression (DE) parameters for genes and clusters used to define marker genes.  By default the values are set to the 10x nuclei defaults from scrattch.hicat, except with min.cells=2 (see the function `de_param` in the scrattch.hicat for more details).
 #' @param calculate.de.genes Default=TRUE. If set to false, the function will search for a file called "de.genes.rda" to load precalculated de genes.  
 #' @param save.shiny.output Should standard output files be generated and saved to the directory (default=TRUE).  These are not required for tree mapping, but are required for building a patch-seq shiny instance.  This is only tested in a UNIX environment.  See notes.
-#' @param mc.cores Number of cores to use for running this function to speed things up.  Default = 1.  Values>1 are only supported in an UNIX environment and require and `foreach` and `doParallel` R libraries.
+#' @param mc.cores Number of cores to use for running this function to speed things up.  Default = 1.  Values>1 are only supported in an UNIX environment and require `foreach` and `doParallel` R libraries.
 #' @param bs.num,p,low.th Extra variables for the `map_dend_membership` function in scrattch.hicat.  Defaults are set reasonably.
 #' @param shinyFolder The location to save shiny output, if desired
 #'
@@ -167,7 +167,8 @@ addDendrogramMarkers = function(dend,
   
   if(save.shiny.output){
     print("Save the reference dendrogram")
-    save(reference, file=paste0(shinyFolder,"reference.rda"))
+    save(reference, file=paste0(shinyFolder,"reference.rda")) # Redundant
+    saveRDS(dend, file.path(shinyFolder,"dend.RData"))        # Redundant
 
     
     print("Build membership table of reference vs. reference for use with patch-seq mapping")

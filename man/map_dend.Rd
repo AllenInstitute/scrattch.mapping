@@ -37,7 +37,7 @@ map_dend(
 \item{dat}{}
 }
 \value{
-
+tree mapping to the dendrogram table (cells x nodes with values as probabilities)
 }
 \description{
 Title

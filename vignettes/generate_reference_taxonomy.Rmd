@@ -44,12 +44,11 @@ suppressPackageStartupMessages({
   
 ### Workspace set-up  
   
-First, let's create a director in the current working directory to store the reference taxonomy files.  
+First, let's create a directory in the current working directory to store the reference taxonomy files.  
   
 ```{r create reference directory}
 refFolder <- paste0(getwd(),"/reference/")
 dir.create(refFolder, showWarnings = FALSE)
-setwd(refFolder)
 print(refFolder)
 ```
 
@@ -104,46 +103,48 @@ head(data.frame(annotations[,c("cluster","subclass","class")]))
 ```
   
   
-## Generate the reference directory
+Finally, prior to generating the taxonomy, we need to define a set of variable genes and build a 2-dimensional representation of the data.  To do this we use binary genes and the `umap` R library, respectively, although other options could also be used (for example, the Seurat R package often provides comparable or better looking results).  
+  
+```{r create UMAP representation, fig.height=8, fig.width=10}
+## Get top 1000 genes by a beta (binary) score
+binary.genes <- top_binary_genes(counts,annotations$cluster,1000)
 
-For the first step we convert the counts and annotations variables into a Seurat object of a particular format.  This is then used as input into functions for generating files in the reference directory and for creating a dendrogram.
+## Calculate a UMAP based on these binary genes.
+npcs <- 30
+pcs  <- prcomp(logCPM(counts)[binary.genes,], scale = TRUE)$rotation
+umap.coords <- umap(pcs[,1:npcs])$layout
 
-```{r create Seurat object}
-seurat_object <- createSeuratObjectForReferenceFolder(  
-  counts = counts,
-  metadata = annotations,
-  subsample = 100,  # This is the number of cells per cluster
-  cluster_colors = cluster_colors  # Colors are generated if not provided
-  # clusterColumn = "cluster"   # Remaining values are defaults and are commented out
-  #normalizebyLogCPM = TRUE,  
-  #feature.set = NULL,
-  #generateUMAP = TRUE,
-  #npcs = 10,
-  #metadata_names = setNames(colnames(metadata),colnames(metadata)),
-  #gene_names = rownames(counts),
-  #cell_names = colnames(counts)
-)
+## View the output as a sanity check
+plot(umap.coords[,1],umap.coords[,2],col=annotations$primary_type_color, pch=19, cex=0.5,
+     main="",xlab="UMAP 1", ylab="UMAP 2")
 ```
   
   
+## Generate the reference directory
+  
+For the first step we convert the counts and annotations variables into a Seurat object of a particular format.  This is then used as input into functions for generating files in the reference directory and for creating a dendrogram.
+ 
 Next, create the reference folder with all associated files, and a preliminary dendrogram.  The dendrogram will get updated in later functions.
   
 ```{r build reference folder} 
-buildReferenceFolder(seurat.obj  = seurat_object, 
-                     shinyFolder = refFolder, 
-                     subsample   = 100,   # Default for subsampling 
-                     feature.set = NULL,  # Default to use "VariableFeatures" function in Seurat
-                     reorder.dendrogram = TRUE,  # This will match the factor order of the clusters to the extent possible
-                     save.normalized.data = FALSE) # FALSE saves the raw counts, which is what we need (default)
+buildReference(counts         = counts,
+               meta.data      = annotations,
+               feature.set    = binary.genes,
+               umap.coords    = umap.coords,
+               shinyFolder    = refFolder,
+               cluster_colors = cluster_colors,  # Colors are generated if not provided
+               metadata_names = NULL,     # If you want to save only selected metadata columns
+               subsample      = 100,      # This is the number of cells per cluster
+               reorder.dendrogram = TRUE) # This will match the factor order of the clusters to the extent possible
 ```
   
   
 Now we annotate the dendrogram with marker genes.  This is only required for using tree mapping, and is critical if this reference is to be used for processing Patch-seq data from the Allen Institute.  For other mapping strategies, this is not needed.  Note that we can either pull data and metadata from variables or directly from the reference folder.  This example pulls from the reference folder.  
   
 ```{r add dendrogram markers}
-dend <- addDendrogramMarkers(dend     = readRDS(paste0(refFolder,"dend.RData")), 
-                             norm.data= paste0(refFolder,"data_t.feather"),
-                             metadata = paste0(refFolder,"anno.feather"),
+dend <- addDendrogramMarkers(dend      = readRDS(paste0(refFolder,"dend.RData")), 
+                             norm.data = paste0(refFolder,"data_t.feather"),
+                             metadata  = paste0(refFolder,"anno.feather"),
                              shinyFolder = refFolder, 
                              subsample= 25) # To speed up calculations a bit
 ```
@@ -151,11 +152,11 @@ dend <- addDendrogramMarkers(dend     = readRDS(paste0(refFolder,"dend.RData")),
   
 Now define this as a standardized taxonomy and output the relevant zip file (see CCN library for more information).    
   
-```{r CCN, fig.height=6,fig.width=10}
+```{r CCN, fig.height=6,fig.width=10, warning=FALSE}
 ## Create taxonomy and nomenclature standards for this taxonomy
 taxonomy_id       <- "CCN202301170"          # Taxonomy ID of format CCN<YYYYMMDD><T>
-taxonomy_author   <- "Bosiljka Tasic"         # Person uploading the data and taxonomy
-taxonomy_citation <- "10.1038/nn.4216"       # DOI of relavent taxonomy citation, if any
+taxonomy_author   <- "Bosiljka Tasic"        # Person uploading the data and taxonomy
+taxonomy_citation <- "10.1038/nn.4216"       # DOI of relevant taxonomy citation, if any
 first_label       <- setNames("RNA", 1)      # Prefix for cell set label (adjust text label only)
 structure         <- "primary visual cortex" # Brain structure.  Ontology tag is auto-generated.
 
@@ -170,33 +171,46 @@ cell_assignment  <- setNames(metadata$cluster_label,metadata$sample_name)
 
 # This line of code will run all the scripts, output the relevant zip file to nomenclature.zip in your working directory, and return the same variables for further manipulation in R.
 ccn_output <- apply_CCN(dend = dend,
-                        cell_assignment = cell_assignment,
-                        metadata    = metadata,
-                        first_label = first_label,
-                        taxonomy_id = taxonomy_id,
-                        taxonomy_author = taxonomy_author,
+                        cell_assignment   = cell_assignment,
+                        metadata          = metadata,
+                        first_label       = first_label,
+                        taxonomy_id       = taxonomy_id,
+                        taxonomy_author   = taxonomy_author,
                         taxonomy_citation = taxonomy_citation,
-                        structure   = structure,
-                        metadata_columns = metadata_columns,
-                        metadata_order = metadata_order,
-                        cluster_column = cluster_column,
-                        ccn_filename = paste0(refFolder,"nomenclature.zip"))
+                        structure         = structure,
+                        metadata_columns  = metadata_columns,
+                        metadata_order    = metadata_order,
+                        cluster_column    = cluster_column,
+                        ccn_filename      = paste0(refFolder,"nomenclature.zip"))
 
+# Plot the dendrogram (note that this function sometimes does not display the root node correctly)
 plot_dend(ccn_output$final_dendrogram,node_size = 3)
-```
 
+# Overwrite the existing dendrogram with the annotated version
+dend <- ccn_output$final_dendrogram
+saveRDS(dend, file.path(refFolder,"dend.RData")) 
+```
   
-Finally, we collect some files need for applying patchSeqQC to patch-seq data. This is not needed for mapping, but is an important QC step when comparing  
+  
+Next, we collect some files need for applying patchSeqQC to patch-seq data. This is not needed for mapping, but is an important QC step when comparing  
 
 ```{r patchseqQC set up}
-save_patchseqQC_markers(counts = paste0(refFolder,"data_t.feather"),  # can also read matrix directly
-                        metadata = paste0(refFolder,"anno.feather"),  # can also read matrix directly
-                        subsample = 100,  # Default of 100 is reasonable
-                        subclass.column = "subclass_label",  # default
-                        class.column = "class_label",  # default
-                        off.target.types = "Non-neuronal",  # default is various iterations of non-neuronal
-                        num.markers = 50,     # Default of 50 is probably fine
-                        shinyFolder = refFolder)
+writePatchseqQCmarkers(counts = paste0(refFolder,"counts.feather"),  # can also read matrix directly
+                       metadata = paste0(refFolder,"anno.feather"),  # can also read matrix directly
+                       subsample = 100,  # Default of 100 is reasonable
+                       subclass.column = "subclass_label",  # default
+                       class.column = "class_label",  # default
+                       off.target.types = "Non-neuronal",  # default is various iterations of non-neuronal
+                       num.markers = 50,     # Default of 50 is probably fine
+                       shinyFolder = refFolder)
+```
+  
+  
+Finally, we read package this information to a compact annData format compatible with both R and python.  **This annData object is the input file for all mapping algorithms in this package, and a to-be-created parallel python package.**.  
+  
+```{r create annData object}
+AIT.anndata <- loadTaxonomy(refFolder, hGenes=binary.genes)
+write_h5ad(AIT.anndata,file.path(refFolder,"reference.h5ad"))
 ```
 
   

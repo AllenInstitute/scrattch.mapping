@@ -22,6 +22,28 @@ subsampleCells <- function(cluster.names, subSamp=25, seed=5){
   return(kpSamp)
 }
 
+#' Get top genes by beta (binary) score
+#'
+#' @param data A count (or CPM or logCPM) matrix
+#' @param cluster.names A vector of cluster names in the reference taxonomy.
+#' @param gene.count The number of top genes to return (Default=2000)
+#'
+#' @return Boolean vector of cells to keep (TRUE) and cells to remove (FALSE)
+#'
+#' @keywords external
+#' 
+#' @export
+top_binary_genes <- function(data, cluster.names, gene.count=2000){
+  cluster.names <- setNames(as.factor(cluster.names),colnames(data))
+  propExpr  <- get_cl_prop(data,cluster.names)
+  betaScore <- getBetaScore(propExpr,returnScore=FALSE)
+  betaScore <- sort(betaScore)
+  top.genes <- names(betaScore)[1:gene.count]
+  return(top.genes)
+}
+
+
+
 ##################################################################################################################
 ## The functions below are mapping function from scrattch.hicat dev_zy branch that are required for tree mapping
 
@@ -118,7 +140,7 @@ revert_dend_label <- function(dend, value, attribute="label")
 #'
 #' @import foreach
 #'
-#' @return
+#' @return membership table
 #' 
 #' @export
 map_dend_membership <-
@@ -174,7 +196,8 @@ map_dend_membership <-
 #' @param default.markers 
 #' @param seed = random seed
 #'
-#' @return
+#' @return tree mapping to the dendrogram table (cells x nodes with values as probabilities)
+#' 
 #' @export
 #'
 map_dend <-
@@ -243,7 +266,7 @@ map_dend <-
 #' @param low.th 
 #' @param seed - random seed for reproducibility
 #'
-#' @return
+#' @return mapped.cl output
 #' 
 #' @export
 #'
@@ -347,7 +370,7 @@ resolve_cl <-
 #' @param nboot 
 #' @param ncores 
 #'
-#' @return
+#' @return dendrogram and a couple of related things
 #'
 #' @import dendextend
 #' @import pvclust
@@ -387,4 +410,31 @@ build_dend <- function(cl.dat, cl.cor=NULL, l.rank=NULL, l.color=NULL, nboot=100
     dend =reorder_dend(dend,l.rank)
   }
   return(list(dend=dend, cl.cor=cl.cor, pvclust.result=pvclust.result))
+}
+
+#' Compute cluster medians for each row in a matrix
+#' 
+#' @param mat A gene (rows) x samples (columns) sparse matrix
+#' @param cl A cluster factor object
+#' 
+#' @return a matrix of genes (rows) x clusters (columns) with medians for each cluster
+#' @export
+#' 
+get_cl_medians <- function(mat, cl)
+{
+  library(Matrix)
+  library(matrixStats)
+  
+  cl.med <- do.call("cbind",
+                    tapply(names(cl), 
+                           cl, 
+                           function(x){
+                             matrixStats::rowMedians(as.matrix(mat[,x]))
+                           }
+                    )
+  )
+  
+  rownames(cl.med) <- rownames(mat)
+  
+  return(cl.med)
 }

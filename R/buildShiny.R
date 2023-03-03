@@ -1,4 +1,4 @@
-#' Starting from a Seurat object this function builds the minimum files required for Shiny
+#' This function builds the minimum files required for Shiny
 #'
 #' @param counts A count matrix in sparse format: dgCMatrix.
 #' @param meta.data Meta.data corresponding to count matrix. Rownames must be equal to colnames of counts.
@@ -10,7 +10,6 @@
 #' @param subsample The number of cells to retain per cluster
 #' @param reorder.dendrogram Should dendogram attempt to match a preset order? (Default = FALSE).  If TRUE, the dendrogram attempts to match the celltype factor order as closely as possible (if celltype is a character vector rather than a factor, this will sort clusters alphabetically, which is not ideal).
 #' 
-#' @import Seurat
 #' @import scrattch.hicat
 #' @import scrattch.io
 #' @import feather
@@ -18,8 +17,6 @@
 #' @import dplyr
 #' @import Matrix
 #' @import pvclust
-#' 
-#' @return
 #'
 #' @export
 buildReference = function(counts,
@@ -33,7 +30,7 @@ buildReference = function(counts,
                           reorder.dendrogram = FALSE){
 
   ## Checks
-  if(!"cluster" %in% colnames(meta.data)){stop("cluster must be defined in the seurat object")}
+  if(!"cluster" %in% colnames(meta.data)){stop("cluster must be defined in the meta.data object")}
   if(is.null(feature.set)){stop("Compute variable features and supply feature.set")}
   if(!all(colnames(counts) == rownames(meta.data))){stop("Colnames of `counts` and rownames of `meta.data` do not match.")}
 	
@@ -101,8 +98,12 @@ buildReference = function(counts,
   }
 
   ## Adjust the cluster colors to match cluster_colors, if available. 
-  if(is.element("cluster_colors", names(seurat.obj@misc))){
-    meta.data$cluster_color <- as.character(seurat.obj@misc$cluster_colors[meta.data$cluster_label])
+  if(!is.null(cluster_colors)){
+    if(length(setdiff(annotations$cluster,names(cluster_colors)))>0){
+      warning("cluster_colors is not a named vector with colors for every cluster and will therefore be ignored.")
+    } else {
+      meta.data$cluster_color <- as.character(cluster_colors[meta.data$cluster_label])
+    }
   }
     
   print("===== Building dendrogram =====")
