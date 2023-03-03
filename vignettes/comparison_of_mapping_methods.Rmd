@@ -1,21 +1,21 @@
 ---
-title: "Comparing multiple mapping methods"
+title: "3. Comparing multiple mapping methods"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Comparing multiple mapping methods}
+  %\VignetteIndexEntry{3. Comparing multiple mapping methods}
   %\VignetteEncoding{UTF-8} 
 ---
 
-`scrattch.mapping` offers functions to convert completed single cell/nucleus RNA-seq analysis (e.g., a counts matrix + cell type assignments) into a standard reference taxonomy compatible with various mapping techniques, as well as functions to perform such mapping analyses.  Several functions are also provided for conversion of output results into data and folder formats compatabile with Allen Institute R shiny tools.  
+`scrattch.mapping` offers functions to convert completed single cell/nucleus RNA-seq analysis (e.g., a counts matrix + cell type assignments) into a standard reference taxonomy compatible with various mapping techniques, as well as functions to perform such mapping analyses.  Several functions are also provided for conversion of output results into data and folder formats compatible with Allen Institute R shiny tools.  
   
 The `scrattch.mapping` package is one component of the scrattch suite of packages for `S`ingle `C`ell `R`NA-seq `A`nalysis for `T`ranscriptomic `T`ype `CH`aracterization from the Allen Institute.  
   
 This vignette goes through how to compare and contrast the results of various mapping algorithms, and how to use ground truth (if available) to aid in selection of optimal mapping results. Here we use the entirely of tasic2016data as an example so that we can have "ground truth" clustering results to compare against, but in practice this information is typically not available.  Ideally other 
 
-**The vignette "Map patch-seq data and output directory" must be run prior to running this vignette, as the output reference taxonomy files are required for mapping.**
+**The vignette "1. Create reference directory for mapping" must be run prior to running this vignette, as the output reference taxonomy files are required for mapping.**
 
-We compare a total of 4 clustering/mapping methods, all of which are implememted as part of `scrattch-mapping`:  
+We compare a total of 4 clustering/mapping methods, all of which are implemented as part of `scrattch-mapping`:  
 
 1. **(Clustering results)**: This is the clustering results presented in Tasic et al 2016, and is considered ground-truth for the purposes of all comparisons in this analysis.  
 2. **Tree mapping**: This is the primary method used for mapping of the Patch-seq cells collected at the Allen Institute.  The general idea is similar to a decision tree. Cells work their way down the FACS-based dendrogram node by node, and at each node are passed to the right or left based on evidence from differentially expressed genes specific to that node.  This analysis repeated 100 times using different subsets of the data.  For this analysis, the cell type that a cell gets mapped to in the highest proportion of iterations is defined as the mapped type ("topleaf"), and the proportion of of times that cell is mapped to that leaf is the confidence score ("bootstrap support").  

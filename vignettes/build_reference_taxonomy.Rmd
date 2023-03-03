@@ -1,13 +1,13 @@
 ---
-title: "Create reference directory for mapping"
+title: "1. Create reference directory for mapping"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Create reference directory for mapping}
+  %\VignetteIndexEntry{1. Create reference directory for mapping}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc} 
 ---
   
-`scrattch.mapping` offers functions to convert completed single cell/nucleus RNA-seq analysis (e.g., a counts matrix + cell type assignments) into a standard reference taxonomy compatible with various mapping techniques, as well as functions to perform such mapping analyses.  Several functions are also provided for conversion of output results into data and folder formats compatabile with Allen Institute R shiny tools.  
+`scrattch.mapping` offers functions to convert completed single cell/nucleus RNA-seq analysis (e.g., a counts matrix + cell type assignments) into a standard reference taxonomy compatible with various mapping techniques, as well as functions to perform such mapping analyses.  Several functions are also provided for conversion of output results into data and folder formats compatible with Allen Institute R shiny tools.  
   
 The `scrattch.mapping` package is one component of the scrattch suite of packages for `S`ingle `C`ell `R`NA-seq `A`nalysis for `T`ranscriptomic `T`ype `CH`aracterization from the Allen Institute.  
   
@@ -74,9 +74,13 @@ counts      <- tasic_2016_counts  # uncomment if using CPM below
 annotations <- annotations[match(colnames(counts),annotations$sample_name),]  # Put them in the correct order
 rownames(annotations) <- annotations$sample_name  
 
-kp          <- annotations$broad_type!="Unclassified"
+# Subsampling to speed up Vignette and removing unclassified cells 
+kp          <- (annotations$broad_type!="Unclassified")&(subsampleCells( annotations$primary_type_label,25,seed = 1))
 counts      <- counts[,kp]
 annotations <- annotations[kp,]
+
+# Remove all genes with no expression to speed up Vignette
+counts      <- counts[rowSums(counts)>0,]
 ```
   
   
