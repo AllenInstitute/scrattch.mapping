@@ -130,7 +130,7 @@ By this visualization, there are few obvious pairwise off-target issues for any 
   
 ```{r visualize heatmap, fig.height=8, fig.width=8}
 for (i in 1:3){
-  compare_heatmap(map[[i]],clust,xlab="Tree mapping",ylab="Clustering", cex.lab=0.3)
+  compare_heatmap(map[[i]],clust,xlab=names(methods[i+1]),ylab="Clustering", cex.lab=0.3)
 }
 ```   
   
