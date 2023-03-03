@@ -411,3 +411,30 @@ build_dend <- function(cl.dat, cl.cor=NULL, l.rank=NULL, l.color=NULL, nboot=100
   }
   return(list(dend=dend, cl.cor=cl.cor, pvclust.result=pvclust.result))
 }
+
+#' Compute cluster medians for each row in a matrix
+#' 
+#' @param mat A gene (rows) x samples (columns) sparse matrix
+#' @param cl A cluster factor object
+#' 
+#' @return a matrix of genes (rows) x clusters (columns) with medians for each cluster
+#' @export
+#' 
+get_cl_medians <- function(mat, cl)
+{
+  library(Matrix)
+  library(matrixStats)
+  
+  cl.med <- do.call("cbind",
+                    tapply(names(cl), 
+                           cl, 
+                           function(x){
+                             matrixStats::rowMedians(as.matrix(mat[,x]))
+                           }
+                    )
+  )
+  
+  rownames(cl.med) <- rownames(mat)
+  
+  return(cl.med)
+}

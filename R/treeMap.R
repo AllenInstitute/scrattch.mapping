@@ -39,9 +39,6 @@ treeMap = function(AIT.anndata, query.data){
             print(e)
             return(NULL)
         },
-        warning = function(w){
-            print(w)
-        },
         finally = {
         }
     )

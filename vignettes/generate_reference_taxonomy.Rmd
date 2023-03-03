@@ -142,9 +142,9 @@ buildReference(counts         = counts,
 Now we annotate the dendrogram with marker genes.  This is only required for using tree mapping, and is critical if this reference is to be used for processing Patch-seq data from the Allen Institute.  For other mapping strategies, this is not needed.  Note that we can either pull data and metadata from variables or directly from the reference folder.  This example pulls from the reference folder.  
   
 ```{r add dendrogram markers}
-dend <- addDendrogramMarkers(dend     = readRDS(paste0(refFolder,"dend.RData")), 
-                             norm.data= paste0(refFolder,"data_t.feather"),
-                             metadata = paste0(refFolder,"anno.feather"),
+dend <- addDendrogramMarkers(dend      = readRDS(paste0(refFolder,"dend.RData")), 
+                             norm.data = paste0(refFolder,"data_t.feather"),
+                             metadata  = paste0(refFolder,"anno.feather"),
                              shinyFolder = refFolder, 
                              subsample= 25) # To speed up calculations a bit
 ```

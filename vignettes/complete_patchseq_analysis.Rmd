@@ -2,7 +2,7 @@
 title: "Map patch-seq data and output directory"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Create reference directory for mapping}
+  %\VignetteIndexEntry{Map patch-seq data and output directory}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc} 
 ---
