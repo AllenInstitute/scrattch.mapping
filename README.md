@@ -1,10 +1,20 @@
 # scrattch-mapping
 
-Genearlized mapping scripts for RNA-seq and Patch-seq data
+Generalized mapping scripts for RNA-seq and Patch-seq data
 
 ## Workflow
 
 ![](https://github.com/AllenInstitute/scrattch-mapping/blob/main/schematic.jpg)
+
+## Installation
+```
+# Quickly, but without the vignettes:
+devtools::install_github("AllenInstitute/scrattch-mapping")
+
+# More slowly, but with the vignettes:
+devtools::install_github("AllenInstitute/scrattch-mapping",build_vignettes=TRUE, force=TRUE)
+# Note that this strategy might not work outside the docker. Vignettes are also available below.
+```
 
 ## Dependencies
 ### Remotes:
@@ -14,6 +24,12 @@ Genearlized mapping scripts for RNA-seq and Patch-seq data
     AllenInstitute/mfishtools,
     AllenInstitute/patchseqtools,
     PavlidisLab/patchSeqQC,
+
+## Library vignettes
+
+1. **Build reference directory for mapping.** [LINK TO VIGNETTE](http://htmlpreview.github.io/?https://github.com/AllenInstitute/mfishtools/blob/master/vignettes/build_reference_taxonomy.html)  This vignette provides an example of how to convert a *completed* single cell RNA-seq analysis (e.g., a counts matrix + cell type assignments) into a standard reference taxonomy. Resulting taxonomy files are used as input for various mapping techniques in this package, and are also compatible with tools for visualiation of taxonomies at the Allen Institute and Patch-seq QC and visualization. **This process must be run first.**  
+2. **Map patch-seq data and output directory.** [LINK TO VIGNETTE](http://htmlpreview.github.io/?https://github.com/AllenInstitute/mfishtools/blob/master/vignettes/complete_patchseq_analysis.html)  This vignette goes through how to map a small data set against a reference taxonomy. Here we use a subset of tasic2016data as an example but the intention is for mapping of patch-seq data.  
+3. **Comparing multiple mapping methods** [LINK TO VIGNETTE](http://htmlpreview.github.io/?https://github.com/AllenInstitute/mfishtools/blob/master/vignettes/comparison_of_mapping_methods.html)  This vignette goes through how to run multiple mapping algorithms on a data set for label transfer, and then compare and contrast the results of these mapping algorithms. It also includes a cursory look into how to use ground truth (if available) to aid in selection of optimal mapping results. Here we use the entirely of tasic2016data as an example so that we can have “ground truth” clustering results to compare against, but in practice this information is typically not available.  
 
 ## TODO
  
