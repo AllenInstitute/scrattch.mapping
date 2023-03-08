@@ -107,7 +107,7 @@ loadTaxonomy = function(refFolder,
   
   ## Build reference object
   AIT.anndata = AnnData(
-    X = datReference,
+    X = datReference, ## logCPM
     obs = annoReference,
     var = data.frame("gene" = colnames(datReference), 
                      "highly_variable_genes" = colnames(datReference) %in% varFeatures, 

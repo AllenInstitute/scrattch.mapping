@@ -3,10 +3,6 @@
 
 library(scrattch.mapping)
 library(Seurat)
-library(anndata)
-library(reticulate)
-use_python("/usr/bin/python3")
-print(Sys.which("python"))
 
 ## Load in the data to be annotated
 load("/allen/programs/celltypes/workgroups/rnaseqanalysis/EvoGen/BasalGanglia/NHP/pipeline/1001_C06_MTX-2046/1001_C06.RData")

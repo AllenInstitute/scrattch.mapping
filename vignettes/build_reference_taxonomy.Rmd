@@ -132,7 +132,7 @@ For the first step we convert the counts and annotations variables into a Seurat
 Next, create the reference folder with all associated files, and a preliminary dendrogram.  The dendrogram will get updated in later functions.
   
 ```{r build reference folder} 
-buildReference(counts         = counts,
+buildTaxonomy(counts         = counts,
                meta.data      = annotations,
                feature.set    = binary.genes,
                umap.coords    = umap.coords,
