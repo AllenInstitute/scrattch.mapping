@@ -1,16 +1,18 @@
 <!DOCTYPE html>
-<html><head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 
-<meta charset="utf-8">
-<meta name="generator" content="pandoc">
-<meta http-equiv="X-UA-Compatible" content="IE=EDGE">
+<html>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 
 
-<title>Map patch-seq data and output directory</title>
+<title>2. Map patch-seq data and output directory</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -27,23 +29,23 @@ document.addEventListener('DOMContentLoaded', function(e) {
 </script>
 
 <style type="text/css">
-code{white-space: pre-wrap;}
-span.smallcaps{font-variant: small-caps;}
-span.underline{text-decoration: underline;}
-div.column{display: inline-block; vertical-align: top; width: 50%;}
-div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-ul.task-list{list-style: none;}
-</style>
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
 
 
 
 <style type="text/css">
-code {
-white-space: pre;
-}
-.sourceCode {
-overflow: visible;
-}
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
@@ -61,54 +63,55 @@ pre > code.sourceCode { white-space: pre-wrap; }
 pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
-{ counter-reset: source-line 0; }
+  { counter-reset: source-line 0; }
 pre.numberSource code > span
-{ position: relative; left: -4em; counter-increment: source-line; }
+  { position: relative; left: -4em; counter-increment: source-line; }
 pre.numberSource code > span > a:first-child::before
-{ content: counter(source-line);
-position: relative; left: -1em; text-align: right; vertical-align: baseline;
-border: none; display: inline-block;
--webkit-touch-callout: none; -webkit-user-select: none;
--khtml-user-select: none; -moz-user-select: none;
--ms-user-select: none; user-select: none;
-padding: 0 4px; width: 4em;
-color: #aaaaaa;
-}
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
 div.sourceCode
-{ }
+  {   }
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-code span.al { color: #ff0000; font-weight: bold; } 
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
-code span.at { color: #7d9029; } 
-code span.bn { color: #40a070; } 
-code span.bu { color: #008000; } 
-code span.cf { color: #007020; font-weight: bold; } 
-code span.ch { color: #4070a0; } 
-code span.cn { color: #880000; } 
-code span.co { color: #60a0b0; font-style: italic; } 
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
-code span.do { color: #ba2121; font-style: italic; } 
-code span.dt { color: #902000; } 
-code span.dv { color: #40a070; } 
-code span.er { color: #ff0000; font-weight: bold; } 
-code span.ex { } 
-code span.fl { color: #40a070; } 
-code span.fu { color: #06287e; } 
-code span.im { color: #008000; font-weight: bold; } 
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
-code span.kw { color: #007020; font-weight: bold; } 
-code span.op { color: #666666; } 
-code span.ot { color: #007020; } 
-code span.pp { color: #bc7a00; } 
-code span.sc { color: #4070a0; } 
-code span.ss { color: #bb6688; } 
-code span.st { color: #4070a0; } 
-code span.va { color: #19177c; } 
-code span.vs { color: #4070a0; } 
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
 </style>
 <script>
 // apply pandoc div.sourceCode style to pre.sourceCode instead
@@ -327,163 +330,47 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<script type="text/javascript" src="complete_patchseq_analysis_files/MathJax.js"></script><style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
-.MathJax_Menu_Button .MathJax_Hover_Arrow {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; -khtml-border-radius: 4px; font-family: 'Courier New',Courier; font-size: 9px; color: #F0F0F0}
-.MathJax_Menu_Button .MathJax_Hover_Arrow span {display: block; background-color: #AAA; border: 1px solid; border-radius: 3px; line-height: 0; padding: 4px}
-.MathJax_Hover_Arrow:hover {color: white!important; border: 2px solid #CCC!important}
-.MathJax_Hover_Arrow:hover span {background-color: #CCC!important}
-</style><style type="text/css">#MathJax_About {position: fixed; left: 50%; width: auto; text-align: center; border: 3px outset; padding: 1em 2em; background-color: #DDDDDD; color: black; cursor: default; font-family: message-box; font-size: 120%; font-style: normal; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 15px; -webkit-border-radius: 15px; -moz-border-radius: 15px; -khtml-border-radius: 15px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
-#MathJax_About.MathJax_MousePost {outline: none}
-.MathJax_Menu {position: absolute; background-color: white; color: black; width: auto; padding: 2px; border: 1px solid #CCCCCC; margin: 0; cursor: default; font: menu; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
-.MathJax_MenuItem {padding: 2px 2em; background: transparent}
-.MathJax_MenuArrow {position: absolute; right: .5em; padding-top: .25em; color: #666666; font-size: .75em}
-.MathJax_MenuActive .MathJax_MenuArrow {color: white}
-.MathJax_MenuArrow.RTL {left: .5em; right: auto}
-.MathJax_MenuCheck {position: absolute; left: .7em}
-.MathJax_MenuCheck.RTL {right: .7em; left: auto}
-.MathJax_MenuRadioCheck {position: absolute; left: 1em}
-.MathJax_MenuRadioCheck.RTL {right: 1em; left: auto}
-.MathJax_MenuLabel {padding: 2px 2em 4px 1.33em; font-style: italic}
-.MathJax_MenuRule {border-top: 1px solid #CCCCCC; margin: 4px 1px 0px}
-.MathJax_MenuDisabled {color: GrayText}
-.MathJax_MenuActive {background-color: Highlight; color: HighlightText}
-.MathJax_MenuDisabled:focus, .MathJax_MenuLabel:focus {background-color: #E8E8E8}
-.MathJax_ContextMenu:focus {outline: none}
-.MathJax_ContextMenu .MathJax_MenuItem:focus {outline: none}
-#MathJax_AboutClose {top: .2em; right: .2em}
-.MathJax_Menu .MathJax_MenuClose {top: -10px; left: -10px}
-.MathJax_MenuClose {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; font-family: 'Courier New',Courier; font-size: 24px; color: #F0F0F0}
-.MathJax_MenuClose span {display: block; background-color: #AAA; border: 1.5px solid; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; line-height: 0; padding: 8px 0 6px}
-.MathJax_MenuClose:hover {color: white!important; border: 2px solid #CCC!important}
-.MathJax_MenuClose:hover span {background-color: #CCC!important}
-.MathJax_MenuClose:hover:focus {outline: none}
-</style><style type="text/css">.MathJax_Preview .MJXf-math {color: inherit!important}
-</style><style type="text/css">.MJX_Assistive_MathML {position: absolute!important; top: 0; left: 0; clip: rect(1px, 1px, 1px, 1px); padding: 1px 0 0 0!important; border: 0!important; height: 1px!important; width: 1px!important; overflow: hidden!important; display: block!important; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none}
-.MJX_Assistive_MathML.MJX_Assistive_MathML_Block {width: 100%!important}
-</style><style type="text/css">#MathJax_Zoom {position: absolute; background-color: #F0F0F0; overflow: auto; display: block; z-index: 301; padding: .5em; border: 1px solid black; margin: 0; font-weight: normal; font-style: normal; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; -webkit-box-sizing: content-box; -moz-box-sizing: content-box; box-sizing: content-box; box-shadow: 5px 5px 15px #AAAAAA; -webkit-box-shadow: 5px 5px 15px #AAAAAA; -moz-box-shadow: 5px 5px 15px #AAAAAA; -khtml-box-shadow: 5px 5px 15px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
-#MathJax_ZoomOverlay {position: absolute; left: 0; top: 0; z-index: 300; display: inline-block; width: 100%; height: 100%; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
-#MathJax_ZoomFrame {position: relative; display: inline-block; height: 0; width: 0}
-#MathJax_ZoomEventTrap {position: absolute; left: 0; top: 0; z-index: 302; display: inline-block; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
-</style><style type="text/css">.MathJax_Preview {color: #888}
-#MathJax_Message {position: fixed; left: 1px; bottom: 2px; background-color: #E6E6E6; border: 1px solid #959595; margin: 0px; padding: 2px 8px; z-index: 102; color: black; font-size: 80%; width: auto; white-space: nowrap}
-#MathJax_MSIE_Frame {position: absolute; top: 0; left: 0; width: 0px; z-index: 101; border: 0px; margin: 0px; padding: 0px}
-.MathJax_Error {color: #CC0000; font-style: italic}
-</style><style type="text/css">.MJXp-script {font-size: .8em}
-.MJXp-right {-webkit-transform-origin: right; -moz-transform-origin: right; -ms-transform-origin: right; -o-transform-origin: right; transform-origin: right}
-.MJXp-bold {font-weight: bold}
-.MJXp-italic {font-style: italic}
-.MJXp-scr {font-family: MathJax_Script,'Times New Roman',Times,STIXGeneral,serif}
-.MJXp-frak {font-family: MathJax_Fraktur,'Times New Roman',Times,STIXGeneral,serif}
-.MJXp-sf {font-family: MathJax_SansSerif,'Times New Roman',Times,STIXGeneral,serif}
-.MJXp-cal {font-family: MathJax_Caligraphic,'Times New Roman',Times,STIXGeneral,serif}
-.MJXp-mono {font-family: MathJax_Typewriter,'Times New Roman',Times,STIXGeneral,serif}
-.MJXp-largeop {font-size: 150%}
-.MJXp-largeop.MJXp-int {vertical-align: -.2em}
-.MJXp-math {display: inline-block; line-height: 1.2; text-indent: 0; font-family: 'Times New Roman',Times,STIXGeneral,serif; white-space: nowrap; border-collapse: collapse}
-.MJXp-display {display: block; text-align: center; margin: 1em 0}
-.MJXp-math span {display: inline-block}
-.MJXp-box {display: block!important; text-align: center}
-.MJXp-box:after {content: " "}
-.MJXp-rule {display: block!important; margin-top: .1em}
-.MJXp-char {display: block!important}
-.MJXp-mo {margin: 0 .15em}
-.MJXp-mfrac {margin: 0 .125em; vertical-align: .25em}
-.MJXp-denom {display: inline-table!important; width: 100%}
-.MJXp-denom > * {display: table-row!important}
-.MJXp-surd {vertical-align: top}
-.MJXp-surd > * {display: block!important}
-.MJXp-script-box > *  {display: table!important; height: 50%}
-.MJXp-script-box > * > * {display: table-cell!important; vertical-align: top}
-.MJXp-script-box > *:last-child > * {vertical-align: bottom}
-.MJXp-script-box > * > * > * {display: block!important}
-.MJXp-mphantom {visibility: hidden}
-.MJXp-munderover {display: inline-table!important}
-.MJXp-over {display: inline-block!important; text-align: center}
-.MJXp-over > * {display: block!important}
-.MJXp-munderover > * {display: table-row!important}
-.MJXp-mtable {vertical-align: .25em; margin: 0 .125em}
-.MJXp-mtable > * {display: inline-table!important; vertical-align: middle}
-.MJXp-mtr {display: table-row!important}
-.MJXp-mtd {display: table-cell!important; text-align: center; padding: .5em 0 0 .5em}
-.MJXp-mtr > .MJXp-mtd:first-child {padding-left: 0}
-.MJXp-mtr:first-child > .MJXp-mtd {padding-top: 0}
-.MJXp-mlabeledtr {display: table-row!important}
-.MJXp-mlabeledtr > .MJXp-mtd:first-child {padding-left: 0}
-.MJXp-mlabeledtr:first-child > .MJXp-mtd {padding-top: 0}
-.MJXp-merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
-.MJXp-scale0 {-webkit-transform: scaleX(.0); -moz-transform: scaleX(.0); -ms-transform: scaleX(.0); -o-transform: scaleX(.0); transform: scaleX(.0)}
-.MJXp-scale1 {-webkit-transform: scaleX(.1); -moz-transform: scaleX(.1); -ms-transform: scaleX(.1); -o-transform: scaleX(.1); transform: scaleX(.1)}
-.MJXp-scale2 {-webkit-transform: scaleX(.2); -moz-transform: scaleX(.2); -ms-transform: scaleX(.2); -o-transform: scaleX(.2); transform: scaleX(.2)}
-.MJXp-scale3 {-webkit-transform: scaleX(.3); -moz-transform: scaleX(.3); -ms-transform: scaleX(.3); -o-transform: scaleX(.3); transform: scaleX(.3)}
-.MJXp-scale4 {-webkit-transform: scaleX(.4); -moz-transform: scaleX(.4); -ms-transform: scaleX(.4); -o-transform: scaleX(.4); transform: scaleX(.4)}
-.MJXp-scale5 {-webkit-transform: scaleX(.5); -moz-transform: scaleX(.5); -ms-transform: scaleX(.5); -o-transform: scaleX(.5); transform: scaleX(.5)}
-.MJXp-scale6 {-webkit-transform: scaleX(.6); -moz-transform: scaleX(.6); -ms-transform: scaleX(.6); -o-transform: scaleX(.6); transform: scaleX(.6)}
-.MJXp-scale7 {-webkit-transform: scaleX(.7); -moz-transform: scaleX(.7); -ms-transform: scaleX(.7); -o-transform: scaleX(.7); transform: scaleX(.7)}
-.MJXp-scale8 {-webkit-transform: scaleX(.8); -moz-transform: scaleX(.8); -ms-transform: scaleX(.8); -o-transform: scaleX(.8); transform: scaleX(.8)}
-.MJXp-scale9 {-webkit-transform: scaleX(.9); -moz-transform: scaleX(.9); -ms-transform: scaleX(.9); -o-transform: scaleX(.9); transform: scaleX(.9)}
-.MathJax_PHTML .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
-</style></head>
+</head>
 
-<body><div id="MathJax_Message" style="display: none;"></div>
+<body>
 
 
 
 
-<h1 class="title toc-ignore">Map patch-seq data and output
-directory</h1>
+<h1 class="title toc-ignore">2. Map patch-seq data and output directory</h1>
 
 
 
-<p><code>scrattch.mapping</code> offers functions to convert completed
-single cell/nucleus RNA-seq analysis (e.g., a counts matrix + cell type
-assignments) into a standard reference taxonomy compatible with various
-mapping techniques, as well as functions to perform such mapping
-analyses. Several functions are also provided for conversion of output
-results into data and folder formats compatabile with Allen Institute R
-shiny tools.</p>
-<p>The <code>scrattch.mapping</code> package is one component of the
-scrattch suite of packages for <code>S</code>ingle <code>C</code>ell
-<code>R</code>NA-seq <code>A</code>nalysis for
-<code>T</code>ranscriptomic <code>T</code>ype
-<code>CH</code>aracterization from the Allen Institute.</p>
-<p>This vignette goes through how to map a small data set against a
-reference taxonomy. Here we use a subset of tasic2016data as an example
-but the intention is for mapping of patch-seq data. <strong>The vignette
-“Map patch-seq data and output directory” must be run prior to running
-this vigette, as the output reference taxonomy files are required for
-mapping.</strong></p>
+<p><code>scrattch.mapping</code> offers functions to convert completed single cell/nucleus RNA-seq analysis (e.g., a counts matrix + cell type assignments) into a standard reference taxonomy compatible with various mapping techniques, as well as functions to perform such mapping analyses. Several functions are also provided for conversion of output results into data and folder formats compatible with Allen Institute R shiny tools.</p>
+<p>The <code>scrattch.mapping</code> package is one component of the scrattch suite of packages for <code>S</code>ingle <code>C</code>ell <code>R</code>NA-seq <code>A</code>nalysis for <code>T</code>ranscriptomic <code>T</code>ype <code>CH</code>aracterization from the Allen Institute.</p>
+<p>This vignette goes through how to map a small data set against a reference taxonomy. Here we use a subset of tasic2016data as an example but the intention is for mapping of patch-seq data. <strong>The vignette “1. Create reference directory for mapping” must be run prior to running this vignette, as the output reference taxonomy files are required for mapping.</strong></p>
 <div id="workspace-set-up" class="section level3">
 <h3>Workspace set-up</h3>
-<p>First, let’s create a directory in the current working directory to
-store the reference taxonomy files.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># REPLACE THIS LINE WITH the reference directory folder from "Map patch-seq data and output directory"</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>refFolder <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">getwd</span>(),<span class="st">"/reference/"</span>)  </span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Replase this line with wherever you'd like your mapping output</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>mappingFolder <span class="ot">&lt;-</span> <span class="fu">paste0</span>(refFolder,<span class="st">"/mapping/"</span>)</span>
+<p>First, let’s create a directory in the current working directory to store the reference taxonomy files.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># REPLACE THIS LINE WITH the reference directory folder from &quot;Map patch-seq data and output directory&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>refFolder <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">system.file</span>(<span class="at">package =</span> <span class="st">&#39;scrattch.mapping&#39;</span>),<span class="st">&quot;/reference/&quot;</span>)  </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Replase this line with wherever you&#39;d like your mapping output</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>mappingFolder <span class="ot">&lt;-</span> <span class="fu">paste0</span>(refFolder,<span class="st">&quot;/mapping/&quot;</span>)</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(mappingFolder, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(mappingFolder)</span></code></pre></div>
-<pre><code>## [1] "Z:/humancelltypes/JeremyM/github/scrattch-mapping/scrattch-mapping/vignettes/reference//mapping/"</code></pre>
+<pre><code>## [1] &quot;C:/Users/jeremym/AppData/Local/Temp/RtmpUBk0K9/Rinst88a04e7549f/scrattch.mapping/reference//mapping/&quot;</code></pre>
 <p>Load libraries and set options.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>({</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(<span class="st">"scrattch.mapping"</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(<span class="st">"tasic2016data"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(<span class="st">&quot;scrattch.mapping&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(<span class="st">&quot;tasic2016data&quot;</span>)</span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">future.globals.maxSize =</span> <span class="dv">4000</span> <span class="sc">*</span> <span class="dv">1024</span><span class="sc">^</span><span class="dv">2</span>)  <span class="co"># Can adjust this value if needed, depending on number of cells</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">future.rng.onMisuse=</span><span class="st">"ignore"</span>)</span></code></pre></div>
-<p>Read in the reference taxonomy. This can be any reference, but in
-this case we load the one based from tasic2016data generated in the “Map
-patch-seq data and output directory” vignette.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>AIT.anndata <span class="ot">&lt;-</span> <span class="fu">read_h5ad</span>(<span class="fu">file.path</span>(refFolder,<span class="st">"reference.h5ad"</span>))</span></code></pre></div>
-<p>Read in the data for mapping. In this case we are going to take 5
-cells per neuronal cluster from tasic2016data, which is a subset of the
-data used in “Map patch-seq data and output directory”.</p>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">future.rng.onMisuse=</span><span class="st">&quot;ignore&quot;</span>)</span></code></pre></div>
+<p>Read in the reference taxonomy. This can be any reference, but in this case we load the one based from tasic2016data generated in the “Map patch-seq data and output directory” vignette.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>AIT.anndata <span class="ot">&lt;-</span> <span class="fu">read_h5ad</span>(<span class="fu">file.path</span>(refFolder,<span class="st">&quot;reference.h5ad&quot;</span>))</span></code></pre></div>
+<p>Read in the data for mapping. In this case we are going to take 5 cells per neuronal cluster from tasic2016data, which is a subset of the data used in “Map patch-seq data and output directory”.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read in data</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>annotations <span class="ot">&lt;-</span> tasic_2016_anno</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>counts      <span class="ot">&lt;-</span> tasic_2016_counts  <span class="co"># uncomment if using CPM below</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>annotations <span class="ot">&lt;-</span> annotations[<span class="fu">match</span>(<span class="fu">colnames</span>(counts),annotations<span class="sc">$</span>sample_name),]  <span class="co"># Put them in the correct order</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(annotations) <span class="ot">&lt;-</span> annotations<span class="sc">$</span>sample_name  </span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>kp          <span class="ot">&lt;-</span> annotations<span class="sc">$</span>broad_type<span class="sc">!=</span><span class="st">"Unclassified"</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>kp          <span class="ot">&lt;-</span> annotations<span class="sc">$</span>broad_type<span class="sc">!=</span><span class="st">&quot;Unclassified&quot;</span></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>counts      <span class="ot">&lt;-</span> counts[,kp]</span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>annotations <span class="ot">&lt;-</span> annotations[kp,]</span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
@@ -491,10 +378,10 @@ data used in “Map patch-seq data and output directory”.</p>
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>clusters            <span class="ot">&lt;-</span> annotations<span class="sc">$</span>primary_type_label[<span class="fu">match</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">49</span>,annotations<span class="sc">$</span>primary_type_id)]</span>
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>annotations<span class="sc">$</span>cluster <span class="ot">&lt;-</span> <span class="fu">factor</span>(annotations<span class="sc">$</span>primary_type_label, <span class="at">levels=</span>clusters)</span>
 <span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>annotations<span class="sc">$</span>class   <span class="ot">&lt;-</span> annotations<span class="sc">$</span>broad_type</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>annotations<span class="sc">$</span>class[<span class="sc">!</span><span class="fu">is.element</span>(annotations<span class="sc">$</span>class,<span class="fu">c</span>(<span class="st">"GABA-ergic Neuron"</span>,<span class="st">"Glutamatergic Neuron"</span>))] <span class="ot">=</span> <span class="st">"Non-neuronal"</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>annotations<span class="sc">$</span>class[<span class="sc">!</span><span class="fu">is.element</span>(annotations<span class="sc">$</span>class,<span class="fu">c</span>(<span class="st">&quot;GABA-ergic Neuron&quot;</span>,<span class="st">&quot;Glutamatergic Neuron&quot;</span>))] <span class="ot">=</span> <span class="st">&quot;Non-neuronal&quot;</span></span>
 <span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Subsample to get final results</span></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>query.kp       <span class="ot">&lt;-</span> <span class="fu">subsampleCells</span>(annotations<span class="sc">$</span>cluster,<span class="at">subSamp=</span><span class="dv">5</span>,<span class="at">seed=</span><span class="dv">10</span>)<span class="sc">&amp;</span>(annotations<span class="sc">$</span>class<span class="sc">!=</span><span class="st">"Non-neuronal"</span>)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>query.kp       <span class="ot">&lt;-</span> <span class="fu">subsampleCells</span>(annotations<span class="sc">$</span>cluster,<span class="at">subSamp=</span><span class="dv">5</span>,<span class="at">seed=</span><span class="dv">10</span>)<span class="sc">&amp;</span>(annotations<span class="sc">$</span>class<span class="sc">!=</span><span class="st">&quot;Non-neuronal&quot;</span>)</span>
 <span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>query.counts   <span class="ot">&lt;-</span> counts[,query.kp]</span>
 <span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>query.metadata <span class="ot">&lt;-</span> annotations[query.kp,]</span>
 <span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>query.logCPM   <span class="ot">&lt;-</span> <span class="fu">logCPM</span>(query.counts)</span></code></pre></div>
@@ -502,53 +389,47 @@ data used in “Map patch-seq data and output directory”.</p>
 </div>
 <div id="map-query-data" class="section level2">
 <h2>Map query data</h2>
-<p>The first step for mapping to run the one step “taxonomy_mapping”
-function to apply Seurat mapping, tree mapping, and correlation mapping.
-<strong>This step that would be applied for ANY query data.</strong></p>
+<p>The first step for mapping to run the one step “taxonomy_mapping” function to apply Seurat mapping, tree mapping, and correlation mapping. <strong>This step that would be applied for ANY query data.</strong></p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>query.mapping <span class="ot">&lt;-</span> <span class="fu">taxonomy_mapping</span>(<span class="at">AIT.anndata=</span> AIT.anndata,</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">query.data =</span> query.logCPM, </span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">corr.map   =</span> <span class="cn">TRUE</span>, <span class="co"># Flags for which mapping algorithms to run</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">tree.map   =</span> <span class="cn">TRUE</span>, </span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">seurat.map =</span> <span class="cn">TRUE</span>, </span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">label.cols =</span> <span class="fu">c</span>(<span class="st">"cluster_label"</span>,<span class="st">"subclass_label"</span>, <span class="st">"class_label"</span>) <span class="co"># Columns to map against</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">label.cols =</span> <span class="fu">c</span>(<span class="st">&quot;cluster_label&quot;</span>,<span class="st">&quot;subclass_label&quot;</span>, <span class="st">&quot;class_label&quot;</span>) <span class="co"># Columns to map against</span></span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
-<pre><code>## [1] "============================== Mapping ======================="
-## [1] "Thu Feb 23 12:21:57 2023"
-## [1] "Correlation-based mapping"
-## [1] "Tree-based mapping"
+<pre><code>## [1] &quot;============================== Mapping =======================&quot;
+## [1] &quot;Fri Mar  3 16:03:45 2023&quot;
+## [1] &quot;Correlation-based mapping&quot;
+## [1] &quot;Tree-based mapping&quot;
 ## [1] 25
 ## [1] 50
 ## [1] 75
 ## [1] 100
-## [1] "Seurat-based mapping"</code></pre>
-<p>The second step is apply the function “buildMappingDirectory” which
-performs a variety of functions useful for patch-seq analysis: 1. Merge
-the mapping results into the metadata file.<br>
-2. Apply <a href="https://github.com/PavlidisLab/patchSeqQC/">patchseqQC</a> to
-generate some patch-seq-specific QC metrics for the mapping.<br>
-3. Output the results to a directory in a format compatible with Allen
-Institute visualization tools.</p>
+## [1] &quot;Seurat-based mapping&quot;</code></pre>
+<p>The second step is apply the function “buildMappingDirectory” which performs a variety of functions useful for patch-seq analysis: 1. Merge the mapping results into the metadata file.<br />
+2. Apply <a href="https://github.com/PavlidisLab/patchSeqQC/">patchseqQC</a> to generate some patch-seq-specific QC metrics for the mapping.<br />
+3. Output the results to a directory in a format compatible with Allen Institute visualization tools.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">buildMappingDirectory</span>(<span class="at">AIT.anndata    =</span> AIT.anndata, </span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                      <span class="at">mappingFolder  =</span> mappingFolder,</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>                      <span class="at">query.data     =</span> query.counts,  <span class="co"># Don't need log-normalized data here</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>                      <span class="at">query.data     =</span> query.counts,  <span class="co"># Don&#39;t need log-normalized data here</span></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>                      <span class="at">query.metadata =</span> query.metadata,</span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>                      <span class="at">query.mapping  =</span> query.mapping,</span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                      <span class="at">doPatchseqQC   =</span> <span class="cn">TRUE</span>  <span class="co"># Set to FALSE if not needed or if writePatchseqQCmarkers was not applied in reference generation</span></span>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
 <pre><code>## Joining with `by = join_by(cluster_label)`</code></pre>
-<pre><code>## [1] "Colors updated for: primary_type"
-## [1] "Colors updated for: cluster_Corr"
-## [1] "Colors updated for: cluster_Seurat"
-## [1] "Colors updated for: cluster_Tree"
-## [1] "Colors updated for: broad_type"
-## [1] "Colors updated for: class"
-## [1] "Colors updated for: class_Corr"
-## [1] "Colors updated for: class_Seurat"
-## [1] "Colors updated for: class_Tree"</code></pre>
+<pre><code>## [1] &quot;Colors updated for: primary_type&quot;
+## [1] &quot;Colors updated for: cluster_Corr&quot;
+## [1] &quot;Colors updated for: cluster_Seurat&quot;
+## [1] &quot;Colors updated for: cluster_Tree&quot;
+## [1] &quot;Colors updated for: broad_type&quot;
+## [1] &quot;Colors updated for: class&quot;
+## [1] &quot;Colors updated for: class_Corr&quot;
+## [1] &quot;Colors updated for: class_Seurat&quot;
+## [1] &quot;Colors updated for: class_Tree&quot;</code></pre>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dir</span>(mappingFolder)</span></code></pre></div>
-<pre><code>## [1] "anno.feather"      "data.feather"      "dend.RData"       
-## [4] "desc.feather"      "memb.feather"      "tsne.feather"     
-## [7] "tsne_desc.feather"</code></pre>
+<pre><code>## [1] &quot;anno.feather&quot;      &quot;data.feather&quot;      &quot;dend.RData&quot;       
+## [4] &quot;desc.feather&quot;      &quot;memb.feather&quot;      &quot;tsne.feather&quot;     
+## [7] &quot;tsne_desc.feather&quot;</code></pre>
 <p>Output session info.</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
 <pre><code>## R version 4.2.2 (2022-10-31 ucrt)
@@ -558,7 +439,7 @@ Institute visualization tools.</p>
 ## Matrix products: default
 ## 
 ## locale:
-## [1] LC_COLLATE=English_United States.utf8 
+## [1] LC_COLLATE=C                          
 ## [2] LC_CTYPE=English_United States.utf8   
 ## [3] LC_MONETARY=English_United States.utf8
 ## [4] LC_NUMERIC=C                          
@@ -568,16 +449,17 @@ Institute visualization tools.</p>
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] tasic2016data_1.0    scrattch.mapping_0.1 umap_0.2.10.0       
-##  [4] SeuratObject_4.1.3   Seurat_4.3.0         patchSeqQC_0.1.0    
-##  [7] patchseqtools_0.0.1  mfishtools_0.0.2     scrattch.vis_0.0.210
-## [10] purrr_1.0.1          ggbeeswarm_0.7.1     ggplot2_3.4.1       
-## [13] scrattch.hicat_1.0.0 scrattch.io_0.1.0    rhdf5_2.36.0        
-## [16] pvclust_2.2-0        foreach_1.5.2        randomForest_4.7-1.1
-## [19] MatrixGenerics_1.4.3 matrixStats_0.63.0   Matrix_1.5-3        
-## [22] tibble_3.1.8         viridis_0.6.2        viridisLite_0.4.1   
-## [25] dendextend_1.16.0    dplyr_1.1.0          anndata_0.7.5.5     
-## [28] feather_0.3.5       
+##  [1] rols_2.20.1          jsonlite_1.8.4       data.table_1.14.8   
+##  [4] randomForest_4.7-1.1 scrattch.mapping_0.1 umap_0.2.10.0       
+##  [7] cowplot_1.1.1        SeuratObject_4.1.3   Seurat_4.3.0        
+## [10] patchSeqQC_0.1.0     patchseqtools_0.0.1  mfishtools_0.0.2    
+## [13] scrattch.vis_0.0.210 purrr_1.0.1          ggbeeswarm_0.7.1    
+## [16] ggplot2_3.4.1        scrattch.hicat_1.0.0 scrattch.io_0.1.0   
+## [19] rhdf5_2.36.0         pvclust_2.2-0        foreach_1.5.2       
+## [22] MatrixGenerics_1.4.3 matrixStats_0.63.0   Matrix_1.5-3        
+## [25] tibble_3.1.8         viridis_0.6.2        viridisLite_0.4.1   
+## [28] dendextend_1.16.0    dplyr_1.1.0          anndata_0.7.5.5     
+## [31] feather_0.3.5        CCN_0.1.0            tasic2016data_1.0   
 ## 
 ## loaded via a namespace (and not attached):
 ##   [1] utf8_1.2.3             spatstat.explore_3.0-6 reticulate_1.28       
@@ -587,51 +469,53 @@ Institute visualization tools.</p>
 ##  [13] ica_1.0-3              interp_1.1-3           future_1.31.0         
 ##  [16] miniUI_0.1.1.1         withr_2.5.0            spatstat.random_3.1-3 
 ##  [19] colorspace_2.1-0       progressr_0.13.0       Biobase_2.52.0        
-##  [22] knitr_1.42             rstudioapi_0.14        stats4_4.2.2          
-##  [25] ROCR_1.0-11            tensor_1.5             listenv_0.9.0         
-##  [28] GenomeInfoDbData_1.2.6 polyclip_1.10-4        bit64_4.0.5           
-##  [31] rprojroot_2.0.3        parallelly_1.34.0      vctrs_0.5.2           
-##  [34] generics_0.1.3         xfun_0.37              fastcluster_1.2.3     
-##  [37] R6_2.5.1               doParallel_1.0.17      GenomeInfoDb_1.28.4   
-##  [40] bitops_1.0-7           rhdf5filters_1.4.0     spatstat.utils_3.0-1  
-##  [43] cachem_1.0.6           assertthat_0.2.1       promises_1.2.0.1      
-##  [46] scales_1.2.1           nnet_7.3-18            beeswarm_0.4.0        
-##  [49] gtable_0.3.1           globals_0.16.2         goftest_1.2-3         
-##  [52] WGCNA_1.72-1           rlang_1.0.6            splines_4.2.2         
-##  [55] lazyeval_0.2.2         impute_1.66.0          checkmate_2.1.0       
-##  [58] spatstat.geom_3.0-6    yaml_2.3.7             reshape2_1.4.4        
-##  [61] abind_1.4-5            backports_1.4.1        httpuv_1.6.9          
-##  [64] Hmisc_4.8-0            tools_4.2.2            ellipsis_0.3.2        
-##  [67] jquerylib_0.1.4        RColorBrewer_1.1-3     BiocGenerics_0.38.0   
-##  [70] dynamicTreeCut_1.63-1  ggridges_0.5.4         Rcpp_1.0.10           
-##  [73] plyr_1.8.8             base64enc_0.1-3        zlibbioc_1.38.0       
-##  [76] RCurl_1.98-1.10        rpart_4.1.19           openssl_2.0.5         
-##  [79] deldir_1.0-6           pbapply_1.7-0          cowplot_1.1.1         
-##  [82] S4Vectors_0.30.0       zoo_1.8-11             ggrepel_0.9.3         
-##  [85] cluster_2.1.4          here_1.0.1             magrittr_2.0.3        
-##  [88] data.table_1.14.8      RSpectra_0.16-1        scattermore_0.8       
-##  [91] lmtest_0.9-40          RANN_2.6.1             fitdistrplus_1.1-8    
-##  [94] hms_1.1.2              patchwork_1.1.2        mime_0.12             
-##  [97] evaluate_0.20          xtable_1.8-4           jpeg_0.1-10           
-## [100] IRanges_2.26.0         gridExtra_2.3          compiler_4.2.2        
-## [103] KernSmooth_2.23-20     crayon_1.5.2           htmltools_0.5.4       
-## [106] later_1.3.0            Formula_1.2-4          tidyr_1.3.0           
-## [109] DBI_1.1.3              MASS_7.3-58.2          cli_3.6.0             
-## [112] parallel_4.2.2         igraph_1.4.0           pkgconfig_2.0.3       
-## [115] foreign_0.8-84         sp_1.6-0               plotly_4.10.1         
-## [118] spatstat.sparse_3.0-0  vipor_0.4.5            bslib_0.4.2           
-## [121] XVector_0.32.0         stringr_1.5.0          digest_0.6.31         
-## [124] sctransform_0.3.5      RcppAnnoy_0.0.20       spatstat.data_3.0-0   
-## [127] Biostrings_2.60.2      rmarkdown_2.20         leiden_0.4.3          
-## [130] htmlTable_2.4.1        uwot_0.1.14            shiny_1.7.4           
-## [133] lifecycle_1.0.3        nlme_3.1-162           jsonlite_1.8.4        
-## [136] Rhdf5lib_1.14.2        askpass_1.1            fansi_1.0.4           
-## [139] pillar_1.8.1           lattice_0.20-45        KEGGREST_1.32.0       
-## [142] fastmap_1.1.0          httr_1.4.4             survival_3.5-3        
-## [145] GO.db_3.13.0           glue_1.6.2             png_0.1-8             
-## [148] iterators_1.0.14       bit_4.0.5              stringi_1.7.12        
-## [151] sass_0.4.5             blob_1.2.3             latticeExtra_0.6-30   
-## [154] memoise_2.0.1          irlba_2.3.5.1          future.apply_1.10.0</code></pre>
+##  [22] highr_0.10             knitr_1.42             rstudioapi_0.14       
+##  [25] stats4_4.2.2           ROCR_1.0-11            tensor_1.5            
+##  [28] listenv_0.9.0          labeling_0.4.2         GenomeInfoDbData_1.2.6
+##  [31] polyclip_1.10-4        farver_2.1.1           bit64_4.0.5           
+##  [34] rprojroot_2.0.3        parallelly_1.34.0      vctrs_0.5.2           
+##  [37] generics_0.1.3         xfun_0.37              fastcluster_1.2.3     
+##  [40] R6_2.5.1               doParallel_1.0.17      GenomeInfoDb_1.28.4   
+##  [43] bitops_1.0-7           rhdf5filters_1.4.0     spatstat.utils_3.0-1  
+##  [46] cachem_1.0.6           assertthat_0.2.1       promises_1.2.0.1      
+##  [49] scales_1.2.1           nnet_7.3-18            beeswarm_0.4.0        
+##  [52] gtable_0.3.1           globals_0.16.2         goftest_1.2-3         
+##  [55] WGCNA_1.72-1           rlang_1.0.6            splines_4.2.2         
+##  [58] lazyeval_0.2.2         impute_1.66.0          checkmate_2.1.0       
+##  [61] spatstat.geom_3.0-6    yaml_2.3.7             reshape2_1.4.4        
+##  [64] abind_1.4-5            backports_1.4.1        httpuv_1.6.9          
+##  [67] Hmisc_4.8-0            tools_4.2.2            ellipsis_0.3.2        
+##  [70] jquerylib_0.1.4        RColorBrewer_1.1-3     BiocGenerics_0.38.0   
+##  [73] dynamicTreeCut_1.63-1  ggridges_0.5.4         Rcpp_1.0.10           
+##  [76] plyr_1.8.8             progress_1.2.2         base64enc_0.1-3       
+##  [79] zlibbioc_1.38.0        RCurl_1.98-1.10        prettyunits_1.1.1     
+##  [82] rpart_4.1.19           openssl_2.0.5          deldir_1.0-6          
+##  [85] pbapply_1.7-0          S4Vectors_0.30.0       zoo_1.8-11            
+##  [88] ggrepel_0.9.3          cluster_2.1.4          here_1.0.1            
+##  [91] magrittr_2.0.3         RSpectra_0.16-1        scattermore_0.8       
+##  [94] lmtest_0.9-40          RANN_2.6.1             fitdistrplus_1.1-8    
+##  [97] hms_1.1.2              patchwork_1.1.2        mime_0.12             
+## [100] evaluate_0.20          xtable_1.8-4           jpeg_0.1-10           
+## [103] IRanges_2.26.0         gridExtra_2.3          compiler_4.2.2        
+## [106] KernSmooth_2.23-20     crayon_1.5.2           htmltools_0.5.4       
+## [109] later_1.3.0            Formula_1.2-4          tidyr_1.3.0           
+## [112] DBI_1.1.3              rappdirs_0.3.3         MASS_7.3-58.2         
+## [115] cli_3.6.0              parallel_4.2.2         igraph_1.4.1          
+## [118] pkgconfig_2.0.3        foreign_0.8-84         sp_1.6-0              
+## [121] plotly_4.10.1          spatstat.sparse_3.0-0  vipor_0.4.5           
+## [124] bslib_0.4.2            XVector_0.32.0         stringr_1.5.0         
+## [127] digest_0.6.31          sctransform_0.3.5      RcppAnnoy_0.0.20      
+## [130] spatstat.data_3.0-0    Biostrings_2.60.2      rmarkdown_2.20        
+## [133] leiden_0.4.3           htmlTable_2.4.1        uwot_0.1.14           
+## [136] curl_5.0.0             shiny_1.7.4            lifecycle_1.0.3       
+## [139] nlme_3.1-162           Rhdf5lib_1.14.2        limma_3.48.3          
+## [142] askpass_1.1            fansi_1.0.4            pillar_1.8.1          
+## [145] lattice_0.20-45        KEGGREST_1.32.0        fastmap_1.1.0         
+## [148] httr_1.4.5             survival_3.5-3         GO.db_3.13.0          
+## [151] glue_1.6.2             png_0.1-8              iterators_1.0.14      
+## [154] bit_4.0.5              stringi_1.7.12         sass_0.4.5            
+## [157] blob_1.2.3             latticeExtra_0.6-30    memoise_2.0.1         
+## [160] irlba_2.3.5.1          future.apply_1.10.0</code></pre>
 </div>
 
 
@@ -649,22 +533,5 @@ Institute visualization tools.</p>
   })();
 </script>
 
-
-
-<script>mendeleyWebImporter = {
-  downloadPdfs(e,t) { return this._call('downloadPdfs', [e,t]); },
-  open() { return this._call('open', []); },
-  setLoginToken(e) { return this._call('setLoginToken', [e]); },
-  _call(methodName, methodArgs) {
-    const id = Math.random();
-    window.postMessage({ id, token: '0.46406256464776996', methodName, methodArgs }, 'null');
-    return new Promise(resolve => {
-      const listener = window.addEventListener('message', event => {
-        const data = event.data;
-        if (typeof data !== 'object' || !('result' in data) || data.id !== id) return;
-        window.removeEventListener('message', listener);
-        resolve(data.result);
-      });
-    });
-  }
-};</script></body></html>
+</body>
+</html>

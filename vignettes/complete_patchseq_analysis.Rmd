@@ -1,17 +1,17 @@
 ---
-title: "Map patch-seq data and output directory"
+title: "2. Map patch-seq data and output directory"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Map patch-seq data and output directory}
+  %\VignetteIndexEntry{2. Map patch-seq data and output directory}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc} 
 ---
   
-`scrattch.mapping` offers functions to convert completed single cell/nucleus RNA-seq analysis (e.g., a counts matrix + cell type assignments) into a standard reference taxonomy compatible with various mapping techniques, as well as functions to perform such mapping analyses.  Several functions are also provided for conversion of output results into data and folder formats compatabile with Allen Institute R shiny tools.  
+`scrattch.mapping` offers functions to convert completed single cell/nucleus RNA-seq analysis (e.g., a counts matrix + cell type assignments) into a standard reference taxonomy compatible with various mapping techniques, as well as functions to perform such mapping analyses.  Several functions are also provided for conversion of output results into data and folder formats compatible with Allen Institute R shiny tools.  
   
 The `scrattch.mapping` package is one component of the scrattch suite of packages for `S`ingle `C`ell `R`NA-seq `A`nalysis for `T`ranscriptomic `T`ype `CH`aracterization from the Allen Institute.  
   
-This vignette goes through how to map a small data set against a reference taxonomy. Here we use a subset of tasic2016data as an example but the intention is for mapping of patch-seq data. **The vignette "Map patch-seq data and output directory" must be run prior to running this vigette, as the output reference taxonomy files are required for mapping.**
+This vignette goes through how to map a small data set against a reference taxonomy. Here we use a subset of tasic2016data as an example but the intention is for mapping of patch-seq data. **The vignette "1. Create reference directory for mapping" must be run prior to running this vignette, as the output reference taxonomy files are required for mapping.**
   
   
 ### Workspace set-up  
@@ -20,7 +20,7 @@ First, let's create a directory in the current working directory to store the re
   
 ```{r create reference directory}
 # REPLACE THIS LINE WITH the reference directory folder from "Map patch-seq data and output directory"
-refFolder <- paste0(getwd(),"/reference/")  
+refFolder <- paste0(system.file(package = 'scrattch.mapping'),"/reference/")  
 # Replase this line with wherever you'd like your mapping output
 mappingFolder <- paste0(refFolder,"/mapping/")
 dir.create(mappingFolder, showWarnings = FALSE)
