@@ -33,9 +33,9 @@ Note that this strategy might not work outside the docker due to complicated dep
 
 ## Usage examples
 
-1. [**Run heirarchical approximat nearest neighbords (HANN) taxonomy mapping**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/build_taxonomy.md) This example shows how to use Zizhen/CK's HANN taxonomy mapping.
+1. [**Run heirarchical approximat nearest neighbords (HANN) taxonomy mapping**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/HANN_mapping.md) This example shows how to use Zizhen/CK's HANN taxonomy mapping.
 
-2. [**Run Flat, Tree, and Seurat taxonomy mapping**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/build_taxonomy.md) This examples shows how to use scrattch.mapping for standard taxonomy mapping.
+2. [**Run Flat, Tree, and Seurat taxonomy mapping**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/mapping.md) This examples shows how to use scrattch.mapping for standard taxonomy mapping.
 
 3. [**Build a Shiny taxonomy**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/build_taxonomy.md) This examples provides the basics for creating a new Shiny taxonomy compatible with MolGen shiny and scrattch.mapping.
 
