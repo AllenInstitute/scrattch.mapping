@@ -3,7 +3,6 @@
 #' @param refFolder Directory containing the Shiny taxonomy.
 #' @param sample_id Field in reference taxonomy that defines the sample_id.
 #' @param hGenes User supplied variable gene vector.  If not provided, then all genes are used.
-#' @param sub.sample Number of cells to keep per cluster.
 #' @param gene_id Field in counts.feather that defines the gene_id.
 #'
 #' @return Organized reference object ready for mapping against.
@@ -12,7 +11,6 @@
 loadTaxonomy = function(refFolder, 
                         sample_id = "sample_id", 
                         hGenes=NULL, 
-                        sub.sample = 1000,  # I'm not sure this is needed here...
                         gene_id = "gene"){ 
   
   print("Loading reference taxonomy into memory.")
@@ -20,18 +18,24 @@ loadTaxonomy = function(refFolder,
   ## Read in reference data and annotation files and format correctly
   annoReference   = feather(file.path(refFolder,"anno.feather")) 
   exprReference   = feather(file.path(refFolder,"data.feather"))
-  countsReference = feather(file.path(refFolder,"counts.feather"))  # Note that this is transposed relative to data.feather
   
   ## Convert log2CPM-normalized data into a matrix
-  datReference = as.matrix(exprReference[,names(exprReference)!=sample_id])  
+  datReference = as.matrix(exprReference[,names(exprReference)!=sample_id])
+
+  ## Read in reference count data if available
+  if(file.exists(file.path(refFolder,"counts.feather"))){
+    countsReference = feather(file.path(refFolder,"counts.feather"))  # Note that this is transposed relative to data.feather
+    ## Convert count data into a matrix
+    countsReference = as.matrix(countsReference[,names(countsReference)!=gene_id])
+    rownames(countsReference) = colnames(datReference)
+    countsReference = t(countsReference)
+  }else{
+    countsReference = NULL
+  }
   
   ## Match meta.data to data
   annoReference = as.data.frame(annoReference[match(exprReference[[sample_id]], annoReference[[sample_id]]),])
   rownames(annoReference) = rownames(datReference) = annoReference[[sample_id]]
-  
-  ## Convert count data into a matrix
-  countsReference = as.matrix(countsReference[,names(countsReference)!=gene_id])
-  rownames(countsReference) = colnames(datReference)
   
   ## Consider only genes present in both data sets
   if(!is.null(hGenes)){ 
@@ -100,11 +104,6 @@ loadTaxonomy = function(refFolder,
     rownames(umap.coords) = umap.coords[,sample_id]
   }
   
-  ## Create an annData object for the reference data set subset to a max of sub.sample cells per cluster
-  # NOTE: I'm not sure this is needed
-  kpSamp = subsampleCells(annoReference$cluster_label, sub.sample)
-  annoReference$kpSamp = kpSamp
-  
   ## Build reference object
   AIT.anndata = AnnData(
     X = datReference, ## logCPM
@@ -113,7 +112,7 @@ loadTaxonomy = function(refFolder,
                      "highly_variable_genes" = colnames(datReference) %in% varFeatures, 
                      row.names=colnames(datReference)),
     layers = list(
-      counts = t(countsReference) # Counts. We may want to keep genes as rows and not transpose this
+      counts = countsReference # Counts. We may want to keep genes as rows and not transpose this
     ),
     obsm = list(
       umap = umap.coords # A data frame with sample_id, and 2D coordinates for umap (or comparable) representation(s)

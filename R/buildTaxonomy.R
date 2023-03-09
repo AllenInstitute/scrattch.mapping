@@ -32,6 +32,7 @@ buildTaxonomy = function(counts,
   ## Checks
   if(!"cluster" %in% colnames(meta.data)){stop("cluster must be defined in the meta.data object")}
   if(is.null(feature.set)){stop("Compute variable features and supply feature.set")}
+  if(is.null(umap.coords)){stop("Compute UMAP dimensions and supply umap.coords")}
   if(!all(colnames(counts) == rownames(meta.data))){stop("Colnames of `counts` and rownames of `meta.data` do not match.")}
 	
   ## Ensure directory exists, if not create it
@@ -57,26 +58,27 @@ buildTaxonomy = function(counts,
   cluster = meta.data$cluster; names(cluster) = rownames(meta.data) ## For get_cl_medians
 
   ## Counts feather - Not used for shiny, but useful for saving raw data nonetheless
-  print("===== Building counts.feather =====")
-  counts.tibble = as_tibble(counts)
-  counts.tibble = cbind(gene, counts.tibble)
-  counts.tibble = as_tibble(counts.tibble)
-  write_feather(counts.tibble, file.path(shinyFolder, "counts.feather"))
+  # print("===== Building counts.feather =====")
+  # counts.tibble = as_tibble(counts)
+  # counts.tibble = cbind(gene, counts.tibble)
+  # counts.tibble = as_tibble(counts.tibble)
+  # write_feather(counts.tibble, file.path(shinyFolder, "counts.feather"))
 
   ## Data_t feather
-  print("===== Building data_t.feather =====")
-  data.tibble = as_tibble(tpm.matrix)
-  data.tibble = cbind(gene, data.tibble)
-  data.tibble = as_tibble(data.tibble)
-  write_feather(data.tibble, file.path(shinyFolder, "data_t.feather"))
+  # print("===== Building data_t.feather =====")
+  # data.tibble = as_tibble(tpm.matrix)
+  # data.tibble = cbind(gene, data.tibble)
+  # data.tibble = as_tibble(data.tibble)
+  # write_feather(data.tibble, file.path(shinyFolder, "data_t.feather"))
   
   ## Data feather
-  print("===== Building data.feather =====")
-  norm.data.t = t(as.matrix(tpm.matrix))
-  norm.data.t = as_tibble(norm.data.t)
-  norm.data.t = cbind(sample_id, norm.data.t)
-  norm.data.t = as_tibble(norm.data.t)
-  write_feather(norm.data.t, file.path(shinyFolder, "data.feather"))
+  # print("===== Building data.feather =====")
+  # norm.data.t = t(as.matrix(tpm.matrix))
+  # ## norm.data.t = Matrix::t(tpm.matrix)
+  # norm.data.t = as_tibble(norm.data.t)
+  # norm.data.t = cbind(sample_id, norm.data.t)
+  # norm.data.t = as_tibble(norm.data.t)
+  # write_feather(norm.data.t, file.path(shinyFolder, "data.feather"))
 
   ## ----------
   ## Run auto_annotate, this changes sample_id to sample_name.
@@ -106,53 +108,53 @@ buildTaxonomy = function(counts,
     }
   }
     
-  print("===== Building dendrogram =====")
-  ## Get cluster medians
-  medianExpr = get_cl_medians(tpm.matrix, cluster) 
+  # print("===== Building dendrogram =====")
+  # ## Get cluster medians
+  # medianExpr = get_cl_medians(tpm.matrix, cluster) 
 
-  ## Define the cluster info 
-  unique.meta.data = meta.data %>% distinct(cluster_id, 
-                                            cluster_label, 
-                                            cluster_color)
-  rownames(unique.meta.data) = unique.meta.data$cluster_label
+  # ## Define the cluster info 
+  # unique.meta.data = meta.data %>% distinct(cluster_id, 
+  #                                           cluster_label, 
+  #                                           cluster_color)
+  # rownames(unique.meta.data) = unique.meta.data$cluster_label
 
-  ## Dendrogram parameters and gene sets
-  use.color = setNames(unique.meta.data$cluster_color, unique.meta.data$cluster_label)[colnames(medianExpr)]
-  l.rank    = NULL
-  if(reorder.dendrogram){
-    l.rank = setNames(meta.data$cluster_id[match(unique.meta.data$cluster_label, meta.data$cluster_label)], unique.meta.data$cluster_label)
-    l.rank = sort(l.rank)
-  }
+  # ## Dendrogram parameters and gene sets
+  # use.color = setNames(unique.meta.data$cluster_color, unique.meta.data$cluster_label)[colnames(medianExpr)]
+  # l.rank    = NULL
+  # if(reorder.dendrogram){
+  #   l.rank = setNames(meta.data$cluster_id[match(unique.meta.data$cluster_label, meta.data$cluster_label)], unique.meta.data$cluster_label)
+  #   l.rank = sort(l.rank)
+  # }
   
-  ##
-  invisible(capture.output({  # Avoid printing lots of numbers to the screen
-    dend.result = scrattch.mapping::build_dend(
-      cl.dat  = medianExpr[feature.set,],
-      cl.cor  = NULL,
-      l.color = use.color,
-      l.rank  = l.rank, 
-      nboot   = 1,
-      ncores  = 1)
-  }))
+  # ##
+  # invisible(capture.output({  # Avoid printing lots of numbers to the screen
+  #   dend.result = scrattch.mapping::build_dend(
+  #     cl.dat  = medianExpr[feature.set,],
+  #     cl.cor  = NULL,
+  #     l.color = use.color,
+  #     l.rank  = l.rank, 
+  #     nboot   = 1,
+  #     ncores  = 1)
+  # }))
   
-  ## Output tree
-  dend = dend.result$dend
-  saveRDS(dend, file.path(shinyFolder,"dend.RData"))
+  # ## Output tree
+  # dend = dend.result$dend
+  # saveRDS(dend, file.path(shinyFolder,"dend.RData"))
 
-  ## Output tree order
-  outDend = data.frame(cluster = labels(dend), order = 1:length(labels(dend)))
-  write.csv(outDend, file.path(shinyFolder, "ordered_clusters.csv"))
+  # ## Output tree order
+  # outDend = data.frame(cluster = labels(dend), order = 1:length(labels(dend)))
+  # write.csv(outDend, file.path(shinyFolder, "ordered_clusters.csv"))
     
-  ## Write the desc file.  
-  anno_desc = create_desc(meta.data, use_label_columns = TRUE)
-  # Subset the desc file to match metadata_names, if provided
-  if(!is.null(metadata_names)){
-    desc <- anno_desc[match(names(metadata_names), as.character(as.matrix(anno_desc[,1]))),]
-    desc[,2] <- as.character(metadata_names[as.character(as.matrix(desc[,1]))])
-    desc <- desc[!is.na(desc$base),]  # Remove missing values
-    anno_desc <- desc
-  }
-  write_feather(anno_desc, file.path(shinyFolder,"desc.feather"))
+  # ## Write the desc file.  
+  # anno_desc = create_desc(meta.data, use_label_columns = TRUE)
+  # # Subset the desc file to match metadata_names, if provided
+  # if(!is.null(metadata_names)){
+  #   desc <- anno_desc[match(names(metadata_names), as.character(as.matrix(anno_desc[,1]))),]
+  #   desc[,2] <- as.character(metadata_names[as.character(as.matrix(desc[,1]))])
+  #   desc <- desc[!is.na(desc$base),]  # Remove missing values
+  #   anno_desc <- desc
+  # }
+  # write_feather(anno_desc, file.path(shinyFolder,"desc.feather"))
 
   ## Minor reformatting of metadata file, then write metadata file
   meta.data$cluster = meta.data$cluster_label; 
@@ -345,7 +347,6 @@ addDendrogramMarkers = function(dend,
   # We might need to relabel the dendrogram from 1 to #clusters in order
   dend_ref = dend
   labels(dend) = names(cl.label)[match(labels(dend),cl.label)]
-  
   
   print("Define marker genes and gene scores for the tree")
   if((!file.exists(paste0(shinyFolder,"de.genes.rda")))|calculate.de.genes){

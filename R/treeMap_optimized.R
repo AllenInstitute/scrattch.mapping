@@ -69,6 +69,14 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
          load(TaxFN)
       }
    } else {
+      if (Taxonomy=="AIT20.0_macaque") { 
+         TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/changkyul/Macaquet_MTG"
+         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT20.0_macaque"
+      }
+      if (Taxonomy=="AIT17.BG.1_mouse") { #WB_TH
+         TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb"
+         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT17.BG.1_mouse"
+      }
       if (Taxonomy=="AIT17.FB.1_mouse") { #WB_TH
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT17.FB.1_mouse"
@@ -79,9 +87,14 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT17.TR_mouse"
          TaxDir = file.path(TaxDir , "Templates")
       }
-      if (Taxonomy=="AIT17.2_mouse") { #WB_TH
+      if (Taxonomy %in% c("AIT17.2_mouse", "AIT17.TH.1_mouse")) { #WB_TH
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT17.2_mouse"
+         TaxDir = file.path(TaxDir , "Templates")
+      }
+      if (Taxonomy=="AIT17.0_mouse_5200") { #WB_2022_Yao
+         TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb"
+         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT17.0_mouse_5200"
          TaxDir = file.path(TaxDir , "Templates")
       }
       if (Taxonomy=="AIT17.0_mouse") { #WB_2022_Yao
@@ -107,7 +120,7 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb_nuclei"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT13.1_mouse"
       }
-      if (Taxonomy=="AIT13.2_mouse") { #WB_TH
+      if (Taxonomy %in% c("AIT13.2_mouse","AIT13.TH.1_mouse")) { #WB_TH
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT13.2_mouse"
       }
@@ -123,7 +136,7 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb/v2"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT12.0_mouse"
       }
-      if (Taxonomy=="AIT11.0_mouse" || Taxonomy=="AIT9.4_mouse") { #BG
+      if (Taxonomy %in% c("AIT11.0_mouse", "AIT9.4_mouse", "AIT9.BG.1_mouse")) { #BG
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/changkyul/Mapping_PatchSeq/BasalGanglia/FB_Joint_Taxonomy"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT11.0_mouse"
       }
@@ -143,8 +156,14 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
       #TaxDir = file.path(TaxDir , "Templates")
 
       # set hierarchy level for each  Taxonomy
-      if (mapping.method=="flat") nlevel=2
-      else nlevel=4
+      if (mapping.method=="flat") {
+         nlevel=2
+      } else {
+         nlevel=4
+         if (Taxonomy=="AIT20.0_macaque") { 
+            nlevel = 3
+         }
+      }
       if (is.na(subsample_pct)) nlevel_str = paste0(nlevel, "_noboot") 
       else nlevel_str = nlevel
    
@@ -157,6 +176,12 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
          print("### Building Base Training Teamplates ...")
          pre.train.list = NA
 
+         if (Taxonomy=="AIT20.0_macaque") train.list = build_train_list_20( 
+                                                        pre.train.list, query.genes=NA, TrainDir, TaxDir, 
+							prefix="", nlevel=nlevel, TaxFN=TaxFN)
+         if (Taxonomy=="AIT17.BG.1_mouse") train.list = build_train_list_WB17_BG( 
+                                                        pre.train.list, query.genes=NA, TrainDir, TaxDir, 
+							prefix="", nlevel=nlevel, TaxFN=TaxFN)
          if (Taxonomy=="AIT17.FB.1_mouse") train.list = build_train_list_WB17_FB( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN)
@@ -167,6 +192,9 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN)
          if (Taxonomy=="AIT17.0_mouse") train.list = build_train_list_WB17( 
+                                                        pre.train.list, query.genes=NA, TrainDir, TaxDir, 
+							prefix="", nlevel=nlevel, TaxFN=TaxFN)
+         if (Taxonomy=="AIT17.0_mouse_5200") train.list = build_train_list_WB17_5200( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN)
          if (Taxonomy=="AIT14.0_mouse") train.list = build_train_list_WBnuc( 
