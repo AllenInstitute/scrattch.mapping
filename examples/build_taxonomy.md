@@ -24,9 +24,6 @@ taxonomy.anno = tasic_2016_anno
 ## Ensure count matrix and annotations are in the same order.
 taxonomy.anno = taxonomy.anno[match(colnames(taxonomy.counts), taxonomy.anno$sample_name),]
 
-## Set rownames to your annotation data.frame
-rownames(taxonomy.anno) = taxonomy.anno$sample_name
-
 ## Ensure cluster field exists, as required by Shiny and scrattch.mapping.
 taxonomy.anno$cluster = taxonomy.anno$broad_type
 
@@ -35,6 +32,10 @@ binary.genes = top_binary_genes(taxonomy.counts, taxonomy.anno$cluster, 1000)
 
 ## Compute UMAP coordinates
 umap.coords = umap(t(taxonomy.counts))$layout
+
+## Set rownames to your annotation and UMAP data.frames (Required!)
+rownames(taxonomy.anno) = taxonomy.anno$sample_name
+rownames(umap.coords) = colnames(taxonomy.counts)
 
 ## Build Shiny taxonomy 
 buildTaxonomy(counts = taxonomy.counts,
