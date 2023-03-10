@@ -44,4 +44,11 @@ buildTaxonomy(counts = taxonomy.counts,
                 umap.coords = umap.coords,
                 shinyFolder="/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/tasic_2016",
                 subsample=2000)
+
+## Add markers to dendrogram
+shinyFolder = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/tasic_2016"
+addDendrogramMarkers(dend      = readRDS(file.path(shinyFolder,"dend.RData")), 
+                    norm.data = file.path(shinyFolder,"data_t.feather"),
+                    metadata  = file.path(shinyFolder,"anno.feather"),
+                    shinyFolder = shinyFolder) # To speed up calculations a bit
 ```

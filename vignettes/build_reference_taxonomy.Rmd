@@ -217,7 +217,6 @@ Finally, we read package this information to a compact annData format compatible
 AIT.anndata <- loadTaxonomy(refFolder, hGenes=binary.genes)
 write_h5ad(AIT.anndata,file.path(refFolder,"reference.h5ad"))
 ```
-
   
 Output session info.  
   

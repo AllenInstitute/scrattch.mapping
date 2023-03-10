@@ -14,7 +14,7 @@ query.data = tasic_2016_counts
 query.data = logCPM(query.data)
 
 ## Specify which taxonomies to map against.
-taxonomies = c("/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/human_BGplus_20211020")
+taxonomies = c("/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/tasic_2016")
 
 ## Map data against all taxonomies
 mapping.anno = list()
