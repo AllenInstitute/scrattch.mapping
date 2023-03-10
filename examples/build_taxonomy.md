@@ -50,5 +50,5 @@ shinyFolder = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq
 addDendrogramMarkers(dend      = readRDS(file.path(shinyFolder,"dend.RData")), 
                     norm.data = file.path(shinyFolder,"data_t.feather"),
                     metadata  = file.path(shinyFolder,"anno.feather"),
-                    shinyFolder = shinyFolder) # To speed up calculations a bit
+                    shinyFolder = shinyFolder)
 ```
