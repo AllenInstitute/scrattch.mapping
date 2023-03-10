@@ -349,14 +349,14 @@ addDendrogramMarkers = function(dend,
   labels(dend) = names(cl.label)[match(labels(dend),cl.label)]
   
   print("Define marker genes and gene scores for the tree")
-  if((!file.exists(paste0(shinyFolder,"de.genes.rda")))|calculate.de.genes){
+  if((!file.exists(file.path(shinyFolder,"de.genes.rda")))|calculate.de.genes){
     print("=== NOTE: This step can be very slow (several minute to many hours).")
     print("      To speed up the calculation (or if it crashes) try decreasing the value of subsample.")
     de.genes = select_markers(norm.dat=norm.data, cl=select.cl, n.markers=num.markers, 
                               de.param = de.param, de.genes = NULL)$de.genes
-    save(de.genes, file=paste0(shinyFolder,"de.genes.rda"))  
+    save(de.genes, file=file.path(shinyFolder,"de.genes.rda"))  
   } else {
-    load(paste0(shinyFolder,"de.genes.rda"))
+    load(file.path(shinyFolder,"de.genes.rda"))
   }
   min.marker.gene.count <- as.numeric(as.character(lapply(de.genes, function(x) x$num)))
   if(sum(min.marker.gene.count<2)>0)({
@@ -384,7 +384,7 @@ addDendrogramMarkers = function(dend,
   
   if(save.shiny.output){
     print("Save the reference dendrogram")
-    save(reference, file=paste0(shinyFolder,"reference.rda")) # Redundant
+    save(reference, file=file.path(shinyFolder,"reference.rda")) # Redundant
     saveRDS(dend, file.path(shinyFolder,"dend.RData"))        # Redundant
 
     
@@ -398,7 +398,7 @@ addDendrogramMarkers = function(dend,
     }))
     memb.ref   <- memb.ref[metadata$sample_id,]
     map.df.ref <- map.df.ref[metadata$sample_id,]
-    save(memb.ref, map.df.ref, file=paste0(shinyFolder,"membership_information_reference.rda"))
+    save(memb.ref, map.df.ref, file=file.path(shinyFolder,"membership_information_reference.rda"))
   }
   
   return(reference$dend)  
