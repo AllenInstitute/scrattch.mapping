@@ -19,7 +19,7 @@ We have setup a docker environemnt for scattch.mapping that contains all the req
 
 While we advice using the provided docker, you can also install scrattch.mapping directly from github as follows:
 
-*Note: slight edits to installation will be needed while repo is private.*
+*Note: slight edits to installation will be needed while repo is private.  Also note that `doMC` may need to be installed manually from the download at https://r-forge.r-project.org/R/?group_id=947 if you use Windows.*
 
 ```
 # Quickly, but without the vignettes:
