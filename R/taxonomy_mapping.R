@@ -27,7 +27,8 @@ taxonomy_mapping = function(AIT.anndata, query.data, corr.map=TRUE, tree.map=TRU
     ## ----- data and annotation variables -------------------------------------------------------------
 
     ## Ensure variable features are in common across data
-    AIT.anndata$var$highly_variable_genes = AIT.anndata$var$highly_variable_genes & (AIT.anndata$var$gene %in% rownames(query.data))
+    AIT.anndata$var$common_genes = AIT.anndata$var$gene %in% rownames(query.data)
+    AIT.anndata$var$highly_variable_genes = AIT.anndata$var$highly_variable_genes & AIT.anndata$var$common_genes
 
     ############
     ## ----- Correlation mapping ------------------------------------------------------------------------

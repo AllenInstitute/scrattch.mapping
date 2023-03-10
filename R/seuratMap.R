@@ -18,8 +18,8 @@ seuratMap = function(AIT.anndata, query.data, dims=30, k.weight=5){
             query.seurat = SetAssayData(query.seurat, slot = "data", new.data = query.data[AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes],], assay = "RNA")
             
             ## Build Ref Seurat object
-            ref.seurat = suppressWarnings(CreateSeuratObject(t(AIT.anndata$X[AIT.anndata$obs$kpSamp, AIT.anndata$var$highly_variable_genes]), meta.data=as.data.frame(AIT.anndata$obs)[AIT.anndata$obs$kpSamp,]));
-            ref.seurat = SetAssayData(ref.seurat, slot = "data", new.data = t(AIT.anndata$X[AIT.anndata$obs$kpSamp, AIT.anndata$var$highly_variable_genes]), assay = "RNA")
+            ref.seurat = suppressWarnings(CreateSeuratObject(t(AIT.anndata$X[,AIT.anndata$var$highly_variable_genes]), meta.data=as.data.frame(AIT.anndata$obs)));
+            ref.seurat = SetAssayData(ref.seurat, slot = "data", new.data = t(AIT.anndata$X[,AIT.anndata$var$highly_variable_genes]), assay = "RNA")
             
             ## Create a data list for label transfer
             seurat.list <- list(ref.seurat, query.seurat)

@@ -132,7 +132,7 @@ For the first step we convert the counts and annotations variables into a Seurat
 Next, create the reference folder with all associated files, and a preliminary dendrogram.  The dendrogram will get updated in later functions.
   
 ```{r build reference folder} 
-buildReference(counts         = counts,
+buildTaxonomy(counts         = counts,
                meta.data      = annotations,
                feature.set    = binary.genes,
                umap.coords    = umap.coords,
@@ -217,7 +217,6 @@ Finally, we read package this information to a compact annData format compatible
 AIT.anndata <- loadTaxonomy(refFolder, hGenes=binary.genes)
 write_h5ad(AIT.anndata,file.path(refFolder,"reference.h5ad"))
 ```
-
   
 Output session info.  
   

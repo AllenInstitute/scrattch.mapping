@@ -42,8 +42,6 @@ top_binary_genes <- function(data, cluster.names, gene.count=2000){
   return(top.genes)
 }
 
-
-
 ##################################################################################################################
 ## The functions below are mapping function from scrattch.hicat dev_zy branch that are required for tree mapping
 
@@ -69,8 +67,6 @@ top_binary_genes <- function(data, cluster.names, gene.count=2000){
 #' @return A list where `dend` is the updated dendrogram with markers attached and `cl.dat` is a matrix of cluster means
 #'
 #' @keywords internal
-#' 
-#' @export
 build_reference <- function(cl, norm.dat, dend, de.genes, cl.label=NULL, up.gene.score=NULL, down.gene.score=NULL, n.markers=30)
 {
   suppressPackageStartupMessages({
@@ -142,7 +138,7 @@ revert_dend_label <- function(dend, value, attribute="label")
 #'
 #' @return membership table
 #' 
-#' @export
+#' @keywords internal
 map_dend_membership <-
   function(dend,
            cl.dat,
@@ -198,8 +194,7 @@ map_dend_membership <-
 #'
 #' @return tree mapping to the dendrogram table (cells x nodes with values as probabilities)
 #' 
-#' @export
-#'
+#' @keywords internal
 map_dend <-
   function(dend,
            cl.dat,
@@ -268,8 +263,7 @@ map_dend <-
 #'
 #' @return mapped.cl output
 #' 
-#' @export
-#'
+#' @keywords internal
 resolve_cl <-
   function(cl.g,
            cl.dat,
@@ -375,8 +369,7 @@ resolve_cl <-
 #' @import dendextend
 #' @import pvclust
 #' 
-#' @export
-#'
+#' @keywords internal
 build_dend <- function(cl.dat, cl.cor=NULL, l.rank=NULL, l.color=NULL, nboot=100, ncores=1)
 {
   if(is.null(cl.cor)){

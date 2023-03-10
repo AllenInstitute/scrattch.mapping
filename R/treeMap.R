@@ -15,14 +15,14 @@ treeMap = function(AIT.anndata, query.data){
             load(AIT.anndata$uns$dend)
             dend = reference$dend
             clReference  = setNames(factor(AIT.anndata$obs$cluster_label, levels=AIT.anndata$uns$clustersUse),
-                                    AIT.anndata$obs_names)[AIT.anndata$obs$kpSamp]
+                                    AIT.anndata$obs_names)
             ## Gather marker genes
             allMarkers = unique(unlist(get_dend_markers(dend)))
-            #allMarkers = intersect(allMarkers, AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes]) # Do not use variable genes here!
+            allMarkers = Reduce(intersect, list(allMarkers, AIT.anndata$var_names[AIT.anndata$var$common_genes]))
             ## Perform tree mapping
             invisible(capture.output({  # Avoid printing lots of numbers to the screen
               membNode = rfTreeMapping(dend, 
-                                       t(AIT.anndata$X[AIT.anndata$obs$kpSamp, allMarkers]), 
+                                       t(AIT.anndata$X[,allMarkers]), 
                                        clReference, 
                                        query.data[allMarkers,])
             },type="message"))
