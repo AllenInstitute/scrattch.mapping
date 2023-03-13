@@ -8,11 +8,11 @@ Generalized mapping and taxonomy building scripts for RNA-seq, Patch-seq or any 
 
 ## Docker
 
-We have setup a docker environemnt for scattch.mapping that contains all the required dependencies and the current version of scrattch.mapping. This docker is accessible through docker hub via: `njjtemp/scrattch-mapping:2.8`.
+We have setup a docker environemnt for scattch.mapping that contains all the required dependencies and the current version of scrattch.mapping. This docker is accessible through docker hub via: `njjai/scrattch-mapping:4.2`.
 
 #### HPC usage:
 
-`singularity exec --cleanenv docker://njjtemp/scrattch-mapping:2.8 Rscript YOUR_CODE.R`
+`singularity exec --cleanenv docker://njjai/scrattch-mapping:4.2 Rscript YOUR_CODE.R`
 
 
 ## Installation
@@ -55,13 +55,13 @@ Note that this strategy might not work outside the docker due to complicated dep
 - [ ] Standardize output from multiple modes of mapping (RNA, Patch-Seq, spatial?)
 
 ## Done
- 
+
 - [x] Package up the stand-alone script.
 - [x] Add stand-alone scripts for creating a reference sn/scRNA-seq taxonomy to package
 - [x] Accept various inputs (Seurat, Anndata, count matrix + metadata table, reading from reference taxonomy folder)?
 - [x] Write in a module for making the taxonomy compatible with tree mapping (adding markers to dendrogram). Perhaps this should be done after the taxonomy is made for generalization. (JM: I was planning to take this one)
 - [x] Add stand-alone scripts for patch-seq QC to package
 - [x] Output feather with gene counts along with required Shiny files for use with scVI/scANVI etc. I’ve had to manually make a few of these for the older BG taxonomies.
-- [x] This might be the same thing, but also output files for viewing data in existing patch-seq shiny folder format. 
+- [x] This might be the same thing, but also output files for viewing data in existing patch-seq shiny folder format.
 - [x] Implement new tree mapping (Code from CK)
 - [x] Dockerize.
