@@ -8,11 +8,11 @@ Generalized mapping and taxonomy building scripts for RNA-seq, Patch-seq or any 
 
 ## Docker
 
-We have setup a docker environemnt for scattch.mapping that contains all the required dependencies and the current version of scrattch.mapping. This docker is accessible through docker hub via: `bicore/scrattch-mapping`.
+We have setup a docker environemnt for scattch.mapping that contains all the required dependencies and the current version of scrattch.mapping. This docker is accessible through docker hub via: `bicore/scrattch-mapping:4.2.0`.
 
 #### HPC usage:
 
-`singularity exec --cleanenv docker://bicore/scrattch-mapping Rscript YOUR_CODE.R`
+`singularity exec --cleanenv docker://bicore/scrattch-mapping:4.2.0 Rscript YOUR_CODE.R`
 
 
 ## Installation
