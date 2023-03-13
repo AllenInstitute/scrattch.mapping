@@ -24,7 +24,7 @@ for(taxonomy in taxonomies){
     ## Map! Returns a data.frame with mapping results.
     mapping.anno[[taxonomy]] = taxonomy_mapping(AIT.anndata=AIT.anndata, 
                                                 query.data=query.data, 
-                                                label.cols="cluster_label",
+                                                label.cols="cluster_label", ## Which obs in AIT.anndata contain annotations to map. E.g. "class", "subclass", etc.
                                                 corr.map=TRUE, 
                                                 tree.map=TRUE, 
                                                 seurat.map=TRUE)
