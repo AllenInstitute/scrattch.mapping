@@ -6,6 +6,10 @@ Generalized mapping and taxonomy building scripts for RNA-seq, Patch-seq or any 
 
 ![](https://github.com/AllenInstitute/scrattch-mapping/blob/main/schematic.png)
 
+## Documentation
+
+You can find a detail description of all scrattch.mapping functions here: ![Documentation](https://github.com/AllenInstitute/scrattch-mapping/blob/main/scrattch.mapping_0.1.pdf)
+
 ## Docker
 
 We have setup a docker environemnt for scattch.mapping that contains all the required dependencies and the current version of scrattch.mapping. This docker is accessible through docker hub via: `bicore/scrattch-mapping:4.2.0`.
