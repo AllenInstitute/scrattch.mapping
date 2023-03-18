@@ -45,6 +45,7 @@ taxonomy_mapping = function(AIT.anndata, query.data, corr.map=TRUE, tree.map=TRU
     #############
     ## Combine mapping results
     mappingAnno = Reduce(cbind, mappingResults)
+    rownames(mappingAnno) = colnames(query.data) ## Add query sample names to mapping results
 
     #############
     ## ---- Convert cell type mappings to subclass, neighborhood (if available), and class -------------------------------

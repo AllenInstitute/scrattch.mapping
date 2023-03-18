@@ -28,7 +28,7 @@ loadTaxonomy = function(refFolder,
     ## Convert count data into a matrix
     countsReference = as.matrix(countsReference[,names(countsReference)!=gene_id])
     rownames(countsReference) = colnames(datReference)
-    countsReference = t(countsReference)
+    countsReference = Matrix::t(countsReference)
   }else{
     countsReference = NULL
   }
@@ -97,10 +97,10 @@ loadTaxonomy = function(refFolder,
       }
     )
   }
+  
   # This next bit should NOT be needed, but the anndata crashes without it
   if(is_tibble(umap.coords)){
     umap.coords = as.data.frame(umap.coords)
-    print(class(umap.coords))
     rownames(umap.coords) = umap.coords[,sample_id]
   }
   
