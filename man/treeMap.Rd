@@ -4,10 +4,10 @@
 \alias{treeMap}
 \title{Tree based mapping}
 \usage{
-treeMap(GEXRef, query.data)
+treeMap(AIT.anndata, query.data)
 }
 \arguments{
-\item{GEXRef}{A reference taxonomy object.}
+\item{AIT.anndata}{A reference taxonomy anndata object.}
 
 \item{query.data}{A logCPM normalized matrix to be annotated.}
 }

@@ -1,6 +1,6 @@
 #' Correlation based mapping
 #'
-#' @param GEXRef A reference taxonomy object.
+#' @param AIT.anndata A reference taxonomy anndata object.
 #' @param query.data A logCPM normalized matrix to be annotated.
 #'
 #' @import scrattch.hicat
@@ -8,16 +8,16 @@
 #' @return Correlation mapping results as a data.frame.
 #'
 #' @export
-corrMap = function(GEXRef, query.data){
+corrMap = function(AIT.anndata, query.data){
     print("Correlation-based mapping")
     ## Attempt Correlation mapping
     mappingTarget = tryCatch(
         expr = {
-            clReference  = setNames(factor(GEXRef$annoReference$cluster_label, levels=GEXRef$clustersUse),
-                                    colnames(GEXRef$datReference))[GEXRef$kpSamp]
-            corMapTarget = map_by_cor(GEXRef$datReference[GEXRef$varFeatures,GEXRef$kpSamp], 
+            clReference  = setNames(factor(AIT.anndata$obs$cluster_label, levels=AIT.anndata$uns$clustersUse),
+                                    AIT.anndata$obs_names)
+            corMapTarget = map_by_cor(t(AIT.anndata$X[,AIT.anndata$var$highly_variable_genes]), 
                                         clReference, 
-                                        query.data[GEXRef$varFeatures,]) 
+                                        query.data[AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes],]) 
             mappingTarget = data.frame(map.Corr=as.character(corMapTarget[[1]]$pred.cl), 
                                     score.Corr=corMapTarget[[1]]$pred.score)
             mappingTarget
@@ -26,8 +26,6 @@ corrMap = function(GEXRef, query.data){
             print("Error caught for Correlation mapping.")
             print(e)
             return(NULL)
-        },
-        warning = function(w){
         },
         finally = {
         }

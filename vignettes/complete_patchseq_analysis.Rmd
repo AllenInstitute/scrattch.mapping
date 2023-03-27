@@ -1,0 +1,116 @@
+---
+title: "2. Map patch-seq data and output directory"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{2. Map patch-seq data and output directory}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc} 
+---
+  
+`scrattch.mapping` offers functions to convert completed single cell/nucleus RNA-seq analysis (e.g., a counts matrix + cell type assignments) into a standard reference taxonomy compatible with various mapping techniques, as well as functions to perform such mapping analyses.  Several functions are also provided for conversion of output results into data and folder formats compatible with Allen Institute R shiny tools.  
+  
+The `scrattch.mapping` package is one component of the scrattch suite of packages for `S`ingle `C`ell `R`NA-seq `A`nalysis for `T`ranscriptomic `T`ype `CH`aracterization from the Allen Institute.  
+  
+This vignette goes through how to map a small data set against a reference taxonomy. Here we use a subset of tasic2016data as an example but the intention is for mapping of patch-seq data. **The vignette "1. Create reference directory for mapping" must be run prior to running this vignette, as the output reference taxonomy files are required for mapping.**
+  
+  
+### Workspace set-up  
+  
+First, let's create a directory in the current working directory to store the reference taxonomy files.  
+  
+```{r create reference directory}
+# REPLACE THIS LINE WITH the reference directory folder from "Map patch-seq data and output directory"
+refFolder <- paste0(system.file(package = 'scrattch.mapping'),"/reference/")  
+# Replase this line with wherever you'd like your mapping output
+mappingFolder <- paste0(refFolder,"/mapping/")
+dir.create(mappingFolder, showWarnings = FALSE)
+print(mappingFolder)
+```
+
+  
+Load libraries and set options.  
+  
+```{r load libraries, warning=FALSE}
+suppressPackageStartupMessages({
+  library("scrattch.mapping")
+  library("tasic2016data")
+})
+options(stringsAsFactors = FALSE)
+options(future.globals.maxSize = 4000 * 1024^2)  # Can adjust this value if needed, depending on number of cells
+options(future.rng.onMisuse="ignore")
+```
+  
+  
+Read in the reference taxonomy.  This can be any reference, but in this case we load the one based from tasic2016data generated in the "Map patch-seq data and output directory" vignette.  
+  
+```{r load reference taxonomy}
+AIT.anndata <- read_h5ad(file.path(refFolder,"reference.h5ad"))
+```
+  
+  
+Read in the data for mapping.  In this case we are going to take 5 cells per neuronal cluster from tasic2016data, which is a subset of the data used in "Map patch-seq data and output directory".
+  
+```{r load tasic data and subset for mapping}
+# Read in data
+annotations <- tasic_2016_anno
+counts      <- tasic_2016_counts  # uncomment if using CPM below
+annotations <- annotations[match(colnames(counts),annotations$sample_name),]  # Put them in the correct order
+rownames(annotations) <- annotations$sample_name  
+kp          <- annotations$broad_type!="Unclassified"
+counts      <- counts[,kp]
+annotations <- annotations[kp,]
+
+# Variable renaming
+clusters            <- annotations$primary_type_label[match(1:49,annotations$primary_type_id)]
+annotations$cluster <- factor(annotations$primary_type_label, levels=clusters)
+annotations$class   <- annotations$broad_type
+annotations$class[!is.element(annotations$class,c("GABA-ergic Neuron","Glutamatergic Neuron"))] = "Non-neuronal"
+
+# Subsample to get final results
+query.kp       <- subsampleCells(annotations$cluster,subSamp=5,seed=10)&(annotations$class!="Non-neuronal")
+query.counts   <- counts[,query.kp]
+query.metadata <- annotations[query.kp,]
+query.logCPM   <- logCPM(query.counts)
+```
+  
+The query and reference data sets are now loaded and ready to go!  
+  
+  
+## Map query data 
+  
+The first step for mapping to run the one step "taxonomy_mapping" function to apply Seurat mapping, tree mapping, and correlation mapping.  **This step that would be applied for ANY query data.**  
+  
+```{r general mapping}
+query.mapping <- taxonomy_mapping(AIT.anndata= AIT.anndata,
+                                  query.data = query.logCPM, 
+                                  corr.map   = TRUE, # Flags for which mapping algorithms to run
+                                  tree.map   = TRUE, 
+                                  seurat.map = TRUE, 
+                                  label.cols = c("cluster_label","subclass_label", "class_label") # Columns to map against
+)
+```
+  
+  
+The second step is apply the function "buildMappingDirectory" which performs a variety of functions useful for patch-seq analysis:
+1. Merge the mapping results into the metadata file.  
+2. Apply [patchseqQC](https://github.com/PavlidisLab/patchSeqQC/) to generate some patch-seq-specific QC metrics for the mapping.  
+3. Output the results to a directory in a format compatible with Allen Institute visualization tools.  
+  
+```{r run buildMappingDirectory}
+buildMappingDirectory(AIT.anndata    = AIT.anndata, 
+                      mappingFolder  = mappingFolder,
+                      query.data     = query.counts,  # Don't need log-normalized data here
+                      query.metadata = query.metadata,
+                      query.mapping  = query.mapping,
+                      doPatchseqQC   = TRUE  # Set to FALSE if not needed or if writePatchseqQCmarkers was not applied in reference generation
+)
+dir(mappingFolder)
+```
+
+  
+Output session info.  
+  
+```{r session info}
+sessionInfo()
+```
+

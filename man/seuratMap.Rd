@@ -4,10 +4,10 @@
 \alias{seuratMap}
 \title{Seurat based mapping}
 \usage{
-seuratMap(GEXRef, query.data, dims = 30, k.weight = 5)
+seuratMap(AIT.anndata, query.data, dims = 30, k.weight = 5)
 }
 \arguments{
-\item{GEXRef}{A reference taxonomy object.}
+\item{AIT.anndata}{A reference taxonomy anndata object.}
 
 \item{query.data}{A logCPM normalized matrix to be annotated.}
 }
