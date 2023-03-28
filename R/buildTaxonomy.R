@@ -267,7 +267,7 @@ addDendrogramMarkers = function(dend,
                                 calculate.de.genes = TRUE,
                                 save.shiny.output = TRUE,
                                 mc.cores=1, 
-                                bs.num=100, p=0.8, low.th=0.1,
+                                bs.num=100, p=0.7, low.th=0.15,
                                 shinyFolder = paste0(getwd(),"/")
 ){
 
@@ -352,7 +352,7 @@ addDendrogramMarkers = function(dend,
   if((!file.exists(file.path(shinyFolder,"de.genes.rda")))|calculate.de.genes){
     print("=== NOTE: This step can be very slow (several minute to many hours).")
     print("      To speed up the calculation (or if it crashes) try decreasing the value of subsample.")
-    de.genes = scrattch.hicat::select_markers(norm.dat=norm.data, cl=select.cl, n.markers=num.markers, 
+    de.genes = select_markers(norm.dat=norm.data, cl=select.cl, n.markers=num.markers, 
                               de.param = de.param, de.genes = NULL)$de.genes
     save(de.genes, file=file.path(shinyFolder,"de.genes.rda"))  
   } else {
@@ -364,7 +364,7 @@ addDendrogramMarkers = function(dend,
   })
   # Note: this is not a robust way to address this issue!
   print("Calculate gene scores")
-  gene.score = scrattch.hicat::get_gene_score(de.genes)
+  gene.score = get_gene_score(de.genes)
   
   
   print("Build the reference dendrogram")
@@ -384,8 +384,8 @@ addDendrogramMarkers = function(dend,
   
   if(save.shiny.output){
     print("Save the reference dendrogram")
-    saveRDS(reference$dend, file.path(shinyFolder,"dend.RData")) # Used to be "dend" that was saved here.
-    #save(reference, file=file.path(shinyFolder,"reference.rda")) # Redundant so am attempting to remove
+    save(reference, file=file.path(shinyFolder,"reference.rda")) # Redundant
+    saveRDS(dend, file.path(shinyFolder,"dend.RData"))        # Redundant
 
     
     print("Build membership table of reference vs. reference for use with patch-seq mapping")

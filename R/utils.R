@@ -22,7 +22,6 @@ subsampleCells <- function(cluster.names, subSamp=25, seed=5){
   return(kpSamp)
 }
 
-
 #' Get top genes by beta (binary) score
 #'
 #' @param data A count (or CPM or logCPM) matrix
@@ -43,60 +42,6 @@ top_binary_genes <- function(data, cluster.names, gene.count=2000){
   return(top.genes)
 }
 
-
-#' Tree-based mapping
-#'
-#' Returns the mapping membership of each cell to each node and leaf using a
-#'   tree-based method.  This is a wrapper function for map_dend.  Includes
-#'   Minor adjustments from the function of the same name in `mfishtools`.
-#'
-#' @param dend dendrogram for mapping
-#' @param refDat normalized data of the REFERENCE data set
-#' @param clustersF factor indicating which cluster each cell type is actually assigned to
-#'   in the reference data set
-#' @param mapDat normalized data of the MAPPING data set.  Default is to map the data onto itself.
-#' @param p proportion of marker genes to include in each iteration of the mapping algorithm.
-#' @param low.th the minimum difference in Pearson correlation required to decide on which branch
-#'   to map to. otherwise, a random branch is chosen.
-#' @param bootstrap Number of bootstrapping runs to calculate the membership from (default = 100)
-#' @param seed added for reproducibility
-#'
-#' @return a matrix of confidence scores (from 0 to 100) with rows as cells and columns
-#'   as tree node/leafs.  Values indicate the fraction of permutations in which the cell
-#'   mapped to that node/leaf using the subset of cells/genes in map_dend
-#'
-#' @export
-
-rfTreeMapping <- function (dend, refDat, clustersF, mapDat = refDat, p = 0.8, 
-          low.th = 0.1, bootstrap = 100, seed = 1) 
-{
-  genes <- intersect(rownames(refDat), rownames(mapDat))
-  refDat <- as.matrix(refDat)[genes, ]
-  mapDat <- as.matrix(mapDat)[genes, ]
-  pseq.cells <- colnames(mapDat)
-  pseq.mem <- sapply(1:bootstrap, function(i) {
-    j <- i
-    go <- TRUE
-    while (go) {
-      j <- j + 1000
-      set.seed(j + seed)
-      tmp <- try(map_dend(dend, clustersF, refDat, mapDat, 
-                          pseq.cells, p = p, low.th = low.th, seed=(j + seed)))
-      if (length(tmp) > 1) 
-        go <- FALSE
-    }
-    tmp
-  }, simplify = F)
-  memb <- unlist(pseq.mem)
-  memb <- data.frame(cell = names(memb), cl = memb)
-  memb$cl <- factor(memb$cl, levels = get_nodes_attr(dend, 
-                                                     "label"))
-  memb <- table(memb$cell, memb$cl)
-  memb <- memb/bootstrap
-  return(memb)
-}
-
-
 ##################################################################################################################
 ## The functions below are mapping function from scrattch.hicat dev_zy branch that are required for tree mapping
 
@@ -110,8 +55,6 @@ rfTreeMapping <- function (dend, refDat, clustersF, mapDat = refDat, p = 0.8,
 
 #' Function for building the standard reference format, including adding marker genes to the clustering tree
 #'
-#' **This is an internal scrattch-mapping function and should not be used.**
-#'
 #' @param cl Factor vector where values are cluster ids (e.g., a numeric vector of corresponding to cell type order in the tree) and values are sample ids for cells (e.g., this vector has length = number of cells) 
 #' @param norm.dat log normalized expression data
 #' @param dend Input dendrogram 
@@ -124,8 +67,6 @@ rfTreeMapping <- function (dend, refDat, clustersF, mapDat = refDat, p = 0.8,
 #' @return A list where `dend` is the updated dendrogram with markers attached and `cl.dat` is a matrix of cluster means
 #'
 #' @keywords internal
-#' 
-#' @export
 build_reference <- function(cl, norm.dat, dend, de.genes, cl.label=NULL, up.gene.score=NULL, down.gene.score=NULL, n.markers=30)
 {
   suppressPackageStartupMessages({
@@ -133,17 +74,17 @@ build_reference <- function(cl, norm.dat, dend, de.genes, cl.label=NULL, up.gene
     library(scrattch.hicat)
   })
   
-  cl.dat = scrattch.hicat::get_cl_means(norm.dat, cl)
+  cl.dat = get_cl_means(norm.dat, cl)
   if(is.null(up.gene.score)){
-    de.gene.score = scrattch.hicat::get_gene_score(de.genes)
+    de.gene.score = get_gene_score(de.genes)
     up.gene.score = de.gene.score[[1]]
     down.gene.score = de.gene.score[[2]]
   }    
   select.genes = intersect(row.names(norm.dat), row.names(up.gene.score))
-  dend = scrattch.hicat::select_dend_markers(dend, norm.dat=norm.dat, cl=cl, de.genes=de.genes,
+  dend = select_dend_markers(dend, norm.dat=norm.dat, cl=cl, de.genes=de.genes,
                              up.gene.score=up.gene.score[select.genes,], 
                              down.gene.score=down.gene.score[select.genes,], n.markers=n.markers)
-  dend = scrattch.hicat::select_pos_dend_markers(dend= dend, norm.dat = norm.dat, cl = cl)
+  dend = select_pos_dend_markers(dend= dend, norm.dat = norm.dat, cl = cl)
   if(!is.null(cl.label)){
     colnames(cl.dat) = cl.label[colnames(cl.dat)]
     labels(dend) = cl.label[labels(dend)]
@@ -155,6 +96,7 @@ build_reference <- function(cl, norm.dat, dend, de.genes, cl.label=NULL, up.gene
     print("This section is needed if the starting dendrogram includes ccn nomenclature.")
     dend <- revert_dend_label(dend,get_nodes_attr(dend, "original_label"),"label")
   }
+  
   
   return(list(cl.dat=cl.dat, dend=dend))
 }
@@ -179,17 +121,18 @@ revert_dend_label <- function(dend, value, attribute="label")
 }
 
 
-#' map_dend_membership
+#' Title
 #'
-#' @param dend R dendrogram in a specific format
-#' @param cl A cluster factor object to compare to a reference
-#' @param cl.dat gene by cell type matrix (I think?)
-#' @param map.dat normalized data of the MAPPING data set.
-#' @param map.cells names of cells to map (e.g., the column names of the cell x gene matrix)
-#' @param mc.cores number of cores to run the mapping on 
-#' @param bs.num Number of bootstrapping runs to calculate the membership from (default = 100)
+#' @param dend 
+#' @param cl 
+#' @param cl.dat 
+#' @param dat 
+#' @param map.dat 
+#' @param map.cells 
+#' @param mc.cores 
+#' @param bs.num 
 #' @param seed = random seed
-#' @param ... other variables to pass to map_dend
+#' @param ... 
 #'
 #' @import foreach
 #'
@@ -223,7 +166,7 @@ map_dend_membership <-
     }
     mem = foreach(i = 1:bs.num, .combine = 'c') %dopar% {
       print(i)
-      scrattch.mapping::map_dend(dend, cl.dat, map.dat, map.cells, seed=i, ...)
+      map_dend(dend, cl.dat, map.dat, map.cells, seed=i, ...)
     }
     memb = data.frame(cell = names(mem), cl = mem)
     memb = table(memb$cell, memb$cl)
@@ -236,30 +179,29 @@ map_dend_membership <-
 
 
 
-#' map_dend
+#' Title
 #'
-#' @param dend A dendrogram in R format 
-#' @param cl A cluster factor object to compare to a reference
-#' @param cl.dat gene by cell type matrix (I think?)
-#' @param map.dat normalized data of the MAPPING data set.
-#' @param select.cells names of cells to map (e.g., the column names of the cell x gene matrix)
-#' @param p proportion of marker genes to include in each iteration of the mapping algorithm.
-#' @param low.th the minimum difference in Pearson correlation required to decide on which branch
-#' @param default.markers What genes to include in every bootstrap run (default is none)
+#' @param dend 
+#' @param cl 
+#' @param cl.dat 
+#' @param dat 
+#' @param map.dat 
+#' @param select.cells 
+#' @param p 
+#' @param low.th 
+#' @param default.markers 
 #' @param seed = random seed
-#' 
+#'
 #' @return tree mapping to the dendrogram table (cells x nodes with values as probabilities)
 #' 
 #' @keywords internal
-#' 
-#' @export
 map_dend <-
   function(dend,
            cl.dat,
            map.dat,
            select.cells=colnames(map.dat),
            p = 0.8,
-           low.th = 0.1,
+           low.th = 0.2,
            default.markers = NULL,
            seed = 42)
   {
@@ -275,9 +217,9 @@ map_dend <-
     names(cl.g) = 1:length(cl.g)
     genes = names(markers)
     genes = union(genes, default.markers)
-    mapped.cl = scrattch.mapping::resolve_cl(cl.g,
+    mapped.cl = resolve_cl(cl.g,
                            cl.dat,
-                           genes,
+                           markers,
                            map.dat,
                            select.cells,
                            p = p,
@@ -307,22 +249,21 @@ map_dend <-
   }
 
 
-#' resolve_cl
+#' Title
 #'
-#' @param cl.g Cluster labels in some format
-#' @param cl.med Cluster medians
-#' @param markers Genes to use as markers for this function
-#' @param map.dat normalized data of the MAPPING data set.
-#' @param select.cells names of cells to map (e.g., the column names of the cell x gene matrix)
-#' @param p proportion of marker genes to include in each iteration of the mapping algorithm.
-#' @param low.th the minimum difference in Pearson correlation required to decide on which branch
+#' @param cl.g 
+#' @param cl.med 
+#' @param markers 
+#' @param dat 
+#' @param map.dat 
+#' @param select.cells 
+#' @param p 
+#' @param low.th 
 #' @param seed - random seed for reproducibility
 #'
 #' @return mapped.cl output
 #' 
 #' @keywords internal
-#' 
-#' @export
 resolve_cl <-
   function(cl.g,
            cl.dat,
@@ -416,12 +357,12 @@ resolve_cl <-
 
 #' Build dend (updated to specify dendextend version of "set")
 #'
-#' @param cl.dat Normalized data of the REFERENCE data set
-#' @param cl.cor Matrix of cell x cell correlations (calculated if not provided) 
-#' @param l.rank Factor of cluster order (in a specific format)
-#' @param l.color Factor of clluster colors (in a specific format)
-#' @param nboot Number of bootstrapping runs to calculate the membership from (default = 100)
-#' @param ncores Number of cores for performing calculations
+#' @param cl.dat 
+#' @param cl.cor 
+#' @param l.rank 
+#' @param l.color 
+#' @param nboot 
+#' @param ncores 
 #'
 #' @return dendrogram and a couple of related things
 #'
@@ -429,8 +370,6 @@ resolve_cl <-
 #' @import pvclust
 #' 
 #' @keywords internal
-#' 
-#' @export
 build_dend <- function(cl.dat, cl.cor=NULL, l.rank=NULL, l.color=NULL, nboot=100, ncores=1)
 {
   if(is.null(cl.cor)){
