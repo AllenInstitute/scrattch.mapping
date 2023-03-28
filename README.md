@@ -57,6 +57,13 @@ Note that this strategy might not work outside the docker due to complicated dep
 
 - [ ] Generalize HANN mapping for external use.
 - [ ] Standardize output from multiple modes of mapping (RNA, Patch-Seq, spatial?)
+- [ ] Allow other values than 100 for bootstrapping
+- [ ] Minor vignette updates (e.g, buildReference --> buildTaxonomy)
+- [ ] Allow hGenes to impact corr and Seurat mapping, but have tree and HANN ignore it (it will break the node by node marker approach)
+- [ ] Pass a dendrogram to buildTaxonomy if one exists already (I don't remember if this is allowed, but if not, it may be more complicated than it sounds, which is probably why I haven't done it).
+- [ ] load the AIT.anndata directly from the .h5ad if it exists
+- [ ] Fixes to addDendrogramMarker based on ET feedback.
+
 
 ## Done
 
