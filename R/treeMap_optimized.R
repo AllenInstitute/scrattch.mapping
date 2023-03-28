@@ -1,7 +1,7 @@
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -35,20 +35,20 @@ run_mapping_on_taxonomy <- function(query.dat,
 
 #' Starting point for optimized tree mapping
 #'
-#' @param TaxFN
-#' @param Taxonomy
-#' @param pre.train.list
-#' @param query.genes
-#' @param prefix
-#' @param mapping.method
-#' @param prebuild
-#' @param newbuild
-#' @param mc.cores
-#' @param div_thr
-#' @param subsample_pct
-#' @param top.n.genes
-#' @param n.group.genes
-#' @param rm.cl
+#' @param TaxFN to_be_added
+#' @param Taxonomy to_be_added
+#' @param pre.train.list to_be_added
+#' @param query.genes to_be_added
+#' @param prefix to_be_added
+#' @param mapping.method to_be_added
+#' @param prebuild to_be_added
+#' @param newbuild to_be_added
+#' @param mc.cores to_be_added
+#' @param div_thr to_be_added
+#' @param subsample_pct to_be_added
+#' @param top.n.genes to_be_added
+#' @param n.group.genes to_be_added
+#' @param rm.cl to_be_added
 #'
 #' @return Mapping results
 #'
@@ -299,8 +299,8 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -322,8 +322,8 @@ update_select.markers_cl.dat <- function(train.list) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -342,8 +342,8 @@ create_initial_df_old <- function(in_sample_name, in_best.cl=NA) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -360,8 +360,8 @@ create_initial_df <- function(in_sample_name, in_best.cl=NA) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -381,8 +381,8 @@ create_initial_membership <- function(in_sample_name, ancestor) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -411,8 +411,8 @@ select_ancestor_markers <- function(nlvl, marker_index, ancestor) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -440,8 +440,8 @@ cor_ancestor_markers <- function( qdat, assigned.df, train.cl.dat, ancestor_mark
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -470,8 +470,8 @@ call_ANN_cl <- function(iter_i, lvl, index.bs, qdat, prev.df, ancestor, blocksiz
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -511,8 +511,8 @@ call_membership_cl <- function(lvl, index.bs, qdat, membership.df, ancestor, blo
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -563,8 +563,8 @@ predict_HKNN_cl <- function(lvl, iter_i, marker_index, query, assigned.df, child
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -618,8 +618,8 @@ predict_HKNN_cl_bs <- function (query, train.list, marker_index, iter=100, mc.co
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -669,8 +669,8 @@ if (0) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -699,8 +699,8 @@ run_predict_fuzzy_HKNN_cl <- function (query, train.list) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -723,8 +723,8 @@ mapping_summary <- function(qdat.mapped, FN=NA) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -755,8 +755,8 @@ mapping_on_taxonomy <- function ( query.dat, train.list,
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -794,8 +794,8 @@ mapping_by_block_serial <- function ( query.dat, train.list, blocksize=10000, mc
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -841,8 +841,8 @@ mapping_by_block_parallel <- function ( query, train.list, blocksize=10000, iter
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -894,8 +894,8 @@ mapping_by_block_parallel_tmp <- function ( query, train.list, blocksize=10000, 
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -919,8 +919,8 @@ call_ANN <- function(index.bs, qdat, prev) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -965,8 +965,8 @@ look_up_ancestor <- function(cl.df, nlvl=3) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -1068,8 +1068,8 @@ look_up_children <- function(cl.df, nlvl=3) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -1140,8 +1140,8 @@ build_marker_index_cl <- function( nn.str, lvl, nlevel, pre.marker_index=NA, que
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -1174,8 +1174,8 @@ build_marker_index_node_cl <- function( lvl, nlevel, nodestr, cl.df, marker_inde
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -1237,8 +1237,8 @@ build_marker_index_tree_cl <- function (train.list, pre.train.list=NA, query.gen
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -1299,8 +1299,8 @@ prepare_train_mmean_list <- function( anal_dir = "/allen/programs/celltypes/work
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -1318,8 +1318,8 @@ replace_cl_by_label <- function (pred, cl.df) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -1337,8 +1337,8 @@ replace_label_by_cl <- function (pred, cl.df) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -1365,8 +1365,8 @@ replace_subclass_by_cl <- function (pred, cl.df) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -1384,8 +1384,8 @@ add_labels <- function(in.df, cl.df) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -1396,11 +1396,11 @@ get_last_field <- function(x, key) {
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param index.bs
-#' @param qdat
-#' @param prev
-#' @param children 
-#' @param gg 
+#' @param index.bs to_be_added
+#' @param qdat to_be_added
+#' @param prev to_be_added
+#' @param children  to_be_added
+#' @param gg  to_be_added
 #'
 #' @return ???
 #'

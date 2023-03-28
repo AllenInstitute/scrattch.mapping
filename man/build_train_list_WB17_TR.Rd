@@ -14,14 +14,31 @@ build_train_list_WB17_TR(
   TaxFN,
   rm.cl = c()
 )
+
+build_train_list_WB17_TR(
+  pre.train.list = NA,
+  query.genes = NA,
+  WBDIR,
+  TaxDir,
+  prefix = "",
+  nlevel = 4,
+  TaxFN,
+  rm.cl = c()
+)
 }
 \arguments{
-\item{key}{}
+\item{x}{to_be_added}
+
+\item{key}{to_be_added}
 }
 \value{
 ???
+
+???
 }
 \description{
+INFO -- PLEASE ADD --
+
 INFO -- PLEASE ADD --
 }
 \keyword{internal}

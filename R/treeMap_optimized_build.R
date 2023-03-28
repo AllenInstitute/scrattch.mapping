@@ -1,7 +1,7 @@
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x  to_be_added
+#' @param key  to_be_added
 #'
 #' @return ???
 #'
@@ -67,8 +67,8 @@ build_train_list_WB17_FB <- function(pre.train.list=NA, query.genes=NA, WBDIR, T
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x  to_be_added
+#' @param key  to_be_added
 #'
 #' @return ???
 #'
@@ -134,8 +134,8 @@ build_train_list_WB17_TR <- function(pre.train.list=NA, query.genes=NA, WBDIR, T
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -204,8 +204,8 @@ build_train_list_20 <- function(pre.train.list=NA, query.genes=NA, TrainDir, Tax
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -271,8 +271,8 @@ build_train_list_WB17_BG <- function(pre.train.list=NA, query.genes=NA, WBDIR, T
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -338,8 +338,8 @@ build_train_list_WB17_FB <- function(pre.train.list=NA, query.genes=NA, WBDIR, T
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -405,8 +405,8 @@ build_train_list_WB17_TR <- function(pre.train.list=NA, query.genes=NA, WBDIR, T
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -475,8 +475,8 @@ build_train_list_TH17_2 <- function(pre.train.list=NA, query.genes=NA, WBDIR, Ta
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -542,8 +542,8 @@ build_train_list_WB17 <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxD
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -609,8 +609,8 @@ build_train_list_WBnuc <- function(pre.train.list=NA, query.genes=NA, WBDIR, Tax
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -679,8 +679,8 @@ build_train_list_WB16nuc <- function(pre.train.list=NA, query.genes=NA, WBDIR, T
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -747,8 +747,8 @@ build_train_list_WB16 <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxD
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -815,8 +815,8 @@ build_train_list_WB13 <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxD
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -878,8 +878,8 @@ build_train_list_WBint <- function(pre.train.list=NA, query.genes=NA, WBDIR, Tax
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -937,8 +937,8 @@ build_train_list_WB <- function( pre.train.list=NA, query.genes, CLSDIR, TaxDir,
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -1007,8 +1007,8 @@ build_train_list_TH13_2 <- function(pre.train.list=NA, query.genes=NA, WBDIR, Ta
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -1077,8 +1077,8 @@ build_train_list_TH16_2 <- function(pre.train.list=NA, query.genes=NA, WBDIR, Ta
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -1131,8 +1131,8 @@ build_train_list_FBLO10 <- function( pre.train.list=NA, query.genes, CLSDIR, Tax
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'
@@ -1186,8 +1186,8 @@ build_train_list_FB <- function( pre.train.list=NA, query.genes, CLSDIR, TaxDir,
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param x
-#' @param key
+#' @param x to_be_added
+#' @param key to_be_added
 #'
 #' @return ???
 #'

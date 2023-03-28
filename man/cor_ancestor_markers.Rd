@@ -7,7 +7,9 @@
 cor_ancestor_markers(qdat, assigned.df, train.cl.dat, ancestor_markers)
 }
 \arguments{
-\item{cl.df}{}
+\item{in.df}{to_be_added}
+
+\item{cl.df}{to_be_added}
 }
 \value{
 ???

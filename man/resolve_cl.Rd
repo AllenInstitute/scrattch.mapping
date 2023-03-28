@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{resolve_cl}
 \alias{resolve_cl}
-\title{Title}
+\title{resolve_cl}
 \usage{
 resolve_cl(
   cl.g,
@@ -16,29 +16,28 @@ resolve_cl(
 )
 }
 \arguments{
-\item{cl.g}{}
+\item{cl.g}{Cluster labels in some format}
 
-\item{markers}{}
+\item{markers}{Genes to use as markers for this function}
 
-\item{map.dat}{}
+\item{map.dat}{normalized data of the MAPPING data set.}
 
-\item{select.cells}{}
+\item{select.cells}{names of cells to map (e.g., the column names of the cell x gene matrix)}
 
-\item{p}{}
+\item{p}{proportion of marker genes to include in each iteration of the mapping algorithm.}
 
-\item{low.th}{}
+\item{low.th}{the minimum difference in Pearson correlation required to decide on which branch}
 
 \item{seed}{\itemize{
 \item random seed for reproducibility
 }}
 
-\item{cl.med}{}
-
-\item{dat}{}
+\item{cl.med}{Cluster medians}
 }
 \value{
 mapped.cl output
 }
 \description{
-Title
+resolve_cl
 }
+\keyword{internal}

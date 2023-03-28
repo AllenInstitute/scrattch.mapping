@@ -7,7 +7,9 @@
 select_markers_ds(de.dir, cl.bin, select.cl = NULL, top.n = 20, mc.cores = 10)
 }
 \arguments{
-\item{cl.df}{}
+\item{in.df}{to_be_added}
+
+\item{cl.df}{to_be_added}
 }
 \value{
 ???

@@ -4,12 +4,27 @@
 \alias{treeMap}
 \title{Tree based mapping}
 \usage{
-treeMap(AIT.anndata, query.data)
+treeMap(
+  AIT.anndata,
+  query.data,
+  p = 0.8,
+  low.th = 0.1,
+  bootstrap = 100,
+  seed = 1
+)
 }
 \arguments{
 \item{AIT.anndata}{A reference taxonomy anndata object.}
 
 \item{query.data}{A logCPM normalized matrix to be annotated.}
+
+\item{p}{The proportion of marker genes to include in each iteration of the mapping algorithm.}
+
+\item{low.th}{The minimum difference in Pearson correlation to the reference cluster mean gene expression between the top-matched cluster and others. If the difference is higher than low.th, the mapping process continues; otherwise, a random branch is chosen.}
+
+\item{bootstrap}{Number of bootstrapping runs to calculate the membership from (default = 100)}
+
+\item{seed}{Value of the seed for reproducibility}
 }
 \value{
 Tree mapping results as a data.frame.

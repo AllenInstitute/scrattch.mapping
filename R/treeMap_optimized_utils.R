@@ -1,7 +1,7 @@
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -31,13 +31,13 @@ l2norm <- function(X, by="column")
 
 #' Get KNN
 #'
-#' @param dat 
-#' @param ref.dat 
-#' @param k 
-#' @param method 
-#' @param dim 
+#' @param dat  to_be_added
+#' @param ref.dat  to_be_added
+#' @param k  to_be_added
+#' @param method  to_be_added
+#' @param dim  to_be_added
 #'
-#' @return
+#' @return to_be_added
 #'
 #' @keywords internal
 get_knn <- function(dat, ref.dat, k, method ="cor", dim=NULL,index=NULL, build.index=FALSE, transposed=TRUE, return.distance=FALSE)
@@ -98,15 +98,15 @@ get_knn <- function(dat, ref.dat, k, method ="cor", dim=NULL,index=NULL, build.i
 
 #' get knn batch
 #'
-#' @param dat 
-#' @param ref.dat 
-#' @param k 
-#' @param method 
-#' @param dim 
-#' @param batch.size 
-#' @param mc.cores 
+#' @param dat  to_be_added
+#' @param ref.dat  to_be_added
+#' @param k  to_be_added
+#' @param method  to_be_added
+#' @param dim  to_be_added
+#' @param batch.size  to_be_added
+#' @param mc.cores  to_be_added
 #'
-#' @return
+#' @return to_be_added
 #'
 #' @keywords internal
 get_knn_batch <- function(dat, ref.dat, k=1, method="cor", dim=NULL, batch.size, mc.cores=1, return.distance=FALSE,...)
@@ -132,14 +132,14 @@ knn_combine <- function(result.1, result.2)
 
 #' Batch process
 #'
-#' @param x 
-#' @param batch.size 
-#' @param FUN 
-#' @param mc.cores 
-#' @param .combine 
+#' @param x  to_be_added
+#' @param batch.size  to_be_added
+#' @param FUN  to_be_added
+#' @param mc.cores  to_be_added
+#' @param .combine  to_be_added
 #' @param ... 
 #'
-#' @return
+#' @return to_be_added
 #'
 #' @keywords internal
 batch_process <- function(x, batch.size, FUN, mc.cores=1, .combine="c",...)
@@ -160,8 +160,8 @@ batch_process <- function(x, batch.size, FUN, mc.cores=1, .combine="c",...)
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -184,8 +184,8 @@ build_train_index <- function(cl.dat, method= c("Annoy.Cosine","cor","Annoy.Eucl
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -213,8 +213,8 @@ build_train_index_bs <- function(cl.dat, method= c("Annoy.Cosine","cor","Annoy.E
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -231,8 +231,8 @@ map_cells_knn <- function(topk=1,test.dat, cl.dat, train.index=NULL, method = c(
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -248,8 +248,8 @@ map_cells_knn_big <- function(big.dat, cl.dat, select.cells, train.index=NULL, m
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -294,8 +294,8 @@ map_cells_knn_bs <- function(topk=1, test.dat, iter=100,cl.dat=NULL,train.index.
 ## compute z_score aggregate at different levels of clustering, start with finest level of clustering, and resort to higher level if not enough sample size
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -351,8 +351,8 @@ z_score <- function(cl.list, val, min.samples =100)
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -400,8 +400,8 @@ update_gene_score_ds <- function(gene.score, ds, to.remove, cl.bin, de=NULL, max
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -449,8 +449,8 @@ check_pairs_ds <- function(de.dir, to.add, genes,cl.bin, de=NULL, mc.cores=10,ma
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -483,8 +483,8 @@ select_markers_ds <- function(de.dir, cl.bin, select.cl=NULL, top.n=20,mc.cores=
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -529,8 +529,8 @@ select_markers_pair_direction_ds <- function(de.dir, add.num, genes, cl.bin, de=
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -562,8 +562,8 @@ select_markers_pair_group_top_ds <- function(g1,g2,ds, genes, cl.bin, select.sig
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -592,8 +592,8 @@ select_markers_pair_group_ds <- function(g1,g2,de.dir, genes, cl.bin, n.markers=
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -617,8 +617,8 @@ select_N_markers_ds<- function(de.dir, select.cl=NULL,pair.num=1, add.num=NULL, 
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -652,8 +652,8 @@ select_pos_markers_ds <- function(de.dir, cl, select.cl, genes, cl.bin, n.marker
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -683,8 +683,8 @@ select_top_pos_markers_ds<- function(ds, cl, select.cl, genes, cl.bin, n.markers
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -712,8 +712,8 @@ select_markers_groups_top_ds <- function(ds, cl.group, select.groups=names(cl.gr
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'
@@ -758,8 +758,8 @@ select_markers_groups <- function(de.dir, cl.group, genes, cl.bin, select.groups
 
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df
-#' @param cl.df
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
 #'
 #' @return ???
 #'

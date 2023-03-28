@@ -7,7 +7,9 @@
 get_last_field(x, key)
 }
 \arguments{
-\item{key}{}
+\item{x}{to_be_added}
+
+\item{key}{to_be_added}
 }
 \value{
 ???

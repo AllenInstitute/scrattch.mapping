@@ -133,14 +133,14 @@ Next, create the reference folder with all associated files, and a preliminary d
   
 ```{r build reference folder} 
 buildTaxonomy(counts         = counts,
-               meta.data      = annotations,
-               feature.set    = binary.genes,
-               umap.coords    = umap.coords,
-               shinyFolder    = refFolder,
-               cluster_colors = cluster_colors,  # Colors are generated if not provided
-               metadata_names = NULL,     # If you want to save only selected metadata columns
-               subsample      = 100,      # This is the number of cells per cluster
-               reorder.dendrogram = TRUE) # This will match the factor order of the clusters to the extent possible
+              meta.data      = annotations,
+              feature.set    = binary.genes,
+              umap.coords    = umap.coords,
+              shinyFolder    = refFolder,
+              cluster_colors = cluster_colors,  # Colors are generated if not provided
+              metadata_names = NULL,     # If you want to save only selected metadata columns
+              subsample      = 100,      # This is the number of cells per cluster
+              reorder.dendrogram = TRUE) # This will match the factor order of the clusters to the extent possible
 ```
   
   

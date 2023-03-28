@@ -7,7 +7,9 @@
 create_initial_df(in_sample_name, in_best.cl = NA)
 }
 \arguments{
-\item{cl.df}{}
+\item{in.df}{to_be_added}
+
+\item{cl.df}{to_be_added}
 }
 \value{
 ???

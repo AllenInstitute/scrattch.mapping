@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{map_dend}
 \alias{map_dend}
-\title{Title}
+\title{map_dend}
 \usage{
 map_dend(
   dend,
@@ -10,35 +10,34 @@ map_dend(
   map.dat,
   select.cells = colnames(map.dat),
   p = 0.8,
-  low.th = 0.2,
+  low.th = 0.1,
   default.markers = NULL,
   seed = 42
 )
 }
 \arguments{
-\item{dend}{}
+\item{dend}{A dendrogram in R format}
 
-\item{cl.dat}{}
+\item{cl.dat}{gene by cell type matrix (I think?)}
 
-\item{map.dat}{}
+\item{map.dat}{normalized data of the MAPPING data set.}
 
-\item{select.cells}{}
+\item{select.cells}{names of cells to map (e.g., the column names of the cell x gene matrix)}
 
-\item{p}{}
+\item{p}{proportion of marker genes to include in each iteration of the mapping algorithm.}
 
-\item{low.th}{}
+\item{low.th}{the minimum difference in Pearson correlation required to decide on which branch}
 
-\item{default.markers}{}
+\item{default.markers}{What genes to include in every bootstrap run (default is none)}
 
 \item{seed}{= random seed}
 
-\item{cl}{}
-
-\item{dat}{}
+\item{cl}{A cluster factor object to compare to a reference}
 }
 \value{
 tree mapping to the dendrogram table (cells x nodes with values as probabilities)
 }
 \description{
-Title
+map_dend
 }
+\keyword{internal}

@@ -10,8 +10,7 @@ prepareTaxonomy(
   cl.df,
   AIT.str,
   lognormal = NULL,
- 
-    taxonomy.dir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/"
+  taxonomy.dir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/"
 )
 }
 \arguments{
@@ -21,10 +20,15 @@ prepareTaxonomy(
 
 \item{AIT.str}{taxonomy id}
 
-\item{taxonomy.dir}{}
+\item{lognormal}{a logCPM cell x gene matrix.  If counts provided, logCPM is calculated.}
+
+\item{taxonomy.dir}{Output directly to write h5ad file}
 
 \item{counts}{count\link{gene x cell}}
 }
+\value{
+A copy of the anndata object that is also written to disk
+}
 \description{
-This function write ...
+This function writes an anndata object in the correct format for all downstream mapping algoriths.
 }
