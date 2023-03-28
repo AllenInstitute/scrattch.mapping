@@ -248,6 +248,8 @@ map_dend_membership <-
 #' @return tree mapping to the dendrogram table (cells x nodes with values as probabilities)
 #' 
 #' @keywords internal
+#' 
+#' @export
 map_dend <-
   function(dend,
            cl.dat,
@@ -316,6 +318,8 @@ map_dend <-
 #' @return mapped.cl output
 #' 
 #' @keywords internal
+#' 
+#' @export
 resolve_cl <-
   function(cl.g,
            cl.dat,
