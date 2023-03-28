@@ -422,6 +422,8 @@ resolve_cl <-
 #' @import pvclust
 #' 
 #' @keywords internal
+#' 
+#' @export
 build_dend <- function(cl.dat, cl.cor=NULL, l.rank=NULL, l.color=NULL, nboot=100, ncores=1)
 {
   if(is.null(cl.cor)){
