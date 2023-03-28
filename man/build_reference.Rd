@@ -36,6 +36,6 @@ build_reference(
 A list where \code{dend} is the updated dendrogram with markers attached and \code{cl.dat} is a matrix of cluster means
 }
 \description{
-Function for building the standard reference format, including adding marker genes to the clustering tree
+\strong{This is an internal scrattch-mapping function and should not be used.}
 }
 \keyword{internal}

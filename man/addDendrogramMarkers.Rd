@@ -17,8 +17,8 @@ addDendrogramMarkers(
   save.shiny.output = TRUE,
   mc.cores = 1,
   bs.num = 100,
-  p = 0.7,
-  low.th = 0.15,
+  p = 0.8,
+  low.th = 0.1,
   shinyFolder = paste0(getwd(), "/")
 )
 }

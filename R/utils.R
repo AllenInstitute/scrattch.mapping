@@ -110,6 +110,8 @@ rfTreeMapping <- function (dend, refDat, clustersF, mapDat = refDat, p = 0.8,
 
 #' Function for building the standard reference format, including adding marker genes to the clustering tree
 #'
+#' **This is an internal scrattch-mapping function and should not be used.**
+#'
 #' @param cl Factor vector where values are cluster ids (e.g., a numeric vector of corresponding to cell type order in the tree) and values are sample ids for cells (e.g., this vector has length = number of cells) 
 #' @param norm.dat log normalized expression data
 #' @param dend Input dendrogram 
@@ -122,6 +124,8 @@ rfTreeMapping <- function (dend, refDat, clustersF, mapDat = refDat, p = 0.8,
 #' @return A list where `dend` is the updated dendrogram with markers attached and `cl.dat` is a matrix of cluster means
 #'
 #' @keywords internal
+#' 
+#' @export
 build_reference <- function(cl, norm.dat, dend, de.genes, cl.label=NULL, up.gene.score=NULL, down.gene.score=NULL, n.markers=30)
 {
   suppressPackageStartupMessages({
@@ -129,17 +133,17 @@ build_reference <- function(cl, norm.dat, dend, de.genes, cl.label=NULL, up.gene
     library(scrattch.hicat)
   })
   
-  cl.dat = get_cl_means(norm.dat, cl)
+  cl.dat = scrattch.hicat::get_cl_means(norm.dat, cl)
   if(is.null(up.gene.score)){
-    de.gene.score = get_gene_score(de.genes)
+    de.gene.score = scrattch.hicat::get_gene_score(de.genes)
     up.gene.score = de.gene.score[[1]]
     down.gene.score = de.gene.score[[2]]
   }    
   select.genes = intersect(row.names(norm.dat), row.names(up.gene.score))
-  dend = select_dend_markers(dend, norm.dat=norm.dat, cl=cl, de.genes=de.genes,
+  dend = scrattch.hicat::select_dend_markers(dend, norm.dat=norm.dat, cl=cl, de.genes=de.genes,
                              up.gene.score=up.gene.score[select.genes,], 
                              down.gene.score=down.gene.score[select.genes,], n.markers=n.markers)
-  dend = select_pos_dend_markers(dend= dend, norm.dat = norm.dat, cl = cl)
+  dend = scrattch.hicat::select_pos_dend_markers(dend= dend, norm.dat = norm.dat, cl = cl)
   if(!is.null(cl.label)){
     colnames(cl.dat) = cl.label[colnames(cl.dat)]
     labels(dend) = cl.label[labels(dend)]
@@ -151,7 +155,6 @@ build_reference <- function(cl, norm.dat, dend, de.genes, cl.label=NULL, up.gene
     print("This section is needed if the starting dendrogram includes ccn nomenclature.")
     dend <- revert_dend_label(dend,get_nodes_attr(dend, "original_label"),"label")
   }
-  
   
   return(list(cl.dat=cl.dat, dend=dend))
 }
@@ -220,7 +223,7 @@ map_dend_membership <-
     }
     mem = foreach(i = 1:bs.num, .combine = 'c') %dopar% {
       print(i)
-      map_dend(dend, cl.dat, map.dat, map.cells, seed=i, ...)
+      scrattch.mapping::map_dend(dend, cl.dat, map.dat, map.cells, seed=i, ...)
     }
     memb = data.frame(cell = names(mem), cl = mem)
     memb = table(memb$cell, memb$cl)
@@ -272,7 +275,7 @@ map_dend <-
     names(cl.g) = 1:length(cl.g)
     genes = names(markers)
     genes = union(genes, default.markers)
-    mapped.cl = resolve_cl(cl.g,
+    mapped.cl = scrattch.mapping::resolve_cl(cl.g,
                            cl.dat,
                            genes,
                            map.dat,
