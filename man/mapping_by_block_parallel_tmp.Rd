@@ -8,6 +8,7 @@ mapping_by_block_parallel_tmp(
   query,
   train.list,
   blocksize = 10000,
+  iter = 100,
   mc.cores = 7,
   method = "cor",
   flag.fuzzy = FALSE,

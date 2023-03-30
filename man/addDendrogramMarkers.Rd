@@ -11,8 +11,8 @@ addDendrogramMarkers(
   celltypeColumn = "cluster_label",
   subsample = 100,
   num.markers = 20,
-  de.param = scrattch.hicat::de_param(low.th = 1, padj.th = 0.01, lfc.th = 1, q1.th =
-    0.3, q2.th = NULL, q.diff.th = 0.7, de.score.th = 100, min.cells = 2, min.genes = 5),
+  de.param = scrattch.hicat::de_param(low.th = 0.1, padj.th = 1, lfc.th = 0.01, q1.th =
+    0.1, q2.th = NULL, q.diff.th = 0.1, de.score.th = 1, min.cells = 1, min.genes = 1),
   calculate.de.genes = TRUE,
   save.shiny.output = TRUE,
   mc.cores = 1,
@@ -35,7 +35,7 @@ addDendrogramMarkers(
 
 \item{num.markers}{The maximum number of markers to calculate per pairwise differential calculation per direction (default = 20)}
 
-\item{de.param}{Differential expression (DE) parameters for genes and clusters used to define marker genes.  By default the values are set to the 10x nuclei defaults from scrattch.hicat, except with min.cells=2 (see the function \code{de_param} in the scrattch.hicat for more details).}
+\item{de.param}{Differential expression (DE) parameters for genes and clusters used to define marker genes.  By default the values are set to the 10x nuclei defaults from scrattch.hicat, except with min.cells=2 (see notes below).}
 
 \item{calculate.de.genes}{Default=TRUE. If set to false, the function will search for a file called "de.genes.rda" to load precalculated de genes.}
 
@@ -52,6 +52,7 @@ addDendrogramMarkers(
 \item{shinyFolder}{The location to save shiny output, if desired
 
 NOTES
+By default VERY loose parameters are set for de_param in an effort to get extra marker genes for each node.  The defaults previously proposed for 10x nuclei are the following \code{de_param(low.th = 1, padj.th = 0.01, lfc.th = 1, q1.th = 0.3, q2.th = NULL, q.diff.th = 0.7, de.score.th = 100, min.cells = 2, min.genes = 5)}. See the function \code{de_param} in the scrattch.hicat for more details.
 
 If save.shiny.output=TRUE, the following files will be generated:
 reference.rda, which includes a variable \code{reference} as follows:

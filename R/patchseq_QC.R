@@ -115,7 +115,7 @@ writePatchseqQCmarkers = function(counts,
   countsQC   <- datQC[allMarkers,]
   cpmQC      <- cpm(datQC)[allMarkers,]  # Only use of scrattch.hicat in this function
 
-  save(markers, countsQC, cpmQC, classBr, subclassF, allMarkers, file=paste0(shinyFolder,"QC_markers.RData"))
+  save(markers, countsQC, cpmQC, classBr, subclassF, allMarkers, file=file.path(shinyFolder,"QC_markers.RData"))
   print("Complete!")
 
 }

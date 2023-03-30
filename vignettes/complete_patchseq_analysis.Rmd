@@ -41,14 +41,14 @@ options(future.rng.onMisuse="ignore")
 ```
   
   
-Read in the reference taxonomy.  This can be any reference, but in this case we load the one based from tasic2016data generated in the "Map patch-seq data and output directory" vignette.  
+Read in the reference taxonomy.  This can be any reference, but in this case we load the one based from tasic2016data generated in the "1. Create reference directory for mapping" vignette.  
   
 ```{r load reference taxonomy}
 AIT.anndata <- read_h5ad(file.path(refFolder,"reference.h5ad"))
 ```
   
   
-Read in the data for mapping.  In this case we are going to take 5 cells per neuronal cluster from tasic2016data, which is a subset of the data used in "Map patch-seq data and output directory".
+Read in the data for mapping.  In this case we are going to take 5 cells per neuronal cluster from tasic2016data, which is a subset of the data used in "1. Create reference directory for mapping".
   
 ```{r load tasic data and subset for mapping}
 # Read in data
@@ -91,7 +91,7 @@ query.mapping <- taxonomy_mapping(AIT.anndata= AIT.anndata,
 ```
   
   
-The second step is apply the function "buildMappingDirectory" which performs a variety of functions useful for patch-seq analysis:
+The second step is apply the function "buildMappingDirectory" which performs a variety of functions useful for patch-seq analysis:  
 1. Merge the mapping results into the metadata file.  
 2. Apply [patchseqQC](https://github.com/PavlidisLab/patchSeqQC/) to generate some patch-seq-specific QC metrics for the mapping.  
 3. Output the results to a directory in a format compatible with Allen Institute visualization tools.  
