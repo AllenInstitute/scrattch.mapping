@@ -121,18 +121,17 @@ revert_dend_label <- function(dend, value, attribute="label")
 }
 
 
-#' Title
+#' map_dend_membership
 #'
-#' @param dend 
-#' @param cl 
-#' @param cl.dat 
-#' @param dat 
-#' @param map.dat 
-#' @param map.cells 
-#' @param mc.cores 
-#' @param bs.num 
+#' @param dend R dendrogram in a specific format
+#' @param cl A cluster factor object to compare to a reference
+#' @param cl.dat gene by cell type matrix (I think?)
+#' @param map.dat normalized data of the MAPPING data set.
+#' @param map.cells names of cells to map (e.g., the column names of the cell x gene matrix)
+#' @param mc.cores number of cores to run the mapping on 
+#' @param bs.num Number of bootstrapping runs to calculate the membership from (default = 100)
 #' @param seed = random seed
-#' @param ... 
+#' @param ... other variables to pass to map_dend
 #'
 #' @import foreach
 #'
@@ -179,19 +178,18 @@ map_dend_membership <-
 
 
 
-#' Title
+#' map_dend
 #'
-#' @param dend 
-#' @param cl 
-#' @param cl.dat 
-#' @param dat 
-#' @param map.dat 
-#' @param select.cells 
-#' @param p 
-#' @param low.th 
-#' @param default.markers 
+#' @param dend A dendrogram in R format 
+#' @param cl A cluster factor object to compare to a reference
+#' @param cl.dat gene by cell type matrix (I think?)
+#' @param map.dat normalized data of the MAPPING data set.
+#' @param select.cells names of cells to map (e.g., the column names of the cell x gene matrix)
+#' @param p proportion of marker genes to include in each iteration of the mapping algorithm.
+#' @param low.th the minimum difference in Pearson correlation required to decide on which branch
+#' @param default.markers What genes to include in every bootstrap run (default is none)
 #' @param seed = random seed
-#'
+#' 
 #' @return tree mapping to the dendrogram table (cells x nodes with values as probabilities)
 #' 
 #' @keywords internal
@@ -249,16 +247,15 @@ map_dend <-
   }
 
 
-#' Title
+#' resolve_cl
 #'
-#' @param cl.g 
-#' @param cl.med 
-#' @param markers 
-#' @param dat 
-#' @param map.dat 
-#' @param select.cells 
-#' @param p 
-#' @param low.th 
+#' @param cl.g Cluster labels in some format
+#' @param cl.med Cluster medians
+#' @param markers Genes to use as markers for this function
+#' @param map.dat normalized data of the MAPPING data set.
+#' @param select.cells names of cells to map (e.g., the column names of the cell x gene matrix)
+#' @param p proportion of marker genes to include in each iteration of the mapping algorithm.
+#' @param low.th the minimum difference in Pearson correlation required to decide on which branch
 #' @param seed - random seed for reproducibility
 #'
 #' @return mapped.cl output
@@ -357,12 +354,12 @@ resolve_cl <-
 
 #' Build dend (updated to specify dendextend version of "set")
 #'
-#' @param cl.dat 
-#' @param cl.cor 
-#' @param l.rank 
-#' @param l.color 
-#' @param nboot 
-#' @param ncores 
+#' @param cl.dat Normalized data of the REFERENCE data set
+#' @param cl.cor Matrix of cell x cell correlations (calculated if not provided) 
+#' @param l.rank Factor of cluster order (in a specific format)
+#' @param l.color Factor of clluster colors (in a specific format)
+#' @param nboot Number of bootstrapping runs to calculate the membership from (default = 100)
+#' @param ncores Number of cores for performing calculations
 #'
 #' @return dendrogram and a couple of related things
 #'
