@@ -847,7 +847,7 @@ mapping_by_block_parallel <- function ( query, train.list, blocksize=10000, iter
 #' @return ???
 #'
 #' @keywords internal
-mapping_by_block_parallel_tmp <- function ( query, train.list, blocksize=10000, mc.cores=7, method="cor",
+mapping_by_block_parallel_tmp <- function ( query, train.list, blocksize=10000, iter=100, mc.cores=7, method="cor",
                                         flag.fuzzy=FALSE, topk=1, tmpdir=paste0("./mapping_tmp_", Sys.Date()) ) 
 {
    require(doMC)

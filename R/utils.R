@@ -65,7 +65,6 @@ top_binary_genes <- function(data, cluster.names, gene.count=2000){
 #'   mapped to that node/leaf using the subset of cells/genes in map_dend
 #'
 #' @export
-
 rfTreeMapping <- function (dend, refDat, clustersF, mapDat = refDat, p = 0.8, 
                            low.th = 0.1, bootstrap = 100, seed = 1) 
 {
@@ -79,8 +78,8 @@ rfTreeMapping <- function (dend, refDat, clustersF, mapDat = refDat, p = 0.8,
     while (go) {
       j <- j + 1000
       set.seed(j + seed)
-      tmp <- try(map_dend(dend, clustersF, refDat, mapDat, 
-                          pseq.cells, p = p, low.th = low.th, seed=(j + seed)))
+      tmp <- try(mfishtools::map_dend(dend, clustersF, refDat, mapDat, pseq.cells, 
+                                      p = p, low.th = low.th), silent=TRUE)
       if (length(tmp) > 1) 
         go <- FALSE
     }
@@ -94,6 +93,7 @@ rfTreeMapping <- function (dend, refDat, clustersF, mapDat = refDat, p = 0.8,
   memb <- memb/bootstrap
   return(memb)
 }
+
 
 ##################################################################################################################
 ## The functions below are mapping function from scrattch.hicat dev_zy branch that are required for tree mapping
