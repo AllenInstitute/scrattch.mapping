@@ -255,7 +255,7 @@ addDendrogramMarkers = function(dend,
                                 celltypeColumn = "cluster_label",
                                 subsample = 100,
                                 num.markers = 20,
-                                de.param=scrattch.hicat::de_param(low.th = 1,
+                                de.param=scrattch.hicat::de_param(low.th = 1,  # Recommended values for 10x Nuclei
                                                                   padj.th = 0.01,
                                                                   lfc.th = 1,
                                                                   q1.th = 0.3,
@@ -267,7 +267,7 @@ addDendrogramMarkers = function(dend,
                                 calculate.de.genes = TRUE,
                                 save.shiny.output = TRUE,
                                 mc.cores=1, 
-                                bs.num=100, p=0.7, low.th=0.15,
+                                bs.num=100, p=0.8, low.th=0.1,
                                 shinyFolder = paste0(getwd(),"/")
 ){
 

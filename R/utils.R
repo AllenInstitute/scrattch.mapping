@@ -199,7 +199,7 @@ map_dend <-
            map.dat,
            select.cells=colnames(map.dat),
            p = 0.8,
-           low.th = 0.2,
+           low.th = 0.1,
            default.markers = NULL,
            seed = 42)
   {
@@ -267,8 +267,8 @@ resolve_cl <-
            markers,
            map.dat,
            select.cells,
-           p = 0.7,
-           low.th = 0.2,
+           p = 0.8,
+           low.th = 0.1,
            seed = 42)
   {
     ##
