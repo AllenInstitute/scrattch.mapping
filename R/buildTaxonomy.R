@@ -128,7 +128,7 @@ buildTaxonomy = function(counts,
   
   ##
   invisible(capture.output({  # Avoid printing lots of numbers to the screen
-    dend.result = scrattch.mapping::build_dend(
+    dend.result = build_dend(
       cl.dat  = medianExpr[feature.set,],
       cl.cor  = NULL,
       l.color = use.color,
