@@ -17,8 +17,8 @@ addDendrogramMarkers(
   save.shiny.output = TRUE,
   mc.cores = 1,
   bs.num = 100,
-  p = 0.7,
-  low.th = 0.15,
+  p = 0.8,
+  low.th = 0.1,
   shinyFolder = paste0(getwd(), "/")
 )
 }
@@ -43,7 +43,11 @@ addDendrogramMarkers(
 
 \item{mc.cores}{Number of cores to use for running this function to speed things up.  Default = 1.  Values>1 are only supported in an UNIX environment and require \code{foreach} and \code{doParallel} R libraries.}
 
-\item{bs.num, p, low.th}{Extra variables for the \code{map_dend_membership} function in scrattch.hicat.  Defaults are set reasonably.}
+\item{bs.num}{Number of bootstrap runs for creating the dendrogram (default of 100)}
+
+\item{p}{proportion of marker genes to include in each iteration of the mapping algorithm.}
+
+\item{low.th}{the minimum difference in Pearson correlation required to decide on which branch}
 
 \item{shinyFolder}{The location to save shiny output, if desired
 

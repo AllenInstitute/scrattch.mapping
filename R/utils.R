@@ -42,6 +42,59 @@ top_binary_genes <- function(data, cluster.names, gene.count=2000){
   return(top.genes)
 }
 
+
+#' Tree-based mapping
+#'
+#' Returns the mapping membership of each cell to each node and leaf using a
+#'   tree-based method.  This is a wrapper function for map_dend.  Includes
+#'   Minor adjustments from the function of the same name in `mfishtools`.
+#'
+#' @param dend dendrogram for mapping
+#' @param refDat normalized data of the REFERENCE data set
+#' @param clustersF factor indicating which cluster each cell type is actually assigned to
+#'   in the reference data set
+#' @param mapDat normalized data of the MAPPING data set.  Default is to map the data onto itself.
+#' @param p proportion of marker genes to include in each iteration of the mapping algorithm.
+#' @param low.th the minimum difference in Pearson correlation required to decide on which branch
+#'   to map to. otherwise, a random branch is chosen.
+#' @param bootstrap Number of bootstrapping runs to calculate the membership from (default = 100)
+#' @param seed added for reproducibility
+#'
+#' @return a matrix of confidence scores (from 0 to 100) with rows as cells and columns
+#'   as tree node/leafs.  Values indicate the fraction of permutations in which the cell
+#'   mapped to that node/leaf using the subset of cells/genes in map_dend
+#'
+#' @export
+
+rfTreeMapping <- function (dend, refDat, clustersF, mapDat = refDat, p = 0.8, 
+                           low.th = 0.1, bootstrap = 100, seed = 1) 
+{
+  genes <- intersect(rownames(refDat), rownames(mapDat))
+  refDat <- as.matrix(refDat)[genes, ]
+  mapDat <- as.matrix(mapDat)[genes, ]
+  pseq.cells <- colnames(mapDat)
+  pseq.mem <- sapply(1:bootstrap, function(i) {
+    j <- i
+    go <- TRUE
+    while (go) {
+      j <- j + 1000
+      set.seed(j + seed)
+      tmp <- try(map_dend(dend, clustersF, refDat, mapDat, 
+                          pseq.cells, p = p, low.th = low.th, seed=(j + seed)))
+      if (length(tmp) > 1) 
+        go <- FALSE
+    }
+    tmp
+  }, simplify = F)
+  memb <- unlist(pseq.mem)
+  memb <- data.frame(cell = names(memb), cl = memb)
+  memb$cl <- factor(memb$cl, levels = get_nodes_attr(dend, 
+                                                     "label"))
+  memb <- table(memb$cell, memb$cl)
+  memb <- memb/bootstrap
+  return(memb)
+}
+
 ##################################################################################################################
 ## The functions below are mapping function from scrattch.hicat dev_zy branch that are required for tree mapping
 

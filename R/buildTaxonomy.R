@@ -228,7 +228,9 @@ buildTaxonomy = function(counts,
 #' @param calculate.de.genes Default=TRUE. If set to false, the function will search for a file called "de.genes.rda" to load precalculated de genes.  
 #' @param save.shiny.output Should standard output files be generated and saved to the directory (default=TRUE).  These are not required for tree mapping, but are required for building a patch-seq shiny instance.  This is only tested in a UNIX environment.  See notes.
 #' @param mc.cores Number of cores to use for running this function to speed things up.  Default = 1.  Values>1 are only supported in an UNIX environment and require `foreach` and `doParallel` R libraries.
-#' @param bs.num,p,low.th Extra variables for the `map_dend_membership` function in scrattch.hicat.  Defaults are set reasonably.
+#' @param bs.num Number of bootstrap runs for creating the dendrogram (default of 100)
+#' @param p proportion of marker genes to include in each iteration of the mapping algorithm.
+#' @param low.th the minimum difference in Pearson correlation required to decide on which branch
 #' @param shinyFolder The location to save shiny output, if desired
 #'
 #' NOTES
@@ -267,7 +269,9 @@ addDendrogramMarkers = function(dend,
                                 calculate.de.genes = TRUE,
                                 save.shiny.output = TRUE,
                                 mc.cores=1, 
-                                bs.num=100, p=0.8, low.th=0.1,
+                                bs.num=100, 
+                                p=0.8, 
+                                low.th=0.1,
                                 shinyFolder = paste0(getwd(),"/")
 ){
 
