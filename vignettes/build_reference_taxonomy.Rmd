@@ -159,7 +159,7 @@ Now define this as a standardized taxonomy and output the relevant zip file (see
   
 ```{r CCN, fig.height=6,fig.width=10, warning=FALSE}
 ## Create taxonomy and nomenclature standards for this taxonomy
-taxonomy_id       <- "CCN202301170"          # Taxonomy ID of format CCN<YYYYMMDD><T>
+taxonomy_id       <- c("CCN202301170","AIT0.1","Tasic_2016") # Taxonomy ID of format CCN<YYYYMMDD><T>. Additional taxonomy aliases can be listed in a vector after.
 taxonomy_author   <- "Bosiljka Tasic"        # Person uploading the data and taxonomy
 taxonomy_citation <- "10.1038/nn.4216"       # DOI of relevant taxonomy citation, if any
 first_label       <- setNames("RNA", 1)      # Prefix for cell set label (adjust text label only)
