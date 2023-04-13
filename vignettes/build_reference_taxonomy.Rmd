@@ -186,6 +186,7 @@ ccn_output <- apply_CCN(dend = dend,
                         metadata_columns  = metadata_columns,
                         metadata_order    = metadata_order,
                         cluster_column    = cluster_column,
+                        append            = TRUE,
                         ccn_filename      = file.path(refFolder,"nomenclature.zip"))
 
 # Plot the dendrogram (note that this function sometimes does not display the root node correctly)
