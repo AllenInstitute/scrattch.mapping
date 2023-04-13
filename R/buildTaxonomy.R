@@ -83,6 +83,15 @@ buildTaxonomy = function(counts,
   ## ----------
   ## Run auto_annotate, this changes sample_id to sample_name.
   print("===== Format metadata table for R shiny folder =====")
+  # Check for duplicate columns (e.g., XXXX_label and XXXX together will crash auto_annotate)  # NEW #
+  cn   <- colnames(meta.data)
+  cn2  <- gsub("_label","",cn)
+  dups <- names(table(cn2))[table(cn2)>1]
+  if(length(dups>0)){
+    warning("Duplicate entries for",paste(dups,collapse=" and "),"have been DELETED. Please check output carefully!")
+    meta.data <- meta.data[,setdiff(cn,dups)]
+  }
+  # Run auto_annotate
   meta.data = scrattch.io::auto_annotate(meta.data)
 
   ### Convert chars and factors to characters (moved to AFTER auto_annotate, so numbers can be assigned in correct order for factors)
