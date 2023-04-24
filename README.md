@@ -12,11 +12,11 @@ You can find a detail description of all scrattch.mapping functions here: ![Docu
 
 ## Docker
 
-We have setup a docker environemnt for scattch.mapping that contains all the required dependencies and the current version of scrattch.mapping. This docker is accessible through docker hub via: `bicore/scrattch-mapping:4.2.0`.
+We have setup a docker environemnt for scattch.mapping that contains all the required dependencies and the current version of scrattch.mapping. This docker is accessible through docker hub via: `bicore/scrattch_mapping:4.2.0`.
 
 #### HPC usage:
 
-`singularity exec --cleanenv docker://bicore/scrattch-mapping:4.2.0 Rscript YOUR_CODE.R`
+`singularity exec --cleanenv docker://bicore/scrattch_mapping:4.2.0 Rscript YOUR_CODE.R`
 
 
 ## Installation
