@@ -11,14 +11,14 @@ addDendrogramMarkers(
   celltypeColumn = "cluster_label",
   subsample = 100,
   num.markers = 20,
-  de.param = scrattch.hicat::de_param(low.th = 1, padj.th = 0.01, lfc.th = 1, q1.th =
-    0.3, q2.th = NULL, q.diff.th = 0.7, de.score.th = 100, min.cells = 2, min.genes = 5),
+  de.param = scrattch.hicat::de_param(low.th = 0.1, padj.th = 1, lfc.th = 0.01, q1.th =
+    0.1, q2.th = NULL, q.diff.th = 0.1, de.score.th = 1, min.cells = 1, min.genes = 1),
   calculate.de.genes = TRUE,
   save.shiny.output = TRUE,
   mc.cores = 1,
   bs.num = 100,
-  p = 0.7,
-  low.th = 0.15,
+  p = 0.8,
+  low.th = 0.1,
   shinyFolder = paste0(getwd(), "/")
 )
 }
@@ -35,7 +35,7 @@ addDendrogramMarkers(
 
 \item{num.markers}{The maximum number of markers to calculate per pairwise differential calculation per direction (default = 20)}
 
-\item{de.param}{Differential expression (DE) parameters for genes and clusters used to define marker genes.  By default the values are set to the 10x nuclei defaults from scrattch.hicat, except with min.cells=2 (see the function \code{de_param} in the scrattch.hicat for more details).}
+\item{de.param}{Differential expression (DE) parameters for genes and clusters used to define marker genes.  By default the values are set to the 10x nuclei defaults from scrattch.hicat, except with min.cells=2 (see notes below).}
 
 \item{calculate.de.genes}{Default=TRUE. If set to false, the function will search for a file called "de.genes.rda" to load precalculated de genes.}
 
@@ -43,11 +43,16 @@ addDendrogramMarkers(
 
 \item{mc.cores}{Number of cores to use for running this function to speed things up.  Default = 1.  Values>1 are only supported in an UNIX environment and require \code{foreach} and \code{doParallel} R libraries.}
 
-\item{bs.num, p, low.th}{Extra variables for the \code{map_dend_membership} function in scrattch.hicat.  Defaults are set reasonably.}
+\item{bs.num}{Number of bootstrap runs for creating the dendrogram (default of 100)}
+
+\item{p}{proportion of marker genes to include in each iteration of the mapping algorithm.}
+
+\item{low.th}{the minimum difference in Pearson correlation required to decide on which branch}
 
 \item{shinyFolder}{The location to save shiny output, if desired
 
 NOTES
+By default VERY loose parameters are set for de_param in an effort to get extra marker genes for each node.  The defaults previously proposed for 10x nuclei are the following \code{de_param(low.th = 1, padj.th = 0.01, lfc.th = 1, q1.th = 0.3, q2.th = NULL, q.diff.th = 0.7, de.score.th = 100, min.cells = 2, min.genes = 5)}. See the function \code{de_param} in the scrattch.hicat for more details.
 
 If save.shiny.output=TRUE, the following files will be generated:
 reference.rda, which includes a variable \code{reference} as follows:

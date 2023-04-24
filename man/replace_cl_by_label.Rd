@@ -7,7 +7,9 @@
 replace_cl_by_label(pred, cl.df)
 }
 \arguments{
-\item{cl.df}{}
+\item{cl.df}{to_be_added}
+
+\item{in.df}{to_be_added}
 }
 \value{
 ???

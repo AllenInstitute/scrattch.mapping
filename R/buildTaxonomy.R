@@ -83,6 +83,15 @@ buildTaxonomy = function(counts,
   ## ----------
   ## Run auto_annotate, this changes sample_id to sample_name.
   print("===== Format metadata table for R shiny folder =====")
+  # Check for duplicate columns (e.g., XXXX_label and XXXX together will crash auto_annotate)  # NEW #
+  cn   <- colnames(meta.data)
+  cn2  <- gsub("_label","",cn)
+  dups <- names(table(cn2))[table(cn2)>1]
+  if(length(dups>0)){
+    warning("Duplicate entries for",paste(dups,collapse=" and "),"have been DELETED. Please check output carefully!")
+    meta.data <- meta.data[,setdiff(cn,dups)]
+  }
+  # Run auto_annotate
   meta.data = scrattch.io::auto_annotate(meta.data)
 
   ### Convert chars and factors to characters (moved to AFTER auto_annotate, so numbers can be assigned in correct order for factors)
@@ -128,7 +137,7 @@ buildTaxonomy = function(counts,
   
   ##
   invisible(capture.output({  # Avoid printing lots of numbers to the screen
-    dend.result = scrattch.mapping::build_dend(
+    dend.result = build_dend(
       cl.dat  = medianExpr[feature.set,],
       cl.cor  = NULL,
       l.color = use.color,
@@ -224,14 +233,17 @@ buildTaxonomy = function(counts,
 #' @param celltypeColumn Column name correspond to the cell type names in the dendrogram (default = "cluster_label"). At least two cells per cell type in the dendrogram must be included.
 #' @param subsample The number of cells to retain per cluster (default = 100)
 #' @param num.markers The maximum number of markers to calculate per pairwise differential calculation per direction (default = 20)
-#' @param de.param Differential expression (DE) parameters for genes and clusters used to define marker genes.  By default the values are set to the 10x nuclei defaults from scrattch.hicat, except with min.cells=2 (see the function `de_param` in the scrattch.hicat for more details).
+#' @param de.param Differential expression (DE) parameters for genes and clusters used to define marker genes.  By default the values are set to the 10x nuclei defaults from scrattch.hicat, except with min.cells=2 (see notes below).
 #' @param calculate.de.genes Default=TRUE. If set to false, the function will search for a file called "de.genes.rda" to load precalculated de genes.  
 #' @param save.shiny.output Should standard output files be generated and saved to the directory (default=TRUE).  These are not required for tree mapping, but are required for building a patch-seq shiny instance.  This is only tested in a UNIX environment.  See notes.
 #' @param mc.cores Number of cores to use for running this function to speed things up.  Default = 1.  Values>1 are only supported in an UNIX environment and require `foreach` and `doParallel` R libraries.
-#' @param bs.num,p,low.th Extra variables for the `map_dend_membership` function in scrattch.hicat.  Defaults are set reasonably.
+#' @param bs.num Number of bootstrap runs for creating the dendrogram (default of 100)
+#' @param p proportion of marker genes to include in each iteration of the mapping algorithm.
+#' @param low.th the minimum difference in Pearson correlation required to decide on which branch
 #' @param shinyFolder The location to save shiny output, if desired
 #'
 #' NOTES
+#' By default VERY loose parameters are set for de_param in an effort to get extra marker genes for each node.  The defaults previously proposed for 10x nuclei are the following `de_param(low.th = 1, padj.th = 0.01, lfc.th = 1, q1.th = 0.3, q2.th = NULL, q.diff.th = 0.7, de.score.th = 100, min.cells = 2, min.genes = 5)`. See the function `de_param` in the scrattch.hicat for more details.  
 #'
 #' If save.shiny.output=TRUE, the following files will be generated:
 #'   reference.rda, which includes a variable `reference` as follows:
@@ -255,19 +267,21 @@ addDendrogramMarkers = function(dend,
                                 celltypeColumn = "cluster_label",
                                 subsample = 100,
                                 num.markers = 20,
-                                de.param=scrattch.hicat::de_param(low.th = 1,
-                                                                  padj.th = 0.01,
-                                                                  lfc.th = 1,
-                                                                  q1.th = 0.3,
+                                de.param=scrattch.hicat::de_param(low.th = 0.1,
+                                                                  padj.th = 1,
+                                                                  lfc.th = 0.01,
+                                                                  q1.th = 0.1,
                                                                   q2.th = NULL,
-                                                                  q.diff.th = 0.7,
-                                                                  de.score.th = 100,
-                                                                  min.cells = 2,
-                                                                  min.genes = 5),
+                                                                  q.diff.th = 0.1,
+                                                                  de.score.th = 1,
+                                                                  min.cells = 1,
+                                                                  min.genes = 1),
                                 calculate.de.genes = TRUE,
                                 save.shiny.output = TRUE,
                                 mc.cores=1, 
-                                bs.num=100, p=0.7, low.th=0.15,
+                                bs.num=100, 
+                                p=0.8, 
+                                low.th=0.1,
                                 shinyFolder = paste0(getwd(),"/")
 ){
 

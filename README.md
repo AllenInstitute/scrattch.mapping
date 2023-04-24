@@ -53,6 +53,10 @@ Note that this strategy might not work outside the docker due to complicated dep
 
 3. [**Comparing multiple mapping methods.**](http://htmlpreview.github.io/?https://github.com/AllenInstitute/mfishtools/blob/master/vignettes/comparison_of_mapping_methods.html)  This vignette goes through how to run multiple mapping algorithms on a data set for label transfer, and then compare and contrast the results of these mapping algorithms. It also includes a cursory look into how to use ground truth (if available) to aid in selection of optimal mapping results. Here we use the entirely of tasic2016data as an example so that we can have “ground truth” clustering results to compare against, but in practice this information is typically not available.  
 
+## Reporting issues
+
+If you run into any issues, please let Nelson and Jeremy know or [**create a new issue in the 'Issues' tab above**](https://github.com/AllenInstitute/scrattch-mapping/issues).
+
 ## TODO
 
 - [ ] Generalize HANN mapping for external use.

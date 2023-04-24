@@ -5,13 +5,15 @@
 \title{INFO -- PLEASE ADD --}
 \usage{
 prepare_train_mmean_list(
- 
-    anal_dir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/forebrain_new",
+  anal_dir =
+    "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/forebrain_new",
   modality = "10X_cells_v3"
 )
 }
 \arguments{
-\item{cl.df}{}
+\item{in.df}{to_be_added}
+
+\item{cl.df}{to_be_added}
 }
 \value{
 ???

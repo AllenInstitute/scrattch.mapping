@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{map_dend_membership}
 \alias{map_dend_membership}
-\title{Title}
+\title{map_dend_membership}
 \usage{
 map_dend_membership(
   dend,
@@ -16,29 +16,28 @@ map_dend_membership(
 )
 }
 \arguments{
-\item{dend}{}
+\item{dend}{R dendrogram in a specific format}
 
-\item{cl.dat}{}
+\item{cl.dat}{gene by cell type matrix (I think?)}
 
-\item{map.dat}{}
+\item{map.dat}{normalized data of the MAPPING data set.}
 
-\item{map.cells}{}
+\item{map.cells}{names of cells to map (e.g., the column names of the cell x gene matrix)}
 
-\item{mc.cores}{}
+\item{mc.cores}{number of cores to run the mapping on}
 
-\item{bs.num}{}
+\item{bs.num}{Number of bootstrapping runs to calculate the membership from (default = 100)}
 
 \item{seed}{= random seed}
 
-\item{...}{}
+\item{...}{other variables to pass to map_dend}
 
-\item{cl}{}
-
-\item{dat}{}
+\item{cl}{A cluster factor object to compare to a reference}
 }
 \value{
 membership table
 }
 \description{
-Title
+map_dend_membership
 }
+\keyword{internal}

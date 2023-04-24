@@ -17,18 +17,18 @@ get_knn(
 )
 }
 \arguments{
-\item{dat}{}
+\item{dat}{to_be_added}
 
-\item{ref.dat}{}
+\item{ref.dat}{to_be_added}
 
-\item{k}{}
+\item{k}{to_be_added}
 
-\item{method}{}
+\item{method}{to_be_added}
 
-\item{dim}{}
+\item{dim}{to_be_added}
 }
 \value{
-
+to_be_added
 }
 \description{
 Get KNN

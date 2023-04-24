@@ -1,17 +1,18 @@
 #' Prepare taxonomy for optimized tree mapping
 #'
-#' This function write ...
+#' This function writes an anndata object in the correct format for all downstream mapping algoriths.
 #'
 #' @param counts count[gene x cell]
 #' @param cl assigned cluster
 #' @param cl.df cluster anno with hierarchy : cluster(cl)/subclass_label/neighborhood/root
 #' @param AIT.str taxonomy id
-#' @param lognormal
-#' @param taxonomy.dir
+#' @param lognormal a logCPM cell x gene matrix.  If counts provided, logCPM is calculated.
+#' @param taxonomy.dir Output directly to write h5ad file
 #'
-#' 
 #' @import patchseqtools
 #' @import scrattch.hicat
+#'
+#' @return A copy of the anndata object that is also written to disk
 #'
 #' @export
 prepareTaxonomy <- function(count, cl, cl.df, AIT.str,

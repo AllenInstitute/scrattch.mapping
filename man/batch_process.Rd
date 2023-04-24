@@ -7,20 +7,20 @@
 batch_process(x, batch.size, FUN, mc.cores = 1, .combine = "c", ...)
 }
 \arguments{
-\item{x}{}
+\item{x}{to_be_added}
 
-\item{batch.size}{}
+\item{batch.size}{to_be_added}
 
-\item{FUN}{}
+\item{FUN}{to_be_added}
 
-\item{mc.cores}{}
+\item{mc.cores}{to_be_added}
 
-\item{.combine}{}
+\item{.combine}{to_be_added}
 
 \item{...}{}
 }
 \value{
-
+to_be_added
 }
 \description{
 Batch process

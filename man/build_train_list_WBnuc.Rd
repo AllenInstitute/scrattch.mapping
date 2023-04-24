@@ -16,7 +16,9 @@ build_train_list_WBnuc(
 )
 }
 \arguments{
-\item{key}{}
+\item{x}{to_be_added}
+
+\item{key}{to_be_added}
 }
 \value{
 ???

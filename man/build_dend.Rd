@@ -14,17 +14,17 @@ build_dend(
 )
 }
 \arguments{
-\item{cl.dat}{}
+\item{cl.dat}{Normalized data of the REFERENCE data set}
 
-\item{cl.cor}{}
+\item{cl.cor}{Matrix of cell x cell correlations (calculated if not provided)}
 
-\item{l.rank}{}
+\item{l.rank}{Factor of cluster order (in a specific format)}
 
-\item{l.color}{}
+\item{l.color}{Factor of clluster colors (in a specific format)}
 
-\item{nboot}{}
+\item{nboot}{Number of bootstrapping runs to calculate the membership from (default = 100)}
 
-\item{ncores}{}
+\item{ncores}{Number of cores for performing calculations}
 }
 \value{
 dendrogram and a couple of related things
@@ -32,3 +32,4 @@ dendrogram and a couple of related things
 \description{
 Build dend (updated to specify dendextend version of "set")
 }
+\keyword{internal}

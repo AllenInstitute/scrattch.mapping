@@ -8,7 +8,6 @@ loadTaxonomy(
   refFolder,
   sample_id = "sample_id",
   hGenes = NULL,
-  sub.sample = 1000,
   gene_id = "gene"
 )
 }
@@ -18,8 +17,6 @@ loadTaxonomy(
 \item{sample_id}{Field in reference taxonomy that defines the sample_id.}
 
 \item{hGenes}{User supplied variable gene vector.  If not provided, then all genes are used.}
-
-\item{sub.sample}{Number of cells to keep per cluster.}
 
 \item{gene_id}{Field in counts.feather that defines the gene_id.}
 }
