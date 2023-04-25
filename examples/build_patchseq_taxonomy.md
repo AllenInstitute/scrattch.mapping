@@ -39,6 +39,9 @@ AIT.anndata$obs$broad_type_label[!is.element(AIT.anndata$obs$broad_type_label, c
 ```
 
 ### Build the patchseq taxonomy:
+
+Now let's create a version of the taxonomy which is compatible with patchseqQC and can be filtered to remove off target cell classes, typically Non-neuronals, from mapping.
+
 ```R
 ## Setup the taxonomy for patchseqQC to infer off.target contamination
 AIT.anndata = buildPatchseqTaxonomy(AIT.anndata,
@@ -66,6 +69,14 @@ query.mapping = taxonomy_mapping(AIT.anndata= AIT.anndata,
                                   patchseq = TRUE)
 ```
 
+### Determine patchseq contamination with PatchseqQC:
+```R
+query.mapping = applyPatchseqQC = function(AIT.anndata, ## A patchseq taxonomy object.
+                                            query.counts, ## Counts are required here.
+                                            query.mapping, ## Results of the previous mapping or AIT.anndata$obs, no mapping is required.
+                                            verbose=FALSE)
+```
+
 ### Setup the patchseq Shiny taxonomy files for MolGen Shiny:
 ```R
 buildMappingDirectory(AIT.anndata    = AIT.anndata, 
@@ -73,6 +84,6 @@ buildMappingDirectory(AIT.anndata    = AIT.anndata,
                       query.data     = query.counts, ## Counts are required here.
                       query.metadata = query.metadata,
                       query.mapping  = query.mapping,
-                      doPatchseqQC   = TRUE)  ## Set to FALSE if not needed or if buildPatchseqTaxonomy was not run.
+                      doPatchseqQC   = FALSE)  ## Set to FALSE if not needed or if buildPatchseqTaxonomy was not run.
 dir('/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/tasic_2016/patchseq_mapping')
 ```

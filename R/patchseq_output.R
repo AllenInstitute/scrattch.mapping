@@ -232,7 +232,7 @@ applyPatchseqQC = function(AIT.anndata,
   # ---- This includes markers, countsQC, cpmQC, classBr, subclassF, and allMarkers
   load(AIT.anndata$uns$QC_markers)
   
-  
+
   if(verbose) print("Format the reference and patch-seq data")
   ## -- NOTE: relevant reference data and type assignments are stored in refMarkerFile
   tmp                 <- cpmQC # countsQC
@@ -245,7 +245,7 @@ applyPatchseqQC = function(AIT.anndata,
   tmp              <- cpm(query.cpm) #
   rownames(tmp)    <- make.names(rownames(tmp))
   allMarkers       <- intersect(allMarkers,rownames(tmp))  # To account for differences in transcriptome
-  pat_df           <- as.data.frame(t(tmp[allMarkers,query.metadata$sample_id])+1)
+  pat_df           <- as.data.frame(t(tmp[allMarkers,rownames(query.metadata)])+1)
   pat_df$sample_id <- rownames(pat_df)
   
   
