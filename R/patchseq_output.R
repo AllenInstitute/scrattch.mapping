@@ -35,7 +35,8 @@ buildMappingDirectory = function(AIT.anndata,
   
   ## Checks
   if(!all(colnames(query.data) == rownames(query.metadata))){stop("Colnames of `query.data` and rownames of `query.metadata` do not match.")}
-  if(doPatchseqQC!=TRUE) doPatchseqQC=FALSE
+  if(doPatchseqQC!=TRUE){ doPatchseqQC=FALSE }
+
   # Merge mapping metadata inputs
   if(length(setdiff(colnames(query.mapping),colnames(query.metadata)))>0){
     if(!all(colnames(query.data) == rownames(query.metadata))){stop("Colnames of `query.data` and rownames of `query.mapping` do not match.")}
@@ -204,14 +205,10 @@ buildMappingDirectory = function(AIT.anndata,
   write_feather(tsne_desc, file.path(mappingFolder,"tsne_desc.feather"))
 }
 
-
-
-
-
 #' This function applies patchseqQC, given a taxonomy and query data
 #'
 #' @param AIT.anndata A reference taxonomy object.
-#' @param query.data A logCPM normalized matrix to be annotated.
+#' @param query.data A count matrix for the query data.
 #' @param query.metadata A data frame of metadata for the query data. 
 #' @param verbose Should status be printed to the screen? 
 #' 
@@ -229,15 +226,6 @@ applyPatchseqQC = function(AIT.anndata,
   
   ## Convert query.data to CPM
   if(is.element("data.frame",class(query.data))){stop("`query.data` should be a matrix or a sparse matrix, not a data.frame.")}
-  if(max(query.data)<20){
-    warning("`query.data` should not be log2-normalized. Converting back to linear space.")
-    if (is.matrix(query.data)) {
-      query.data <- 2^query.data - 1
-    }
-    else {
-      query.data@x <- 2^query.data@x - 1
-    }
-  }
   query.cpm <- cpm(query.data)
   
   ## Load the reference files

@@ -35,6 +35,9 @@ buildTaxonomy(
 
 \item{reorder.dendrogram}{Should dendogram attempt to match a preset order? (Default = FALSE).  If TRUE, the dendrogram attempts to match the celltype factor order as closely as possible (if celltype is a character vector rather than a factor, this will sort clusters alphabetically, which is not ideal).}
 }
+\value{
+AIT anndata
+}
 \description{
 This function builds the minimum files required for Shiny
 }
