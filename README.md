@@ -43,6 +43,8 @@ Note that this strategy might not work outside the docker due to complicated dep
 
 3. [**Build a Shiny taxonomy**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/build_taxonomy.md) This examples provides the basics for creating a new Shiny taxonomy compatible with MolGen shiny and scrattch.mapping.
 
+4. [**Build and map against a PatchSeq taxonomy**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/build_patchseq_taxonomy.md) This examples provides the basics for updating a Shiny taxonomy to be compatible with patchseq style mapping and visualization on MolGen Shiny.
+
 ## Library vignettes
 
 *Note: links below will not work while repo is private.*
