@@ -29,8 +29,14 @@ taxonomy = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/ta
 
 ## Load in the taxonomy
 AIT.anndata = loadTaxonomy(taxonomy)
+```
 
-## Let's start by defining the cell classes which are offtarget for tasic2016. Typically this is defined at the class level.
+### Define off target cell types.
+
+Let's start by defining the cell classes which are off target for tasic2016 patchseq mapping and QC. Typically this is defined at the class level and are the "Non-neuronal" cell classes/types.
+
+```R
+## Identify the offtarget cell types manually.
 print(unique(AIT.anndata$obs$broad_type_label))
 
 ## Add in the off.target annotation.
