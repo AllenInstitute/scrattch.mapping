@@ -5,6 +5,7 @@ In this tutorial we demonstrate how to setup a patchseq Shiny taxonomy using scr
 ### Required inputs:
 
 * Standard Shiny taxonomy setup following the "build_taxonomy" tutorial.
+* Query patchseq count matrix and metadata.
 
 ### Load in Tasic 2016:
 ```R
