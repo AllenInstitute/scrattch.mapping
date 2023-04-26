@@ -16,7 +16,11 @@ We have setup a docker environemnt for scattch.mapping that contains all the req
 
 #### HPC usage:
 
+##### Non-interactive
 `singularity exec --cleanenv docker://bicore/scrattch_mapping:latest Rscript YOUR_CODE.R`
+
+##### Interactive
+`singularity shell --cleanenv docker://bicore/scrattch_mapping:latest Rscript YOUR_CODE.R`
 
 
 ## Installation
