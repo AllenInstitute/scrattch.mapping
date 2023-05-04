@@ -10,7 +10,7 @@
 #' @param subsample The number of cells to retain per cluster
 #' @param reorder.dendrogram Should dendogram attempt to match a preset order? (Default = FALSE).  If TRUE, the dendrogram attempts to match the celltype factor order as closely as possible (if celltype is a character vector rather than a factor, this will sort clusters alphabetically, which is not ideal).
 #' 
-#' @import scrattch.hicat
+#' @import scrattch.hicat 
 #' @import scrattch.io
 #' @import feather
 #' @import tibble
