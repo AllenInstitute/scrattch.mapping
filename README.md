@@ -10,7 +10,7 @@ Generalized mapping and taxonomy building scripts for RNA-seq, Patch-seq or any 
 
 You can find a detail description of all scrattch.mapping functions here: ![Documentation](https://github.com/AllenInstitute/scrattch-mapping/blob/main/scrattch.mapping_0.1.pdf)
 
-Update notes are here: ![Versions](https://github.com/AllenInstitute/scrattch-mapping/blob/main/VERSIONS.md)
+Update notes are here: ![Versions](https://github.com/AllenInstitute/scrattch-mapping/blob/dev_njj/VERSIONS.md)
 
 ## Docker
 
