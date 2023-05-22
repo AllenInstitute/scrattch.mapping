@@ -12,11 +12,15 @@ You can find a detail description of all scrattch.mapping functions here: ![Docu
 
 ## Docker
 
-We have setup a docker environemnt for scattch.mapping that contains all the required dependencies and the current version of scrattch.mapping. This docker is accessible through docker hub via: `bicore/scrattch-mapping:4.2.0`.
+We have setup a docker environemnt for scattch.mapping that contains all the required dependencies and the current version of scrattch.mapping. This docker is accessible through docker hub via: `bicore/scrattch_mapping:latest`.
 
 #### HPC usage:
 
-`singularity exec --cleanenv docker://bicore/scrattch-mapping:4.2.0 Rscript YOUR_CODE.R`
+##### Non-interactive
+`singularity exec --cleanenv docker://bicore/scrattch_mapping:latest Rscript YOUR_CODE.R`
+
+##### Interactive
+`singularity shell --cleanenv docker://bicore/scrattch_mapping:latest`
 
 
 ## Installation
@@ -43,6 +47,8 @@ Note that this strategy might not work outside the docker due to complicated dep
 
 3. [**Build a Shiny taxonomy**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/build_taxonomy.md) This examples provides the basics for creating a new Shiny taxonomy compatible with MolGen shiny and scrattch.mapping.
 
+4. [**Build and map against a PatchSeq taxonomy**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/build_patchseq_taxonomy.md) This examples provides the basics for updating a Shiny taxonomy to be compatible with patchseq style mapping and visualization on MolGen Shiny.
+
 ## Library vignettes
 
 *Note: links below will not work while repo is private.*
@@ -61,6 +67,13 @@ If you run into any issues, please let Nelson and Jeremy know or [**create a new
 
 - [ ] Generalize HANN mapping for external use.
 - [ ] Standardize output from multiple modes of mapping (RNA, Patch-Seq, spatial?)
+- [ ] Allow other values than 100 for bootstrapping
+- [ ] Minor vignette updates (e.g, buildReference --> buildTaxonomy)
+- [x] Allow hGenes to impact corr and Seurat mapping, but have tree and HANN ignore it (it will break the node by node marker approach)
+- [ ] Pass a dendrogram to buildTaxonomy if one exists already (I don't remember if this is allowed, but if not, it may be more complicated than it sounds, which is probably why I haven't done it).
+- [x] load the AIT.anndata directly from the .h5ad if it exists
+- [x] Fixes to addDendrogramMarker based on ET feedback.
+
 
 ## Done
 
