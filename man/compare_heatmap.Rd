@@ -38,3 +38,4 @@ a list with output from heatmap.3, after displaying the heatmap to the screen.
 \description{
 This is a wrapper for the function \code{heatmap.3} in scrattch.hicat
 }
+\keyword{internal}

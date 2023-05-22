@@ -44,3 +44,4 @@ Returns the mapping membership of each cell to each node and leaf using a
 tree-based method.  This is a wrapper function for map_dend.  Includes
 Minor adjustments from the function of the same name in \code{mfishtools}.
 }
+\keyword{internal}

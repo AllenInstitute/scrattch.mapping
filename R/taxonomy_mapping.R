@@ -23,6 +23,18 @@ taxonomy_mapping = function(AIT.anndata, query.data, corr.map=TRUE, tree.map=TRU
       stop("Not all label.cols exists in AIT.anndata$uns$clusterInfo")
     }
 
+    ## Modify taxonomy based on mapping mode
+    if(!is.element("mode", names(AIT.anndata$uns))){
+      print("Mapping in mode: `standard`. No filtering.")
+    } else if(!AIT.anndata$uns$mode %in% names(AIT.anndata$uns$filter)){
+      stop(print("Mapping mode, ", AIT.anndata$uns$mode, ", is not available for current Taxonomy."))
+    } else{
+      ## Remove off-target cell types
+      AIT.anndata = AIT.anndata[!AIT.anndata$uns$filter[[AIT.anndata$uns$mode]]]
+      AIT.anndata$uns$clusterInfo = AIT.anndata$uns$clusterInfo %>% filter(cluster_label %in% unique(AIT.anndata$obs$cluster_label))
+      AIT.anndata$uns$clustersUse = unique(AIT.anndata$obs$cluster_label)
+    }
+
     ############
     ## ----- data and annotation variables -------------------------------------------------------------
 

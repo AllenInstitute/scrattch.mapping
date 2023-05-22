@@ -1,3 +1,17 @@
+#' Function to set mapping mode
+#'
+#' @param AIT.anndata A vector of cluster names in the reference taxonomy.
+#' @param mode Number of cells to keep per cluster.
+#'
+#' @return AIT anndata with mode set for mapping
+#' 
+#' @export
+mappingMode <- function(AIT.anndata, mode){
+  if(!mode %in% names(AIT.anndata$uns$filter)){ stop(paste0(mode, " is invalid. Choose from: standard, patchseq")) }
+  AIT.anndata$uns$mode = mode
+  return(AIT.anndata)
+}
+
 #' Function to subsample cells
 #'
 #' @param cluster.names A vector of cluster names in the reference taxonomy.
@@ -5,10 +19,8 @@
 #' @param seed Random seed used for subsampling.
 #'
 #' @return Boolean vector of cells to keep (TRUE) and cells to remove (FALSE)
-#'
-#' @keywords internal
 #' 
-#' @export
+#' @keywords external
 subsampleCells <- function(cluster.names, subSamp=25, seed=5){
   # Returns a vector of TRUE false for choosing a maximum of subsamp cells in each cluster
   # cluster.names = vector of cluster labels in factor format
@@ -30,8 +42,6 @@ subsampleCells <- function(cluster.names, subSamp=25, seed=5){
 #'
 #' @return Boolean vector of cells to keep (TRUE) and cells to remove (FALSE)
 #'
-#' @keywords external
-#' 
 #' @export
 top_binary_genes <- function(data, cluster.names, gene.count=2000){
   cluster.names <- setNames(as.factor(cluster.names),colnames(data))
@@ -64,7 +74,7 @@ top_binary_genes <- function(data, cluster.names, gene.count=2000){
 #'   as tree node/leafs.  Values indicate the fraction of permutations in which the cell
 #'   mapped to that node/leaf using the subset of cells/genes in map_dend
 #'
-#' @export
+#' @keywords internal
 rfTreeMapping <- function (dend, refDat, clustersF, mapDat = refDat, p = 0.8, 
                            low.th = 0.1, bootstrap = 100, seed = 1) 
 {
@@ -104,7 +114,6 @@ rfTreeMapping <- function (dend, refDat, clustersF, mapDat = refDat, p = 0.8,
 #library(randomForest)
 #library(doMC)     # for parallelization in Unix environments
 #library(foreach)  # for parallelization in Unix environments
-
 
 #' Function for building the standard reference format, including adding marker genes to the clustering tree
 #'
@@ -149,11 +158,8 @@ build_reference <- function(cl, norm.dat, dend, de.genes, cl.label=NULL, up.gene
     print("This section is needed if the starting dendrogram includes ccn nomenclature.")
     dend <- revert_dend_label(dend,get_nodes_attr(dend, "original_label"),"label")
   }
-  
-  
   return(list(cl.dat=cl.dat, dend=dend))
 }
-
 
 #' Strip extra annotation information from dendrogram
 #'
@@ -172,7 +178,6 @@ revert_dend_label <- function(dend, value, attribute="label")
     dend[[i]]=revert_dend_label(dend[[i]], value=value, attribute)
   return(dend)
 }
-
 
 #' map_dend_membership
 #'
@@ -212,13 +217,12 @@ map_dend_membership <-
     
     if(mc.cores ==1){
       registerDoSEQ()
-    }
-    else{
+    }else{
       registerDoMC(cores=mc.cores)
     }
     mem = foreach(i = 1:bs.num, .combine = 'c') %dopar% {
       print(i)
-      map_dend(dend, cl.dat, map.dat, map.cells, seed=i, ...)
+      map_dend(dend, cl.dat, map.dat, map.cells, seed=i)
     }
     memb = data.frame(cell = names(mem), cl = mem)
     memb = table(memb$cell, memb$cl)
@@ -228,8 +232,6 @@ map_dend_membership <-
     memb = memb[, tmp]
     return(memb)
   }
-
-
 
 #' map_dend
 #'
@@ -299,7 +301,6 @@ map_dend <-
     
   }
 
-
 #' resolve_cl
 #'
 #' @param cl.g Cluster labels in some format
@@ -329,8 +330,7 @@ resolve_cl <-
     tmp.cl = unlist(cl.g)
     
     ###For each branch point, find the highest expression cluster.
-    tmp.med = sapply(cl.g, function(g)
-      rowMaxs(cl.dat[genes, g, drop = F]))
+    tmp.med = sapply(cl.g, function(g) rowMaxs(cl.dat[genes, g, drop = F]))
     row.names(tmp.med) = genes
     ###Make sure the genes are discriminative between all the branches.
     genes = genes[rowMaxs(tmp.med) - rowMins(tmp.med) > 1]
@@ -461,8 +461,8 @@ build_dend <- function(cl.dat, cl.cor=NULL, l.rank=NULL, l.color=NULL, nboot=100
 #' @param cl A cluster factor object
 #' 
 #' @return a matrix of genes (rows) x clusters (columns) with medians for each cluster
-#' @export
-#' 
+#'
+#' @keywords external
 get_cl_medians <- function(mat, cl)
 {
   library(Matrix)

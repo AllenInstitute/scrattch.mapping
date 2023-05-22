@@ -9,7 +9,8 @@ buildTaxonomy(
   meta.data,
   feature.set,
   umap.coords,
-  shinyFolder,
+  taxonomyDir,
+  taxonomyName = "AI_taxonomy",
   cluster_colors = NULL,
   metadata_names = NULL,
   subsample = 2000,
@@ -25,7 +26,9 @@ buildTaxonomy(
 
 \item{umap.coords}{Dimensionality reduction coordiant data.frame with 2 columns. Rownames must be equal to colnames of counts.}
 
-\item{shinyFolder}{The location to save Shiny objects, e.g. "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/NHP_BG_20220104/"}
+\item{taxonomyDir}{The location to save Shiny objects, e.g. "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/NHP_BG_20220104/"}
+
+\item{taxonomyName}{The name to assign for the Taxonomy h5ad}
 
 \item{cluster_colors}{An optional named character vector where the values correspond to colors and the names correspond to celltypes in celltypeColumn.  If this vector is incomplete, a warning is thrown and it is ignored.}
 

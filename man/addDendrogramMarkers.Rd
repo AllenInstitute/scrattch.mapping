@@ -5,7 +5,8 @@
 \title{Add marker genes to reference dendrogram for tree mapping}
 \usage{
 addDendrogramMarkers(
-  shinyFolder = paste0(getwd(), "/"),
+  AIT.anndata,
+  mode = AIT.anndata$uns$mode,
   celltypeColumn = "cluster_label",
   subsample = 100,
   num.markers = 20,
@@ -20,18 +21,9 @@ addDendrogramMarkers(
 )
 }
 \arguments{
-\item{shinyFolder}{The location to save shiny output, if desired
+\item{AIT.anndata}{A reference taxonomy anndata object.}
 
-NOTES
-By default VERY loose parameters are set for de_param in an effort to get extra marker genes for each node.  The defaults previously proposed for 10x nuclei are the following \code{de_param(low.th = 1, padj.th = 0.01, lfc.th = 1, q1.th = 0.3, q2.th = NULL, q.diff.th = 0.7, de.score.th = 100, min.cells = 2, min.genes = 5)}. See the function \code{de_param} in the scrattch.hicat for more details.
-
-If save.shiny.output=TRUE, the following files will be generated:
-reference.rda, which includes a variable \code{reference} as follows:
-reference$cl.dat - These are the cluster means that are used for mapping comparisons
-reference$dend   - This is the dendrogram with marker genes attached
-membership_information_reference.rda, which includes two variables
-\code{memb.ref}   - matrix indicating how much confusion there is the mapping between each cell all of the nodes in the tree (including all cell types) when comparing clustering and mapping results with various subsamplings of the data
-\code{map.df.ref} - Result of tree mapping for each cell in the reference against the clustering tree, including various statistics and marker gene evidence.  This is the same output that comes from tree mapping.#'}
+\item{mode}{Taxonomy mode to determine which version of filtering to use.}
 
 \item{celltypeColumn}{Column name correspond to the cell type names in the dendrogram (default = "cluster_label"). At least two cells per cell type in the dendrogram must be included.}
 
@@ -53,7 +45,18 @@ membership_information_reference.rda, which includes two variables
 
 \item{low.th}{the minimum difference in Pearson correlation required to decide on which branch}
 
-\item{AIT.anndata}{A reference taxonomy anndata object.}
+\item{taxonomyDir}{The location to save shiny output, if desired
+
+NOTES
+By default VERY loose parameters are set for de_param in an effort to get extra marker genes for each node.  The defaults previously proposed for 10x nuclei are the following \code{de_param(low.th = 1, padj.th = 0.01, lfc.th = 1, q1.th = 0.3, q2.th = NULL, q.diff.th = 0.7, de.score.th = 100, min.cells = 2, min.genes = 5)}. See the function \code{de_param} in the scrattch.hicat for more details.
+
+If save.shiny.output=TRUE, the following files will be generated:
+reference.rda, which includes a variable \code{reference} as follows:
+reference$cl.dat - These are the cluster means that are used for mapping comparisons
+reference$dend   - This is the dendrogram with marker genes attached
+membership_information_reference.rda, which includes two variables
+\code{memb.ref}   - matrix indicating how much confusion there is the mapping between each cell all of the nodes in the tree (including all cell types) when comparing clustering and mapping results with various subsamplings of the data
+\code{map.df.ref} - Result of tree mapping for each cell in the reference against the clustering tree, including various statistics and marker gene evidence.  This is the same output that comes from tree mapping.#'}
 }
 \value{
 An updated dendrogram variable that is the same as \code{dend} except with marker genes added to each node.

@@ -26,3 +26,4 @@ A vector of compactness scores for each cell
 \description{
 This function calculates the compactness score, defined as the the average (Pearson) correlation-based distance between each cell and the assigned group centroid (median) using the variable genes.  If a secondary group is provided (e.g., transgenic line, cortical layer, etc.), the function first sets gene expression values for each cell as expression values for the cluster median and then returns compactness per cell summarized by the secondary group.
 }
+\keyword{internal}
