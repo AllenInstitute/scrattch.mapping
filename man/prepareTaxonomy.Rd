@@ -10,7 +10,8 @@ prepareTaxonomy(
   cl.df,
   AIT.str,
   lognormal = NULL,
-  taxonomy.dir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/"
+ 
+    taxonomy.dir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/"
 )
 }
 \arguments{
