@@ -13,7 +13,7 @@ In this tutorial we demonstrate how to setup a Shiny taxonomy using scrattch.map
 
 ```R
 ## Load scrattch.mapping
-library(scrattch.mapping, lib.loc="/home/nelson.johansen/R/x86_64-pc-linux-gnu-library/4.2")
+library(scrattch.mapping)
 library(umap)
 
 ## Load in example count data and annotations

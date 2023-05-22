@@ -9,7 +9,7 @@ In this tutorial we demonstrate how to setup a patchseq Shiny taxonomy using scr
 
 ### Load in Tasic 2016:
 ```R
-library(scrattch.mapping, lib.loc="/home/nelson.johansen/R/x86_64-pc-linux-gnu-library/4.2")
+library(scrattch.mapping)
 library(tasic2016data)
 
 ## Load in the tasic2016 data, ignore this part. Tasic specific data wrangling.
