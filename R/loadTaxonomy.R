@@ -1,6 +1,6 @@
 #' Read in a reference data set in Allen taxonomy format
 #'
-#' @param refFolder Directory containing the Shiny taxonomy.
+#' @param taxonomyDir Directory containing the Shiny taxonomy.
 #' @param sample_id Field in reference taxonomy that defines the sample_id.
 #' @param hGenes User supplied variable gene vector.  If not provided, then all genes are used.
 #' @param gene_id Field in counts.feather that defines the gene_id.
@@ -10,36 +10,33 @@
 #' @return Organized reference object ready for mapping against.
 #'
 #' @export
-loadTaxonomy = function(refFolder, 
+loadTaxonomy = function(taxonomyDir, 
                         sample_id = "sample_id", 
                         hGenes=NULL, 
                         gene_id = "gene",
-                        patchseq=FALSE,
-                        force=FALSE){ 
+                        force=FALSE){
   ##
-  if(file.exists(file.path(refFolder, "AI_taxonomy.h5ad")) & force == FALSE & patchseq==FALSE){
+  if(file.exists(file.path(taxonomyDir, "AI_taxonomy.h5ad")) & force == FALSE){
     print("Loading reference taxonomy into memory from .h5ad")
     ## Load taxonomy directly!
-    AIT.anndata = read_h5ad(file.path(refFolder, "AI_taxonomy.h5ad"))
-  }else if(file.exists(file.path(refFolder, "AI_taxonomy_patchseq.h5ad")) & force == FALSE & patchseq==TRUE){
-    AIT.anndata = read_h5ad(file.path(refFolder, "AI_taxonomy_patchseq.h5ad"))
-  }else if(all(file.exists(c(file.path(refFolder,"anno.feather"), 
-                             file.path(refFolder,"data.feather"), 
-                             file.path(refFolder,"counts.feather"), 
-                             file.path(refFolder,"tsne.feather"))))){
+    AIT.anndata = read_h5ad(file.path(taxonomyDir, "AI_taxonomy.h5ad"))
+  } else if(all(file.exists(c(file.path(taxonomyDir,"anno.feather"), 
+                             file.path(taxonomyDir,"data.feather"), 
+                             file.path(taxonomyDir,"counts.feather"), 
+                             file.path(taxonomyDir,"tsne.feather"))))){
     print("Loading reference taxonomy into memory from .feather")
 
     ## Read in reference data and annotation files and format correctly
-    annoReference   = feather(file.path(refFolder,"anno.feather")) 
-    exprReference   = feather(file.path(refFolder,"data.feather"))
+    annoReference   = feather(file.path(taxonomyDir,"anno.feather")) 
+    exprReference   = feather(file.path(taxonomyDir,"data.feather"))
     
     ## Convert log2CPM-normalized data into a matrix
     datReference = as.matrix(exprReference[,names(exprReference)!=sample_id])
 
     ## Read in reference count data if available
-    if(file.exists(file.path(refFolder,"counts.feather"))){
+    if(file.exists(file.path(taxonomyDir,"counts.feather"))){
       print("Loading counts matrix")
-      countsReference = feather(file.path(refFolder,"counts.feather"))  # Note that this is transposed relative to data.feather
+      countsReference = feather(file.path(taxonomyDir,"counts.feather"))  # Note that this is transposed relative to data.feather
       ## Convert count data into a matrix
       countsReference = as.matrix(countsReference[,names(countsReference)!=gene_id])
       rownames(countsReference) = colnames(datReference)
@@ -64,12 +61,12 @@ loadTaxonomy = function(refFolder,
     clusterInfo = as.data.frame(annoReference) ## No dendrogram ordering so just convert to df
  
     ## Read in the umap
-    if(!file.exists(file.path(refFolder,"tsne.feather"))){
+    if(!file.exists(file.path(taxonomyDir,"tsne.feather"))){
       umap.coords = NULL
     }else{
       tryCatch(
         expr = {
-          umap.coords = as.data.frame(read_feather(file.path(refFolder,"tsne.feather")))
+          umap.coords = as.data.frame(read_feather(file.path(taxonomyDir,"tsne.feather")))
           rownames(umap.coords) = umap.coords[,sample_id]
           umap.coords = umap.coords[rownames(annoReference),]
         },
@@ -107,15 +104,20 @@ loadTaxonomy = function(refFolder,
         umap = umap.coords # A data frame with sample_id, and 2D coordinates for umap (or comparable) representation(s)
       ),
       uns = list(
-        dend        = file.path(refFolder,"dend.RData"),  # FILE NAME with dendrogram
-        QC_markers  = file.path(refFolder,"QC_markers.RData"), # FILE NAME with variables for patchseqQC
+        dend        = file.path(taxonomyDir,"dend.RData"),  # FILE NAME with dendrogram
+        QC_markers  = file.path(taxonomyDir,"QC_markers.RData"), # FILE NAME with variables for patchseqQC
         clustersUse = clustersUse,
         clusterInfo = clusterInfo
       )
     )
-    AIT.anndata$write_h5ad(file.path(refFolder, "AI_taxonomy.h5ad")) ## Save the anndata taxonomy so the next person doesn't have to build it :).
+    AIT.anndata$write_h5ad(file.path(taxonomyDir, "AI_taxonomy.h5ad")) ## Save the anndata taxonomy so the next person doesn't have to build it :).
   }else{
     stop("Required files to load Allen Institute taxonomy are missing.")
   }
+
+  ## Set scrattch.mapping to default standard mapping mode
+  AIT.anndata$uns$mode = "standard"
+
+  ## Return
   return(AIT.anndata)
 }

@@ -17,3 +17,4 @@ g A ggplot2 dot plot object for the comparison.
 \description{
 This is the subset of the \code{compare_annotate} function that does the plotting.  It is identical to the scrattch.hicat implementation, but a bit more flexible on input formats.
 }
+\keyword{internal}

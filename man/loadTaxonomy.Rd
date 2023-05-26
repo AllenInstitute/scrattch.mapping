@@ -5,20 +5,25 @@
 \title{Read in a reference data set in Allen taxonomy format}
 \usage{
 loadTaxonomy(
-  refFolder,
+  taxonomyDir,
   sample_id = "sample_id",
   hGenes = NULL,
-  gene_id = "gene"
+  gene_id = "gene",
+  force = FALSE
 )
 }
 \arguments{
-\item{refFolder}{Directory containing the Shiny taxonomy.}
+\item{taxonomyDir}{Directory containing the Shiny taxonomy.}
 
 \item{sample_id}{Field in reference taxonomy that defines the sample_id.}
 
 \item{hGenes}{User supplied variable gene vector.  If not provided, then all genes are used.}
 
 \item{gene_id}{Field in counts.feather that defines the gene_id.}
+
+\item{force}{Force rebuild the anndata object for the taxonomy.}
+
+\item{patchseq}{Should the patchseq variant of this taxonomy be loaded.}
 }
 \value{
 Organized reference object ready for mapping against.

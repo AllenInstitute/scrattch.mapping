@@ -12,18 +12,6 @@ RUN pip3 install anndata==0.8.0 numpy
 RUN R -e 'install.packages("reticulate")'
 RUN R -e 'install.packages("anndata", update=TRUE)'
 
-## Setup a conda environment
-# RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-# ENV PATH="/root/miniconda3/bin:/usr/bin/python3:$PATH"
-# ENV RETICULATE_PYTHON="/usr/bin/python3"
-# RUN mkdir /root/.conda && bash Miniconda3-latest-Linux-x86_64.sh -b
-# ## https://stackoverflow.com/questions/55123637/activate-conda-environment-in-docker
-# RUN conda init bash \
-#     && . ~/.bashrc \
-#     && conda create --name scrattch-mapping python=3.8 \
-#     && conda activate scrattch-mapping \
-#     && pip install anndata==0.8.0
-
 RUN R -e 'install.packages("BiocManager", update=FALSE)' 
 RUN R -e 'BiocManager::install(c( "AnnotationDbi", "data.table", "GO.db", \
                                   "impute", "limma", "preprocessCore", "xml2", "rols"), dependenceis=NA, update=TRUE)' 
@@ -71,10 +59,13 @@ RUN R -e 'remotes::install_github("AllenInstitute/scrattch.bigcat")'
 RUN R -e 'remotes::install_github("AllenInstitute/mfishtools")'
 
 ## scrattch-mapping install from local source
-COPY scrattch.mapping_0.1.tar.gz ./scrattch.mapping_0.1.tar.gz
-RUN R -e 'install.packages("scrattch.mapping_0.1.tar.gz", repos=NULL, type="source")'
+COPY scrattch.mapping_0.17.tar.gz ./scrattch.mapping_0.17.tar.gz
+RUN R -e 'install.packages("scrattch.mapping_0.17.tar.gz", repos=NULL, type="source")'
 
-RUN export SINGULARITY_TMPDIR=/scratch/capacity/$PBS_JOBID/
-RUN export SINGULARITY_BIND="/scratch/fast/$SLURM_JOBID/tmp:/tmp"
+## Clean up
+RUN rm -rf /var/lib/apt/lists/*
+RUN rm -rf /tmp/downloaded_packages
 
-ENTRYPOINT ["/bin/bash"]
+## Strip binary installed libraries from RSPM
+## https://github.com/rocker-org/rocker-versioned2/issues/340
+RUN strip /usr/local/lib/R/site-library/*/libs/*.so

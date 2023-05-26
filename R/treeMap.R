@@ -22,20 +22,22 @@ treeMap = function(AIT.anndata,
     mappingTarget = tryCatch(
         expr = {
             ## Load dendrogram
-            load(AIT.anndata$uns$dend)
-            dend = reference$dend
-            clReference  = setNames(factor(AIT.anndata$obs$cluster_label, levels=AIT.anndata$uns$clustersUse),
-                                    AIT.anndata$obs_names)
+            dend = readRDS(AIT.anndata$uns$dend[[AIT.anndata$uns$mode]])
+            ##
+            clReference  = setNames(factor(AIT.anndata$obs$cluster_label, levels=AIT.anndata$uns$clustersUse), AIT.anndata$obs_names)
             ## Gather marker genes
             allMarkers = unique(unlist(get_dend_markers(dend)))
             allMarkers = Reduce(intersect, list(allMarkers, AIT.anndata$var_names[AIT.anndata$var$common_genes]))
             ## Perform tree mapping
             invisible(capture.output({  # Avoid printing lots of numbers to the screen
               membNode = rfTreeMapping(dend, 
-                                       t(AIT.anndata$X[,allMarkers]), 
+                                       Matrix::t(AIT.anndata$X[,allMarkers]), 
                                        clReference, 
                                        query.data[allMarkers,],
-                                       p=p, low.th=low.th, bootstrap=bootstrap, seed=seed)
+                                       p=p, 
+                                       low.th=low.th, 
+                                       bootstrap=bootstrap, 
+                                       seed=seed)
             },type="message"))
             ## Gather results
             topLeaf = getTopMatch(membNode[,AIT.anndata$uns$clustersUse])

@@ -4,7 +4,8 @@
 #' @param meta.data Meta.data corresponding to count matrix. Rownames must be equal to colnames of counts.
 #' @param feature.set Set of feature used to calculate dendrogram. Typically highly variable and/or marker genes.
 #' @param umap.coords Dimensionality reduction coordiant data.frame with 2 columns. Rownames must be equal to colnames of counts.
-#' @param shinyFolder The location to save Shiny objects, e.g. "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/NHP_BG_20220104/"
+#' @param taxonomyDir The location to save Shiny objects, e.g. "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/NHP_BG_20220104/"
+#' @param taxonomyName The name to assign for the Taxonomy h5ad
 #' @param cluster_colors An optional named character vector where the values correspond to colors and the names correspond to celltypes in celltypeColumn.  If this vector is incomplete, a warning is thrown and it is ignored. 
 #' @param metadata_names An optional named character vector where the vector NAMES correspond to columns in the metadata matrix and the vector VALUES correspond to how these metadata should be displayed in Shiny. This is used for writing the desc.feather file later.
 #' @param subsample The number of cells to retain per cluster
@@ -25,7 +26,8 @@ buildTaxonomy = function(counts,
                           meta.data,
                           feature.set,
                           umap.coords,
-                          shinyFolder,
+                          taxonomyDir,
+                          taxonomyName = "AI_taxonomy",
                           cluster_colors = NULL,
                           metadata_names = NULL,
                           subsample=2000,
@@ -37,13 +39,13 @@ buildTaxonomy = function(counts,
   if(is.null(umap.coords)){stop("Compute UMAP dimensions and supply umap.coords")}
   if(!all(colnames(counts) == rownames(meta.data))){stop("Colnames of `counts` and rownames of `meta.data` do not match.")}
   if(!is.data.frame(meta.data)){stop("meta.data must be a data.frame, convert using as.data.frame(meta.data)")}
-  if(!is.matrix(counts)){stop("counts must be of type matrix.")}
+  #if(!is.matrix(counts)){stop("counts must be of type matrix.")}
 	
   ## Ensure directory exists, if not create it
-  dir.create(shinyFolder, showWarnings = FALSE)
+  dir.create(taxonomyDir, showWarnings = FALSE)
 
   ## Subsample nuclei per cluster, max
-  if((subsample > 0)&(subsample < Inf)){
+  if((subsample > 0) & (subsample < Inf)){
       kpSub = colnames(counts)[subsampleCells(meta.data$cluster, subsample)]
   }else{
       kpSub = colnames(counts)
@@ -52,6 +54,7 @@ buildTaxonomy = function(counts,
   ## Get the data and metadata matrices
   counts    = counts[,kpSub]
   meta.data = meta.data[kpSub,]
+  umap.coords = umap.coords[kpSub,]
 
   ## Create log TPM matrix from counts
   tpm.matrix = scrattch.hicat::logCPM(counts)
@@ -66,14 +69,14 @@ buildTaxonomy = function(counts,
   counts.tibble = as_tibble(counts)
   counts.tibble = cbind(gene, counts.tibble)
   counts.tibble = as_tibble(counts.tibble)
-  write_feather(counts.tibble, file.path(shinyFolder, "counts.feather"))
+  write_feather(counts.tibble, file.path(taxonomyDir, "counts.feather"))
 
   ## Data_t feather
   print("===== Building data_t.feather =====")
   data.tibble = as_tibble(tpm.matrix)
   data.tibble = cbind(gene, data.tibble)
   data.tibble = as_tibble(data.tibble)
-  write_feather(data.tibble, file.path(shinyFolder, "data_t.feather"))
+  write_feather(data.tibble, file.path(taxonomyDir, "data_t.feather"))
   
   ## Data feather
   print("===== Building data.feather =====")
@@ -82,19 +85,21 @@ buildTaxonomy = function(counts,
   norm.data.t = as_tibble(norm.data.t)
   norm.data.t = cbind(sample_id, norm.data.t)
   norm.data.t = as_tibble(norm.data.t)
-  write_feather(norm.data.t, file.path(shinyFolder, "data.feather"))
+  write_feather(norm.data.t, file.path(taxonomyDir, "data.feather"))
 
   ## ----------
   ## Run auto_annotate, this changes sample_id to sample_name.
   print("===== Format metadata table for R shiny folder =====")
+  
   # Check for duplicate columns (e.g., XXXX_label and XXXX together will crash auto_annotate)  # NEW #
-  cn   <- colnames(meta.data)
-  cn2  <- gsub("_label","",cn)
-  dups <- names(table(cn2))[table(cn2)>1]
-  if(length(dups>0)){
-    warning("Duplicate entries for",paste(dups,collapse=" and "),"have been DELETED. Please check output carefully!")
-    meta.data <- meta.data[,setdiff(cn,dups)]
+  column_names = colnames(meta.data)
+  column_names_revised = gsub("_label$","", column_names)
+  duplicates <- names(table(column_names_revised))[table(column_names_revised)>1]
+  if(length(duplicates > 0)){
+    warning("Duplicate entries for", paste(duplicates, collapse=" and "),"have been DELETED. Please check output carefully!")
+    meta.data <- meta.data[,setdiff(column_names, duplicates)]
   }
+
   # Run auto_annotate
   meta.data = scrattch.io::auto_annotate(meta.data)
 
@@ -122,6 +127,7 @@ buildTaxonomy = function(counts,
   }
     
   print("===== Building dendrogram =====")
+
   ## Get cluster medians
   medianExpr = get_cl_medians(tpm.matrix, cluster) 
 
@@ -152,11 +158,11 @@ buildTaxonomy = function(counts,
   
   ## Output tree
   dend = dend.result$dend
-  saveRDS(dend, file.path(shinyFolder,"dend.RData"))
+  saveRDS(dend, file.path(taxonomyDir,"dend.RData"))
 
   ## Output tree order
   outDend = data.frame(cluster = labels(dend), order = 1:length(labels(dend)))
-  write.csv(outDend, file.path(shinyFolder, "ordered_clusters.csv"))
+  write.csv(outDend, file.path(taxonomyDir, "ordered_clusters.csv"))
     
   ## Write the desc file.  
   anno_desc = create_desc(meta.data, use_label_columns = TRUE)
@@ -167,14 +173,14 @@ buildTaxonomy = function(counts,
     desc <- desc[!is.na(desc$base),]  # Remove missing values
     anno_desc <- desc
   }
-  write_feather(anno_desc, file.path(shinyFolder,"desc.feather"))
+  write_feather(anno_desc, file.path(taxonomyDir,"desc.feather"))
 
   ## Minor reformatting of metadata file, then write metadata file
   meta.data$cluster = meta.data$cluster_label; 
   colnames(meta.data)[colnames(meta.data)=="sample_name"] <- "sample_name_old" # Rename "sample_name" to avoid shiny crashing
   if(!is.element("sample_id", colnames(meta.data))){ meta.data$sample_id = meta.data$sample_name_old } ## Sanity check for sample_id
   meta.data$cluster_id <- as.numeric(factor(meta.data$cluster_label,levels=labels(dend))) # Reorder cluster ids to match dendrogram
-  write_feather(meta.data, file.path(shinyFolder,"anno.feather"))
+  write_feather(meta.data, file.path(taxonomyDir,"anno.feather"))
 
   ## Write the UMAP coordinates.  
   print("===== Building umap/tsne feathers (precalculated) =====")
@@ -185,21 +191,21 @@ buildTaxonomy = function(counts,
   tsne_desc = data.frame(base = "all",
                          name = "All Cells UMAP")
 
-  write_feather(tsne, file.path(shinyFolder,"tsne.feather"))
-  write_feather(tsne_desc, file.path(shinyFolder,"tsne_desc.feather"))
+  write_feather(tsne, file.path(taxonomyDir,"tsne.feather"))
+  write_feather(tsne_desc, file.path(taxonomyDir,"tsne_desc.feather"))
 
   ##
   print("===== Building count, median, sum feathers =====")
-  all_clusters = unique(meta.data$cluster_id)
-  all_clusters = all_clusters[order(all_clusters)]
-  allClust = paste0("cluster_", all_clusters)
+  all_clusters = unique(meta.data$cluster_label) ## cluster_id
+  #all_clusters = all_clusters[order(all_clusters)]
+  #allClust = paste0("cluster_", all_clusters)
   count_gt0 = matrix(0, ncol = length(all_clusters), nrow = nrow(data.tibble))
   count_gt1 = sums = medianmat = count_gt0
 
   ## Compute the number of genes with greater than 0,1 counts, gene sums and medians
   for (i in 1:length(all_clusters)) {
-    cluster         = all_clusters[i]
-    cluster_samples = which(meta.data$cluster_id == cluster)
+    cluster = all_clusters[i]
+    cluster_samples = which(meta.data$cluster_label == cluster)
     cluster_data    = tpm.matrix[,cluster_samples]
     cluster_counts  = counts[,colnames(cluster_data)]
     count_gt0[, i]  = Matrix::rowSums(cluster_counts > 0)
@@ -209,7 +215,7 @@ buildTaxonomy = function(counts,
   }
 
   ##
-  colnames(count_gt0) = colnames(count_gt1) = colnames(sums) = colnames(medianmat) = allClust
+  colnames(count_gt0) = colnames(count_gt1) = colnames(sums) = colnames(medianmat) = all_clusters ## allClust
   count_gt0 = cbind(gene = gene, as.data.frame(count_gt0))
   count_gt1 = cbind(gene = gene, as.data.frame(count_gt1))
   sums = cbind(gene = gene, as.data.frame(sums))
@@ -222,11 +228,11 @@ buildTaxonomy = function(counts,
               summarise(n_cells = n())
 
   ##
-  write_feather(count_gt0, file.path(shinyFolder,"count_gt0.feather"))
-  write_feather(count_gt1, file.path(shinyFolder,"count_gt1.feather"))
-  write_feather(count_n,   file.path(shinyFolder,"count_n.feather"))
-  write_feather(medianmat, file.path(shinyFolder,"medians.feather"))
-  write_feather(sums,      file.path(shinyFolder,"sums.feather"))
+  write_feather(count_gt0, file.path(taxonomyDir,"count_gt0.feather"))
+  write_feather(count_gt1, file.path(taxonomyDir,"count_gt1.feather"))
+  write_feather(count_n,   file.path(taxonomyDir,"count_n.feather"))
+  write_feather(medianmat, file.path(taxonomyDir,"medians.feather"))
+  write_feather(sums,      file.path(taxonomyDir,"sums.feather"))
 
   ##
   print("===== Building taxonomy anndata =====")
@@ -246,27 +252,28 @@ buildTaxonomy = function(counts,
                      "highly_variable_genes" = colnames(datReference) %in% feature.set, 
                      row.names=colnames(datReference)),
     layers = list(
-      counts = Matrix::t(counts) # Counts. We may want to keep genes as rows and not transpose this
+      counts = Matrix::t(counts) ## Count matrix
     ),
     obsm = list(
-      umap = umap.coords # A data frame with sample_id, and 2D coordinates for umap (or comparable) representation(s)
+      umap = umap.coords ## A data frame with sample_id, and 2D coordinates for umap (or comparable) representation(s)
     ),
     uns = list(
-      dend        = file.path(shinyFolder, "dend.RData"),  # FILE NAME with dendrogram
-      QC_markers  = file.path(shinyFolder, "QC_markers.RData"), # FILE NAME with variables for patchseqQC
-      clustersUse = clustersUse,
-      clusterInfo = clusterInfo
+      dend        = list("standard" = file.path(taxonomyDir, "dend.RData")),  # FILE NAME with dendrogram
+      filter      = list("standard" = rep(FALSE, nrow(datReference))),
+      QC_markers  = list("standard" = file.path(taxonomyDir, "QC_markers.RData")),
+      clustersUse = clustersUse, #list("standard" = clustersUse),
+      clusterInfo = clusterInfo, #list("standard" = clusterInfo),
+      taxonomyName = taxonomyName,
+      taxonomyDir = taxonomyDir
     )
   )
-  AIT.anndata$write_h5ad("AI_taxonomy.h5ad")
-
-  ##
-  return(AIT.anndata)
+  AIT.anndata$write_h5ad(file.path(taxonomyDir, "AI_taxonomy.h5ad"))
 }
 
 #' Add marker genes to reference dendrogram for tree mapping
 #'
 #' @param AIT.anndata A reference taxonomy anndata object.
+#' @param mode Taxonomy mode to determine which version of filtering to use.
 #' @param celltypeColumn Column name correspond to the cell type names in the dendrogram (default = "cluster_label"). At least two cells per cell type in the dendrogram must be included.
 #' @param subsample The number of cells to retain per cluster (default = 100)
 #' @param num.markers The maximum number of markers to calculate per pairwise differential calculation per direction (default = 20)
@@ -277,7 +284,7 @@ buildTaxonomy = function(counts,
 #' @param bs.num Number of bootstrap runs for creating the dendrogram (default of 100)
 #' @param p proportion of marker genes to include in each iteration of the mapping algorithm.
 #' @param low.th the minimum difference in Pearson correlation required to decide on which branch
-#' @param shinyFolder The location to save shiny output, if desired
+#' @param taxonomyDir The location to save shiny output, if desired
 #'
 #' NOTES
 #' By default VERY loose parameters are set for de_param in an effort to get extra marker genes for each node.  The defaults previously proposed for 10x nuclei are the following `de_param(low.th = 1, padj.th = 0.01, lfc.th = 1, q1.th = 0.3, q2.th = NULL, q.diff.th = 0.7, de.score.th = 100, min.cells = 2, min.genes = 5)`. See the function `de_param` in the scrattch.hicat for more details.  
@@ -298,7 +305,8 @@ buildTaxonomy = function(counts,
 #' @return An updated dendrogram variable that is the same as `dend` except with marker genes added to each node.
 #'
 #' @export
-addDendrogramMarkers = function(shinyFolder = paste0(getwd(), "/"),
+addDendrogramMarkers = function(AIT.anndata,
+                                mode = AIT.anndata$uns$mode,
                                 celltypeColumn = "cluster_label",
                                 subsample = 100,
                                 num.markers = 20,
@@ -318,24 +326,27 @@ addDendrogramMarkers = function(shinyFolder = paste0(getwd(), "/"),
                                 p=0.8, 
                                 low.th=0.1){
 
-  ##
-  AIT.anndata = loadTaxonomy(shinyFolder)
-
   ## We should already know this? Clean up in future.
   if(!is.element(celltypeColumn, colnames(AIT.anndata$obs))){stop(paste(celltypeColumn, "is not a column in the metadata data frame."))}
 
+  ##
+  if(mode == "standard"){ taxonomyModeDir = AIT.anndata$uns$taxonomyDir } else { taxonomyModeDir = file.path(AIT.anndata$uns$taxonomyDir, mode) }
+  if(!dir.exists(taxonomyModeDir)){  stop("Taxonomy version doesn't exist, please run `buildPatchseqTaxonomy()` then retry.") }
+
+  ## Filter
+  AIT.anndata = AIT.anndata[!AIT.anndata$uns$filter[[mode]]]
+
   ## Subsample
-  keep.samples = subsampleCells(AIT.anndata$obs[[celltypeColumn]], subsample) ## & is.element(cluster.vector, labels(dend))
-  AIT.anndata = AIT.anndata[keep.samples]
+  keep.samples = subsampleCells(AIT.anndata$obs[[celltypeColumn]], subsample) ##  & is.element(cluster.vector, labels(dend))
 
   ## Checks and data formatting
-  dend = readRDS(AIT.anndata$uns$dend)
+  dend = readRDS(AIT.anndata$uns$dend[[mode]])
 
   ## norm.data
-  norm.data = Matrix::t(AIT.anndata$X)
+  norm.data = Matrix::t(AIT.anndata$X[keep.samples,])
   
   ## metadata 
-  metadata = AIT.anndata$obs %>% as.data.frame()
+  metadata = AIT.anndata$obs[keep.samples,] %>% as.data.frame()
 
   ## celltype labels
   cluster.vector = setNames(metadata[,celltypeColumn], rownames(metadata))
@@ -355,17 +366,17 @@ addDendrogramMarkers = function(shinyFolder = paste0(getwd(), "/"),
   
   ## Compute markers
   print("Define marker genes and gene scores for the tree")
-  if((!file.exists(file.path(shinyFolder,"de.genes.rda"))) | calculate.de.genes){
+  if((!file.exists(file.path(taxonomyModeDir, "de.genes.rda"))) | calculate.de.genes){
     print("=== NOTE: This step can be very slow (several minute to many hours).")
     print("      To speed up the calculation (or if it crashes) try decreasing the value of subsample.")
     de.genes = scrattch.hicat::select_markers(norm.dat=norm.data, 
                               cl=select.cl, 
-                              n.markers=num.markers, 
+                              n.markers= num.markers, 
                               de.param = de.param, 
                               de.genes = NULL)$de.genes
-    save(de.genes, file=file.path(shinyFolder,"de.genes.rda"))  
+    save(de.genes, file=file.path(taxonomyModeDir, "de.genes.rda"))
   } else {
-    load(file.path(shinyFolder,"de.genes.rda"))
+    load(file.path(taxonomyModeDir, "de.genes.rda"))
   }
 
   ## Check number of markers for each leaf
@@ -401,12 +412,7 @@ addDendrogramMarkers = function(shinyFolder = paste0(getwd(), "/"),
     print("Save the reference dendrogram")
     ##
     dend = reference$dend
-    saveRDS(dend, file.path(shinyFolder,"dend.RData"))
-
-    ## Update taxonomy anndata with dendrogram marker genes
-    marker.genes = unlist(get_dend_markers(reference$dend)); names(marker.genes) = NULL
-    AIT.anndata$var$dend_markers = colnames(AIT.anndata$X) %in% marker.genes
-    AIT.anndata$write_h5ad(file.path(shinyFolder, "AI_taxonomy.h5ad"))
+    saveRDS(dend, file.path(taxonomyModeDir, "dend.RData"))
 
     ##
     print("Build membership table of reference vs. reference for use with patch-seq mapping")
@@ -425,45 +431,7 @@ addDendrogramMarkers = function(shinyFolder = paste0(getwd(), "/"),
     }))
     memb.ref   = memb.ref[metadata$sample_id,]
     map.df.ref = map.df.ref[metadata$sample_id,]
-    save(memb.ref, map.df.ref, file=file.path(shinyFolder,"membership_information_reference.rda"))
+    save(memb.ref, map.df.ref, file=file.path(taxonomyModeDir, "membership_information_reference.rda"))
   }
   return(dend)
-}
-
-#' Add marker genes to reference dendrogram for tree mapping
-#'
-#' @param AIT.anndata A reference taxonomy anndata object.
-#' @param celltypeColumn Column name correspond to the cell type names in the dendrogram (default = "cluster_label"). At least two cells per cell type in the dendrogram must be included.
-#' @param subsample The number of cells to retain per cluster (default = 100)
-#' @param num.markers The maximum number of markers to calculate per pairwise differential calculation per direction (default = 20)
-#' @param de.param Differential expression (DE) parameters for genes and clusters used to define marker genes.  By default the values are set to the 10x nuclei defaults from scrattch.hicat, except with min.cells=2 (see notes below).
-#' @param calculate.de.genes Default=TRUE. If set to false, the function will search for a file called "de.genes.rda" to load precalculated de genes.  
-#' @param save.shiny.output Should standard output files be generated and saved to the directory (default=TRUE).  These are not required for tree mapping, but are required for building a patch-seq shiny instance.  This is only tested in a UNIX environment.  See notes.
-#' @param mc.cores Number of cores to use for running this function to speed things up.  Default = 1.  Values>1 are only supported in an UNIX environment and require `foreach` and `doParallel` R libraries.
-#' @param bs.num Number of bootstrap runs for creating the dendrogram (default of 100)
-#' @param p proportion of marker genes to include in each iteration of the mapping algorithm.
-#' @param low.th the minimum difference in Pearson correlation required to decide on which branch
-#' @param shinyFolder The location to save shiny output, if desired
-#'
-#' NOTES
-#' By default VERY loose parameters are set for de_param in an effort to get extra marker genes for each node.  The defaults previously proposed for 10x nuclei are the following `de_param(low.th = 1, padj.th = 0.01, lfc.th = 1, q1.th = 0.3, q2.th = NULL, q.diff.th = 0.7, de.score.th = 100, min.cells = 2, min.genes = 5)`. See the function `de_param` in the scrattch.hicat for more details.  
-#'
-#' If save.shiny.output=TRUE, the following files will be generated:
-#'   reference.rda, which includes a variable `reference` as follows:
-#'       reference$cl.dat - These are the cluster means that are used for mapping comparisons
-#'       reference$dend   - This is the dendrogram with marker genes attached
-#'   membership_information_reference.rda, which includes two variables
-#'       `memb.ref`   - matrix indicating how much confusion there is the mapping between each cell all of the nodes in the tree (including all cell types) when comparing clustering and mapping results with various subsamplings of the data
-#'       `map.df.ref` - Result of tree mapping for each cell in the reference against the clustering tree, including various statistics and marker gene evidence.  This is the same output that comes from tree mapping.#'
-#' 
-#' @import feather
-#' @import scrattch.hicat
-#' @import MatrixGenerics
-#' @import dendextend
-#'
-#' @return An updated dendrogram variable that is the same as `dend` except with marker genes added to each node.
-#'
-#' @export
-addDendrogramMarkers = function(){
-
 }

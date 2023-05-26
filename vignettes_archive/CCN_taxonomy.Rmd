@@ -1,0 +1,41 @@
+Now define this as a standardized taxonomy and output the relevant zip file (see CCN library for more information).    
+  
+```{r CCN, fig.height=6,fig.width=10, warning=FALSE}
+## Create taxonomy and nomenclature standards for this taxonomy
+taxonomy_id       <- c("CCN202301170","AIT0.1","Tasic_2016") # Taxonomy ID of format CCN<YYYYMMDD><T>. Additional taxonomy aliases can be listed in a vector after.
+taxonomy_author   <- "Bosiljka Tasic"        # Person uploading the data and taxonomy
+taxonomy_citation <- "10.1038/nn.4216"       # DOI of relevant taxonomy citation, if any
+first_label       <- setNames("RNA", 1)      # Prefix for cell set label (adjust text label only)
+structure         <- "primary visual cortex" # Brain structure.  Ontology tag is auto-generated.
+
+# Some metadata variables (probably this doesn't need to be edited)
+metadata         <- as.data.frame(read_feather(file.path(refFolder,"anno.feather")))
+metadata_columns <- c("subclass_label", "class_label")
+metadata_order   <- c("subclass_order", "class_order")  
+cluster_column   <- "cluster_label" 
+
+# Named vector of cell to cell type assignments (can be auto-generated, but better to include)
+cell_assignment  <- setNames(metadata$cluster_label,metadata$sample_name)
+
+# This line of code will run all the scripts, output the relevant zip file to nomenclature.zip in your working directory, and return the same variables for further manipulation in R.
+ccn_output <- apply_CCN(dend = dend,
+                        cell_assignment   = cell_assignment,
+                        metadata          = metadata,
+                        first_label       = first_label,
+                        taxonomy_id       = taxonomy_id,
+                        taxonomy_author   = taxonomy_author,
+                        taxonomy_citation = taxonomy_citation,
+                        structure         = structure,
+                        metadata_columns  = metadata_columns,
+                        metadata_order    = metadata_order,
+                        cluster_column    = cluster_column,
+                        append            = TRUE,
+                        ccn_filename      = file.path(refFolder,"nomenclature.zip"))
+
+# Plot the dendrogram (note that this function sometimes does not display the root node correctly)
+plot_dend(ccn_output$final_dendrogram,node_size = 3)
+
+# Overwrite the existing dendrogram with the annotated version
+dend <- ccn_output$final_dendrogram
+saveRDS(dend, file.path(refFolder,"dend.RData"))
+```
