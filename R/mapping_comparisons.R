@@ -7,7 +7,7 @@
 #'
 #' @return g A ggplot2 dot plot object for the comparison.
 #'
-#' @export
+#' @keywords internal
 compare_plot <- function(cl, ref.cl){
   
   if(!is.factor(cl)) cl = factor(cl)
@@ -31,7 +31,7 @@ compare_plot <- function(cl, ref.cl){
 #'
 #' @return a list with output from heatmap.3, after displaying the heatmap to the screen.
 #'
-#' @export
+#' @keywords internal
 compare_heatmap <- function(cl, 
                             ref.cl,
                             threshold=0.2,
@@ -48,8 +48,6 @@ compare_heatmap <- function(cl,
             scale=scale,trace=trace,dendrogram=dendrogram,cexRow=cexRow,cexCol=cexCol, ...)
 }
 
-
-
 #' Calculate a compactness score
 #' 
 #' This function calculates the compactness score, defined as the the average (Pearson) correlation-based distance between each cell and the assigned group centroid (median) using the variable genes.  If a secondary group is provided (e.g., transgenic line, cortical layer, etc.), the function first sets gene expression values for each cell as expression values for the cluster median and then returns compactness per cell summarized by the secondary group.   
@@ -61,7 +59,7 @@ compare_heatmap <- function(cl,
 #'
 #' @return A vector of compactness scores for each cell
 #'
-#' @export
+#' @keywords internal
 compactness_distance <- function(query.data,
                                  query.group,
                                  query.secondary = NULL,

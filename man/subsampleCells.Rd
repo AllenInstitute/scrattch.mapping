@@ -19,4 +19,4 @@ Boolean vector of cells to keep (TRUE) and cells to remove (FALSE)
 \description{
 Function to subsample cells
 }
-\keyword{internal}
+\keyword{external}

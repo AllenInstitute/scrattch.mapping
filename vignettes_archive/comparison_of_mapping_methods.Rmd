@@ -42,9 +42,7 @@ dir.create(mappingFolder, showWarnings = FALSE)
 print(mappingFolder)
 ```
 
-  
-Load libraries and set options.  
-  
+Load libraries and set options.    
 ```{r load libraries, warning=FALSE}
 suppressPackageStartupMessages({
   library("scrattch.mapping")
@@ -58,7 +56,7 @@ options(future.rng.onMisuse="ignore")
 Read in the reference taxonomy.  This can be any reference, but in this case we load the one based from tasic2016data generated in the "Map patch-seq data and output directory" vignette.  
   
 ```{r load reference taxonomy}
-AIT.anndata <- read_h5ad(file.path(refFolder,"reference.h5ad"))
+AIT.anndata <- loadTaxonomy(refFolder)
 ```
   
   
@@ -81,7 +79,7 @@ query.mapping <- taxonomy_mapping(AIT.anndata= AIT.anndata,
                                   corr.map   = TRUE, # Flags for which mapping algorithms to run
                                   tree.map   = TRUE, 
                                   seurat.map = TRUE, 
-                                  label.cols = c("cluster_label","subclass_label", "class_label") # Columns to map against
+                                  label.cols = c("cluster_label", "subclass_label", "class_label") # Columns to map against
 )
 head(query.mapping)
 ```
@@ -92,10 +90,18 @@ In this case the prediction scores are saved in "score.METHOD" and the mapping r
 query.mapping$cluster <- query.metadata$cluster
 clusters <- levels(query.metadata$cluster)
 
-methods  <- c("cluster","cluster_Corr", "cluster_Seurat","cluster_Tree")
+save(query.mapping, file="~/query.rda")
+write_h5ad(AIT.anndata, file="~/AI_taxonomy.h5ad")
+
+methods  <- c("cluster", "cluster_Corr", "cluster_Seurat", "cluster_Tree")
 names(methods) <- c("Clustering","Correlation.Mapping","Seurat.Mapping","Tree.Mapping")
+
+##
+methods  <- methods[methods %in% colnames(query.mapping)]
+
+##
 for(m in methods)
-  query.mapping[,m] <- factor(query.mapping[,m],levels=clusters)
+  query.mapping[,m] <- factor(query.mapping[,m], levels=clusters)
 ```
   
   
@@ -104,9 +110,10 @@ for(m in methods)
 These next few sections represent different ways of comparing mapping algorithms together. We first assess what proportion of cells are assigned to the same type for each pair of methods.  
   
 ```{r quick method comparison facs}
-compare <- matrix(0,nrow=4,ncol=4)
+n_method = length(methods)
+compare <- matrix(0,nrow=n_method,ncol=n_method)
 rownames(compare) <- colnames(compare) <- names(methods)
-for(m1 in 1:4) for(m2 in 1:4) 
+for(m1 in 1:n_method) for(m2 in 1:n_method) 
   compare[m1,m2] = mean(query.mapping[,methods[m1]]==query.mapping[,methods[m2]])
 data.frame(compare)
 ```    
@@ -155,9 +162,9 @@ colnames(compactness) <- names(methods)
 Next let's see how this value compares between the different methods.  
   
 ```{r cluster compactness comparison, fig.height=5, fig.width=5}
-par(mfrow=c(4,1))
-par(mar=c(1,4,0.1,0.1))
-for (i in 1:4){
+par(mfrow=c(n_method,1))
+par(mar=c(1,n_method,0.1,0.1))
+for (i in 1:n_method){
   plot(density(compactness[,i]),xlim=c(0,0.5),ylim=c(0,7),lwd=3,main="",xlab="",ylab=names(methods)[i])
   abline(v=(0:5)/10,col="grey",lty="dotted")
   abline(v=median(compactness[,i]),lwd=2,col="green")
@@ -185,9 +192,9 @@ colnames(trans.distance) <- names(methods)
 Next let's see how this value compares between the different methods.  
   
 ```{r transgenic distance comparison, fig.height=5, fig.width=5}
-par(mfrow=c(4,1))
-par(mar=c(1,4,0.1,0.1))
-for (i in 1:4){
+par(mfrow=c(n_method,1))
+par(mar=c(1,n_method,0.1,0.1))
+for (i in 1:n_method){
   plot(density(trans.distance[,i]),xlim=c(0,0.5),ylim=c(0,7),lwd=3,main="",xlab="",ylab=names(methods)[i])
   abline(v=(0:5)/10,col="grey",lty="dotted")
   abline(v=median(trans.distance[,i]),lwd=2,col="green")

@@ -20,9 +20,9 @@ First, let's create a directory in the current working directory to store the re
   
 ```{r create reference directory}
 # REPLACE THIS LINE WITH the reference directory folder from "Map patch-seq data and output directory"
-refFolder <- paste0(system.file(package = 'scrattch.mapping'),"/reference/")  
+taxonomyDir <- paste0(system.file(package = 'scrattch.mapping'),"/reference/")  
 # Replase this line with wherever you'd like your mapping output
-mappingFolder <- paste0(refFolder,"/mapping/")
+mappingFolder <- paste0(taxonomyDir,"/mapping/")
 dir.create(mappingFolder, showWarnings = FALSE)
 print(mappingFolder)
 ```
@@ -44,7 +44,7 @@ options(future.rng.onMisuse="ignore")
 Read in the reference taxonomy.  This can be any reference, but in this case we load the one based from tasic2016data generated in the "1. Create reference directory for mapping" vignette.  
   
 ```{r load reference taxonomy}
-AIT.anndata <- read_h5ad(file.path(refFolder,"reference.h5ad"))
+AIT.anndata <- loadTaxonomy(taxonomyDir)
 ```
   
   
@@ -79,6 +79,12 @@ The query and reference data sets are now loaded and ready to go!
 ## Map query data 
   
 The first step for mapping to run the one step "taxonomy_mapping" function to apply Seurat mapping, tree mapping, and correlation mapping.  **This step that would be applied for ANY query data.**  
+
+To begin we will set scrattch.mapping to use only cells not in the off.target.types, this will filter the taxonomy and adjust the dendrogram to remove any `cluster` in `off.target.types`.
+
+```{r mapping mode}
+AIT.anndata = mappingMode(AIT.anndata, mode="patchseq")
+```
   
 ```{r general mapping}
 query.mapping <- taxonomy_mapping(AIT.anndata= AIT.anndata,
@@ -89,7 +95,6 @@ query.mapping <- taxonomy_mapping(AIT.anndata= AIT.anndata,
                                   label.cols = c("cluster_label","subclass_label", "class_label") # Columns to map against
 )
 ```
-  
   
 The second step is apply the function "buildMappingDirectory" which performs a variety of functions useful for patch-seq analysis:  
 1. Merge the mapping results into the metadata file.  
@@ -104,10 +109,8 @@ buildMappingDirectory(AIT.anndata    = AIT.anndata,
                       query.mapping  = query.mapping,
                       doPatchseqQC   = TRUE  # Set to FALSE if not needed or if writePatchseqQCmarkers was not applied in reference generation
 )
-dir(mappingFolder)
 ```
 
-  
 Output session info.  
   
 ```{r session info}

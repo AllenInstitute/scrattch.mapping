@@ -17,3 +17,4 @@ a matrix of genes (rows) x clusters (columns) with medians for each cluster
 \description{
 Compute cluster medians for each row in a matrix
 }
+\keyword{external}

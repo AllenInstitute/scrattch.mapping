@@ -48,9 +48,9 @@ First, let's create a directory in the current working directory to store the re
   
 ```{r create reference directory}
 # Replace link below with link to directory
-refFolder <- paste0(system.file(package = 'scrattch.mapping'),"/reference/") 
-dir.create(refFolder, showWarnings = FALSE)
-print(refFolder)
+taxonomyDir <- paste0(system.file(package = 'scrattch.mapping'),"/reference/") 
+dir.create(taxonomyDir, showWarnings = FALSE)
+print(taxonomyDir)
 ```
 
   
@@ -136,87 +136,35 @@ buildTaxonomy(counts         = counts,
               meta.data      = annotations,
               feature.set    = binary.genes,
               umap.coords    = umap.coords,
-              shinyFolder    = refFolder,
+              taxonomyDir    = taxonomyDir,
               cluster_colors = cluster_colors,  # Colors are generated if not provided
               metadata_names = NULL,     # If you want to save only selected metadata columns
               subsample      = 25,      # This is the number of cells per cluster (in this case redundant with above)
               reorder.dendrogram = TRUE) # This will match the factor order of the clusters to the extent possible
 ```
-  
+
+We repackage this information to a compact annData format compatible with both R and python.  **This annData object is the input file for all mapping algorithms in this package, and a to-be-created parallel python package.**.  
+```{r create annData object}
+AIT.anndata <- loadTaxonomy(taxonomyDir, hGenes=binary.genes)
+```
   
 Now we annotate the dendrogram with marker genes.  This is only required for using tree mapping, and is critical if this reference is to be used for processing Patch-seq data from the Allen Institute.  For other mapping strategies, this is not needed.  Note that we can either pull data and metadata from variables or directly from the reference folder.  This example pulls from the reference folder.  
   
 ```{r add dendrogram markers}
-dend <- addDendrogramMarkers(dend      = readRDS(file.path(refFolder,"dend.RData")), 
-                             norm.data = file.path(refFolder,"data_t.feather"),
-                             metadata  = file.path(refFolder,"anno.feather"),
-                             shinyFolder = refFolder, 
+dend <- addDendrogramMarkers(AIT.anndata, 
                              subsample= 25) # To speed up calculations a bit, but again redundant with above.
 ```
 
-  
-Now define this as a standardized taxonomy and output the relevant zip file (see CCN library for more information).    
-  
-```{r CCN, fig.height=6,fig.width=10, warning=FALSE}
-## Create taxonomy and nomenclature standards for this taxonomy
-taxonomy_id       <- c("CCN202301170","AIT0.1","Tasic_2016") # Taxonomy ID of format CCN<YYYYMMDD><T>. Additional taxonomy aliases can be listed in a vector after.
-taxonomy_author   <- "Bosiljka Tasic"        # Person uploading the data and taxonomy
-taxonomy_citation <- "10.1038/nn.4216"       # DOI of relevant taxonomy citation, if any
-first_label       <- setNames("RNA", 1)      # Prefix for cell set label (adjust text label only)
-structure         <- "primary visual cortex" # Brain structure.  Ontology tag is auto-generated.
-
-# Some metadata variables (probably this doesn't need to be edited)
-metadata         <- as.data.frame(read_feather(file.path(refFolder,"anno.feather")))
-metadata_columns <- c("subclass_label", "class_label")
-metadata_order   <- c("subclass_order", "class_order")  
-cluster_column   <- "cluster_label" 
-
-# Named vector of cell to cell type assignments (can be auto-generated, but better to include)
-cell_assignment  <- setNames(metadata$cluster_label,metadata$sample_name)
-
-# This line of code will run all the scripts, output the relevant zip file to nomenclature.zip in your working directory, and return the same variables for further manipulation in R.
-ccn_output <- apply_CCN(dend = dend,
-                        cell_assignment   = cell_assignment,
-                        metadata          = metadata,
-                        first_label       = first_label,
-                        taxonomy_id       = taxonomy_id,
-                        taxonomy_author   = taxonomy_author,
-                        taxonomy_citation = taxonomy_citation,
-                        structure         = structure,
-                        metadata_columns  = metadata_columns,
-                        metadata_order    = metadata_order,
-                        cluster_column    = cluster_column,
-                        append            = TRUE,
-                        ccn_filename      = file.path(refFolder,"nomenclature.zip"))
-
-# Plot the dendrogram (note that this function sometimes does not display the root node correctly)
-plot_dend(ccn_output$final_dendrogram,node_size = 3)
-
-# Overwrite the existing dendrogram with the annotated version
-dend <- ccn_output$final_dendrogram
-saveRDS(dend, file.path(refFolder,"dend.RData")) 
-```
-  
-  
 Next, we collect some files need for applying patchSeqQC to patch-seq data. This is not needed for mapping, but is an important QC step when comparing  
 
 ```{r patchseqQC set up}
-writePatchseqQCmarkers(counts = file.path(refFolder,"counts.feather"),  # can also read matrix directly
-                       metadata = file.path(refFolder,"anno.feather"),  # can also read matrix directly
+AIT.anndata = buildPatchseqTaxonomy(AIT.anndata,
                        subsample = 100,  # Default of 100 is reasonable
                        subclass.column = "subclass_label",  # default
                        class.column = "class_label",  # default
                        off.target.types = "Non-neuronal",  # default is various iterations of non-neuronal
                        num.markers = 50,     # Default of 50 is probably fine
-                       shinyFolder = refFolder)
-```
-  
-  
-Finally, we read package this information to a compact annData format compatible with both R and python.  **This annData object is the input file for all mapping algorithms in this package, and a to-be-created parallel python package.**.  
-  
-```{r create annData object}
-AIT.anndata <- loadTaxonomy(refFolder, hGenes=binary.genes)
-write_h5ad(AIT.anndata,file.path(refFolder,"reference.h5ad"))
+                       taxonomyDir = taxonomyDir)
 ```
   
 Output session info.  

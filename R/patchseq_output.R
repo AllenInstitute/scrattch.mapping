@@ -25,7 +25,7 @@ buildMappingDirectory = function(AIT.anndata,
                                  mappingFolder,
                                  query.data,
                                  query.metadata,
-                                 query.mapping=NULL,
+                                 query.mapping = NULL,
                                  doPatchseqQC = TRUE,
                                  metadata_names = NULL,
                                  mc.cores=1,
@@ -35,22 +35,27 @@ buildMappingDirectory = function(AIT.anndata,
   
   ## Checks
   if(!all(colnames(query.data) == rownames(query.metadata))){stop("Colnames of `query.data` and rownames of `query.metadata` do not match.")}
-  if(doPatchseqQC!=TRUE){ doPatchseqQC=FALSE }
 
   # Merge mapping metadata inputs
   if(length(setdiff(colnames(query.mapping),colnames(query.metadata)))>0){
-    if(!all(colnames(query.data) == rownames(query.metadata))){stop("Colnames of `query.data` and rownames of `query.mapping` do not match.")}
     query.metadata <- cbind(query.metadata,query.mapping[,setdiff(colnames(query.mapping),colnames(query.metadata))])
     query.metadata[,colnames(query.mapping)] <- query.mapping # Overwrite any columns in query.metadata with same name in query.mapping
   }
   
   ## Ensure directory exists, if not create it
   dir.create(mappingFolder, showWarnings = FALSE)
-  
+
+  ##
+  AIT.anndata = AIT.anndata[AIT.anndata$uns$filter[[AIT.anndata$uns$mode]]]
+
+  ## Read in cluster medians
+  cl.summary = read_feather(file.path(AIT.anndata$uns$taxonomyDir, "medians.feather")) %>% as.data.frame()
+  cl.dat = as.matrix(cl.summary[,-1]); rownames(cl.dat) = cl.summary[,1]
+
   ## Read in the reference tree and copy to new directory
-  load(AIT.anndata$uns$dend)
-  dend   <- reference$dend
-  cl.dat <- reference$cl.dat # Used below for creating the memb.feather file
+  dend = readRDS(AIT.anndata$uns$dend[[AIT.anndata$uns$mode]])
+
+  ## Output dend to mapping folder
   saveRDS(dend, file.path(mappingFolder,"dend.RData"))
   
   ## Convert query.data to CPM
@@ -70,13 +75,19 @@ buildMappingDirectory = function(AIT.anndata,
   
   ## Create and output the memb.feather information
   invisible(capture.output({  # Avoid printing lots of numbers to the screen
-    memb.ref <- map_dend_membership(dend, cl.dat, map.dat=query.cpm, map.cells=sample_id,
-                                      mc.cores=mc.cores, bs.num=bs.num, p=p, low.th=low.th)
+    memb.ref <- map_dend_membership(dend, 
+                                    cl.dat, 
+                                    map.dat=query.cpm, 
+                                    map.cells=sample_id,
+                                    mc.cores=mc.cores, 
+                                    bs.num=bs.num, 
+                                    p=p, 
+                                    low.th=low.th)
   }))
   memb.ref <- memb.ref[sample_id,]
   memb     <- data.frame(sample_id,as.data.frame.matrix(memb.ref)) 
   colnames(memb) <- c("sample_id",colnames(memb.ref))
-  write_feather(as_tibble(memb), paste0(mappingFolder,"memb.feather")) 
+  write_feather(as_tibble(memb), file.path(mappingFolder, "memb.feather")) 
   
   ## Assign lowest done (or leaf) on tree with confidence > min.confidence to the metadata "cluster" column
   confident_match <- apply(memb,1,function(x){
@@ -114,16 +125,16 @@ buildMappingDirectory = function(AIT.anndata,
   query.metadata$cluster   <- droplevels(factor(query.metadata$cluster,levels=cluster_node_anno$cluster_label))
   
   ## Output query data feather
-  norm.data.t = t(as.matrix(query.cpm))
+  norm.data.t = Matrix::t(as.matrix(query.cpm))
   norm.data.t = as_tibble(norm.data.t)
   norm.data.t = cbind(sample_id, norm.data.t)
   norm.data.t = as_tibble(norm.data.t)
   write_feather(norm.data.t, file.path(mappingFolder, "data.feather"))
   
   ## Apply PatchseqQC if desired
-  if(doPatchseqQC){
+  if(doPatchseqQC == TRUE){
     query.metadata <- applyPatchseqQC(AIT.anndata, query.data, query.metadata)
-  }  
+  }
   
   ## Process and output metadata and desc files
   # Auto_annotate the data
@@ -143,10 +154,10 @@ buildMappingDirectory = function(AIT.anndata,
   
   # Adjust the cluster colors to match cluster_colors in the reference taxonomy
   ln  <- dim(meta.data)[2]
-  label.cols <- intersect(c("cluster_label","subclass_label", "class_label"),colnames(meta.data))
+  label.cols <- Reduce(intersect, list(c("cluster_label","subclass_label", "class_label"), colnames(meta.data), colnames(AIT.anndata$obs))) ## Check intersect against both meta.data and taxonomy. Edge case: query contains "class_label" and taxonomy does not.
   for(lab in label.cols){
     cnt <- setNames(rep(0,ln),colnames(meta.data))
-    for (i in 1:ln) if(mean(is.element(meta.data[,i],(AIT.anndata$obs[,lab])))==1){
+    for (i in 1:ln) if(mean(is.element(meta.data[,i], (AIT.anndata$obs[,lab])))==1){
       col <- gsub("_label","",colnames(meta.data)[i])
       print(paste("Colors updated for:",col))
       meta.data[,paste0(col,"_color")] <- AIT.anndata$obs[,gsub("_label","_color",lab)][match(meta.data[,paste0(col,"_label")],AIT.anndata$obs[,lab])]
@@ -162,7 +173,7 @@ buildMappingDirectory = function(AIT.anndata,
     desc <- desc[!is.na(desc$base),]  # Remove missing values
     anno_desc <- desc
   }
-  write_feather(anno_desc, file.path(mappingFolder,"desc.feather"))
+  write_feather(anno_desc, file.path(mappingFolder, "desc.feather"))
   
   ## Minor reformatting of metadata file, then write metadata file
   meta.data$cluster = meta.data$cluster_label; # Not sure why this is needed
@@ -185,9 +196,7 @@ buildMappingDirectory = function(AIT.anndata,
     reference.pcs    <- prcomp(reference.logcpm, scale = TRUE)$rotation
     reference.umap   <- umap(reference.pcs[,1:npcs])
     reference.umap$layout <- ref.umap[rownames(reference.umap$layout),]
-    
     query.umap <- predict(reference.umap, query.pcs[,1:npcs])
-    
   } else {
     ## Calculate a UMAP based on PCS of variable genes
     query.umap <- umap(query.pcs[,1:npcs])$layout
@@ -201,8 +210,8 @@ buildMappingDirectory = function(AIT.anndata,
   tsne_desc = data.frame(base = "all",
                          name = "All Cells UMAP")
   
-  write_feather(tsne, file.path(mappingFolder,"tsne.feather"))
-  write_feather(tsne_desc, file.path(mappingFolder,"tsne_desc.feather"))
+  write_feather(tsne, file.path(mappingFolder, "tsne.feather"))
+  write_feather(tsne_desc, file.path(mappingFolder, "tsne_desc.feather"))
 }
 
 #' This function applies patchseqQC, given a taxonomy and query data
@@ -222,7 +231,7 @@ applyPatchseqQC = function(AIT.anndata,
   
   ## Checks
   if(!all(colnames(query.data) == rownames(query.metadata))){stop("Colnames of `query.data` and rownames of `meta.data` do not match.")}
-  if(!file.exists(AIT.anndata$uns$QC_markers)){stop("QC_markers file must be provided in AIT.anndata.")}
+  if(!file.exists(AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]])){stop("QC_markers file must be provided in AIT.anndata.")}
   
   ## Convert query.data to CPM
   if(is.element("data.frame",class(query.data))){stop("`query.data` should be a matrix or a sparse matrix, not a data.frame.")}
@@ -230,9 +239,8 @@ applyPatchseqQC = function(AIT.anndata,
   
   ## Load the reference files
   # ---- This includes markers, countsQC, cpmQC, classBr, subclassF, and allMarkers
-  load(AIT.anndata$uns$QC_markers)
+  load(AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]])
   
-
   if(verbose) print("Format the reference and patch-seq data")
   ## -- NOTE: relevant reference data and type assignments are stored in refMarkerFile
   tmp                 <- cpmQC # countsQC
@@ -248,7 +256,7 @@ applyPatchseqQC = function(AIT.anndata,
   pat_df           <- as.data.frame(t(tmp[allMarkers,rownames(query.metadata)])+1)
   pat_df$sample_id <- rownames(pat_df)
   
-  
+  ##
   if(verbose) print("Define which type each patch-seq cell is assigned to, based on maximal marker expression.")  
   nm          <- names(markers) <- make.names(names(markers))
   isOn        <- substr(nm,nchar(nm)-2,nchar(nm))=="_on"
@@ -261,7 +269,7 @@ applyPatchseqQC = function(AIT.anndata,
   pat_df$major_type  <- make.names(classBr)[match(pat_df$contam_type,make.names(subclassF))]
   pat_df$contam_type <- paste0(pat_df$contam_type,"_on")
   
-  
+  ##
   if(verbose) print("Remove genes not in patch-seq transcriptome (ideally this wouldn't do anything)")
   for (i in 1:length(markers))
     markers[[i]] <- intersect(markers[[i]],allMarkers)
@@ -269,14 +277,14 @@ applyPatchseqQC = function(AIT.anndata,
   if(verbose) print("Calculate the QC metrics")
   qcMetrics <- calculatePatchSeqQCMetrics2(pat_df,facs_df,markers)
   
-  
+  ##
   if(verbose) print("Set NMS>0.4 flag and determine most contaminated type")
   qcMetrics$Norm_Marker_Sum.0.4 <- c(TRUE,FALSE)[(qcMetrics$marker_sum_norm<0.40)+1]
   cls               <- make.names(sort(intersect(classBr,subclassF)))
   contaminationType <- cls[apply(qcMetrics[,cls],1,which.max)]
   qcMetrics$contaminationType   <- contaminationType
   
-  
+  ##
   if(verbose) print("Update annotations, including colors and ids for each new metadata.")
   cn      <- c("quality_score","marker_sum_norm","Norm_Marker_Sum.0.4","contaminationType","contam_sum")
   annoNew <- query.metadata
