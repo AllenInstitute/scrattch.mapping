@@ -14,7 +14,8 @@ buildTaxonomy(
   cluster_colors = NULL,
   metadata_names = NULL,
   subsample = 2000,
-  reorder.dendrogram = FALSE
+  reorder.dendrogram = FALSE,
+  dend = NULL
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ buildTaxonomy(
 \item{subsample}{The number of cells to retain per cluster}
 
 \item{reorder.dendrogram}{Should dendogram attempt to match a preset order? (Default = FALSE).  If TRUE, the dendrogram attempts to match the celltype factor order as closely as possible (if celltype is a character vector rather than a factor, this will sort clusters alphabetically, which is not ideal).}
+
+\item{dend}{Existing dendrogram associated with this taxonomy (e.g., one calculated elsewhere).  If NULL (default) a new dendrogram will be calculated based on the input \code{feature.set}}
 }
 \value{
 AIT anndata

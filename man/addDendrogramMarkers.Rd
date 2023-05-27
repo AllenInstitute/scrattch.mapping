@@ -17,7 +17,9 @@ addDendrogramMarkers(
   mc.cores = 1,
   bs.num = 100,
   p = 0.8,
-  low.th = 0.1
+  low.th = 0.1,
+  taxonomyDir = getwd(),
+  overwriteMarkers = TRUE
 )
 }
 \arguments{
@@ -45,7 +47,9 @@ addDendrogramMarkers(
 
 \item{low.th}{the minimum difference in Pearson correlation required to decide on which branch}
 
-\item{taxonomyDir}{The location to save shiny output, if desired
+\item{taxonomyDir}{The location to save shiny output, if desired}
+
+\item{overwriteMarkers}{If markers already are calculated a tree, should they be overwritten (default = TRUE)
 
 NOTES
 By default VERY loose parameters are set for de_param in an effort to get extra marker genes for each node.  The defaults previously proposed for 10x nuclei are the following \code{de_param(low.th = 1, padj.th = 0.01, lfc.th = 1, q1.th = 0.3, q2.th = NULL, q.diff.th = 0.7, de.score.th = 100, min.cells = 2, min.genes = 5)}. See the function \code{de_param} in the scrattch.hicat for more details.

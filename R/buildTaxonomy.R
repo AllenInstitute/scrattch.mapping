@@ -10,6 +10,7 @@
 #' @param metadata_names An optional named character vector where the vector NAMES correspond to columns in the metadata matrix and the vector VALUES correspond to how these metadata should be displayed in Shiny. This is used for writing the desc.feather file later.
 #' @param subsample The number of cells to retain per cluster
 #' @param reorder.dendrogram Should dendogram attempt to match a preset order? (Default = FALSE).  If TRUE, the dendrogram attempts to match the celltype factor order as closely as possible (if celltype is a character vector rather than a factor, this will sort clusters alphabetically, which is not ideal).
+#' @param dend Existing dendrogram associated with this taxonomy (e.g., one calculated elsewhere).  If NULL (default) a new dendrogram will be calculated based on the input `feature.set`
 #' 
 #' @import scrattch.hicat 
 #' @import scrattch.io
@@ -23,15 +24,16 @@
 #'
 #' @export
 buildTaxonomy = function(counts,
-                          meta.data,
-                          feature.set,
-                          umap.coords,
-                          taxonomyDir,
-                          taxonomyName = "AI_taxonomy",
-                          cluster_colors = NULL,
-                          metadata_names = NULL,
-                          subsample=2000,
-                          reorder.dendrogram = FALSE){
+                         meta.data,
+                         feature.set,
+                         umap.coords,
+                         taxonomyDir,
+                         taxonomyName = "AI_taxonomy",
+                         cluster_colors = NULL,
+                         metadata_names = NULL,
+                         subsample=2000,
+                         reorder.dendrogram = FALSE,
+                         dend = NULL){
 
   ## Checks
   if(!"cluster" %in% colnames(meta.data)){stop("cluster must be defined in the meta.data object")}
@@ -40,15 +42,29 @@ buildTaxonomy = function(counts,
   if(!all(colnames(counts) == rownames(meta.data))){stop("Colnames of `counts` and rownames of `meta.data` do not match.")}
   if(!is.data.frame(meta.data)){stop("meta.data must be a data.frame, convert using as.data.frame(meta.data)")}
   #if(!is.matrix(counts)){stop("counts must be of type matrix.")}
-	
+	if(!is.null(dend)){
+	  if(!is.element("dendrogram",class(dend))){stop("If provided, dend must be of R class dendrogram.")}
+	  clusters=unique(meta.data$cluster)
+	  extra_labels <- setdiff(labels(dend),clusters)
+	  if(length(extra_labels)>0){stop(paste("Dendrogram has labels not included in metadata:",paste(extra_labels,collapse=", ")))}
+	  extra_labels <- setdiff(clusters,labels(dend))
+	  if(length(extra_labels)>0){
+	    warning(paste0("Metadata include cluster labels not found in dendrogram: ",paste(extra_labels,collapse=", "),
+	                   ". Cells from these clusters will be EXCLUDED from all taxonomy files."))
+	  }
+	}
+  
   ## Ensure directory exists, if not create it
   dir.create(taxonomyDir, showWarnings = FALSE)
 
   ## Subsample nuclei per cluster, max
+  kpClusters <- rep(TRUE,length(meta.data$cluster))
+  if(!is.null(dend))
+    kpClusters <- is.element(meta.data$cluster,labels(dend)) # exclude missing clusters, if any
   if((subsample > 0) & (subsample < Inf)){
-      kpSub = colnames(counts)[subsampleCells(meta.data$cluster, subsample)]
+      kpSub = colnames(counts)[subsampleCells(meta.data$cluster, subsample)&kpClusters]
   }else{
-      kpSub = colnames(counts)
+      kpSub = colnames(counts)[kpClusters]
   }
 
   ## Get the data and metadata matrices
@@ -62,7 +78,7 @@ buildTaxonomy = function(counts,
   ## Next, generate and output the data matrices. Make sure matrix class is dgCMatrix and not dgTMatrix.  
   sample_id = colnames(tpm.matrix); meta.data$sample_id = sample_id
   gene      = rownames(tpm.matrix)
-  cluster = meta.data$cluster; names(cluster) = rownames(meta.data) ## For get_cl_medians
+  cluster   = meta.data$cluster; names(cluster) = rownames(meta.data) ## For get_cl_medians
 
   ## Counts feather - Not used for shiny, but useful for saving raw data nonetheless
   print("===== Building counts.feather =====")
@@ -127,37 +143,43 @@ buildTaxonomy = function(counts,
   }
     
   print("===== Building dendrogram =====")
+  if(!is.null(dend)){
+    print("...using provided dendrogram.")
+    # FOR FUTURE UPDATE: should check here whether dendrogram colors match what is in meta-data.
+  } else {
 
-  ## Get cluster medians
-  medianExpr = get_cl_medians(tpm.matrix, cluster) 
+    ## Get cluster medians
+    medianExpr = get_cl_medians(tpm.matrix, cluster) 
 
-  ## Define the cluster info 
-  unique.meta.data = meta.data %>% distinct(cluster_id, 
+    ## Define the cluster info 
+    unique.meta.data = meta.data %>% distinct(cluster_id, 
                                             cluster_label, 
                                             cluster_color)
-  rownames(unique.meta.data) = unique.meta.data$cluster_label
+    rownames(unique.meta.data) = unique.meta.data$cluster_label
 
-  ## Dendrogram parameters and gene sets
-  use.color = setNames(unique.meta.data$cluster_color, unique.meta.data$cluster_label)[colnames(medianExpr)]
-  l.rank    = NULL
-  if(reorder.dendrogram){
-    l.rank = setNames(meta.data$cluster_id[match(unique.meta.data$cluster_label, meta.data$cluster_label)], unique.meta.data$cluster_label)
-    l.rank = sort(l.rank)
+    ## Dendrogram parameters and gene sets
+    use.color = setNames(unique.meta.data$cluster_color, unique.meta.data$cluster_label)[colnames(medianExpr)]
+    l.rank    = NULL
+    if(reorder.dendrogram){
+      l.rank = setNames(meta.data$cluster_id[match(unique.meta.data$cluster_label, meta.data$cluster_label)], unique.meta.data$cluster_label)
+      l.rank = sort(l.rank)
+    }
+  
+    ## Build the dendrogram
+    invisible(capture.output({  # Avoid printing lots of numbers to the screen
+      dend.result = build_dend(
+        cl.dat  = medianExpr[feature.set,],
+        cl.cor  = NULL,
+        l.color = use.color,
+        l.rank  = l.rank, 
+        nboot   = 1,
+        ncores  = 1)
+    }))
+    dend = dend.result$dend
+    print("...dendrogram built.")
   }
   
-  ##
-  invisible(capture.output({  # Avoid printing lots of numbers to the screen
-    dend.result = build_dend(
-      cl.dat  = medianExpr[feature.set,],
-      cl.cor  = NULL,
-      l.color = use.color,
-      l.rank  = l.rank, 
-      nboot   = 1,
-      ncores  = 1)
-  }))
-  
   ## Output tree
-  dend = dend.result$dend
   saveRDS(dend, file.path(taxonomyDir,"dend.RData"))
 
   ## Output tree order
@@ -285,6 +307,7 @@ buildTaxonomy = function(counts,
 #' @param p proportion of marker genes to include in each iteration of the mapping algorithm.
 #' @param low.th the minimum difference in Pearson correlation required to decide on which branch
 #' @param taxonomyDir The location to save shiny output, if desired
+#' @param overwriteMarkers If markers already are calculated a tree, should they be overwritten (default = TRUE)
 #'
 #' NOTES
 #' By default VERY loose parameters are set for de_param in an effort to get extra marker genes for each node.  The defaults previously proposed for 10x nuclei are the following `de_param(low.th = 1, padj.th = 0.01, lfc.th = 1, q1.th = 0.3, q2.th = NULL, q.diff.th = 0.7, de.score.th = 100, min.cells = 2, min.genes = 5)`. See the function `de_param` in the scrattch.hicat for more details.  
@@ -324,7 +347,9 @@ addDendrogramMarkers = function(AIT.anndata,
                                 mc.cores=1, 
                                 bs.num=100, 
                                 p=0.8, 
-                                low.th=0.1){
+                                low.th=0.1,
+                                taxonomyDir = getwd(),
+                                overwriteMarkers = TRUE){
 
   ## We should already know this? Clean up in future.
   if(!is.element(celltypeColumn, colnames(AIT.anndata$obs))){stop(paste(celltypeColumn, "is not a column in the metadata data frame."))}
@@ -366,42 +391,54 @@ addDendrogramMarkers = function(AIT.anndata,
   
   ## Compute markers
   print("Define marker genes and gene scores for the tree")
-  if((!file.exists(file.path(taxonomyModeDir, "de.genes.rda"))) | calculate.de.genes){
-    print("=== NOTE: This step can be very slow (several minute to many hours).")
-    print("      To speed up the calculation (or if it crashes) try decreasing the value of subsample.")
-    de.genes = scrattch.hicat::select_markers(norm.dat=norm.data, 
-                              cl=select.cl, 
-                              n.markers= num.markers, 
-                              de.param = de.param, 
-                              de.genes = NULL)$de.genes
-    save(de.genes, file=file.path(taxonomyModeDir, "de.genes.rda"))
-  } else {
-    load(file.path(taxonomyModeDir, "de.genes.rda"))
-  }
-
-  ## Check number of markers for each leaf
-  min.marker.gene.count = as.numeric(as.character(lapply(de.genes, function(x) x$num)))
-  if(sum(min.marker.gene.count<2)>0)({
-    stop("Marker genes could not be calculated for at least one node in the tree. Tree mapping will not work in this situation. We recommend loosening the de.param parameters and trying again, but warn that some cell types may not be well resolved.")
-  })
-
-  ## Note: this is not a robust way to address this issue!
-  print("Calculate gene scores")
-  gene.score = scrattch.hicat::get_gene_score(de.genes)
   
-  print("Build the reference dendrogram")
-  invisible(capture.output({  # Avoid printing lots of numbers to the screen
-    reference = build_reference(cl=select.cl, 
-                                norm.dat=norm.data, 
-                                dend=dend, 
-                                de.genes=de.genes, 
-                                cl.label=cl.label, 
-                                up.gene.score=gene.score$up.gene.score, 
-                                down.gene.score=gene.score$down.gene.score, 
-                                n.markers=30)
-  }))
-  labels(reference$dend) = setNames(colnames(reference$cl.dat), colnames(reference$cl.dat))
+  if((sum(!is.na(get_nodes_attr(tmp, "markers")))==0)|(overwriteMarkers==FALSE)){
+  
+    if((!file.exists(file.path(taxonomyModeDir, "de.genes.rda"))) | calculate.de.genes){
+      print("=== NOTE: This step can be very slow (several minute to many hours).")
+      print("      To speed up the calculation (or if it crashes) try decreasing the value of subsample.")
+      de.genes = scrattch.hicat::select_markers(norm.dat=norm.data, 
+                                cl=select.cl, 
+                                n.markers= num.markers, 
+                                de.param = de.param, 
+                                de.genes = NULL)$de.genes
+      save(de.genes, file=file.path(taxonomyModeDir, "de.genes.rda"))
+    } else {
+      load(file.path(taxonomyModeDir, "de.genes.rda"))
+    }
 
+    ## Check number of markers for each leaf
+    min.marker.gene.count = as.numeric(as.character(lapply(de.genes, function(x) x$num)))
+    if(sum(min.marker.gene.count<2)>0)({
+      stop("Marker genes could not be calculated for at least one node in the tree. Tree mapping will not work in this situation. We recommend loosening the de.param parameters and trying again, but warn that some cell types may not be well resolved.")
+    })
+
+    ## Note: this is not a robust way to address this issue!
+    print("Calculate gene scores")
+    gene.score = scrattch.hicat::get_gene_score(de.genes)
+  
+    print("Build the reference dendrogram")
+    invisible(capture.output({  # Avoid printing lots of numbers to the screen
+      reference = build_reference(cl=select.cl, 
+                                  norm.dat=norm.data, 
+                                  dend=dend, 
+                                  de.genes=de.genes, 
+                                  cl.label=cl.label, 
+                                  up.gene.score=gene.score$up.gene.score, 
+                                  down.gene.score=gene.score$down.gene.score, 
+                                  n.markers=30)
+    }))
+    labels(reference$dend) = setNames(colnames(reference$cl.dat), colnames(reference$cl.dat))
+    print("...marker gene calculation for reference complete")
+  } else { # NOTE: THIS IS UNTESTED
+    print("Build the reference dendrogram")
+    reference <- list(
+      dend = dend,
+      cl.dat = get_cl_means(norm.dat, cl)
+    )
+    print("...existing markers used in reference")
+  }
+    
   ##
   if(sum(!is.na(get_nodes_attr(reference$dend, "original_label"))>0)){
     print("This section is needed if the starting dendrogram is from the nomenclature GitHub ")
