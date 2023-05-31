@@ -5,8 +5,8 @@
 \title{INFO -- PLEASE ADD --}
 \usage{
 prepare_train_mmean_list(
- 
-    anal_dir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/forebrain_new",
+  anal_dir =
+    "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/forebrain_new",
   modality = "10X_cells_v3"
 )
 }
