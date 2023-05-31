@@ -694,6 +694,7 @@ predict_HKNN_cl_bs <- function (query, train.list, marker_index, iter=100, mc.co
 #' @keywords internal
 cal_prob_ref_zscore <- function(best.map.df, z_mean_sd) 
 {
+    best.map.df = as.data.frame(best.map.df)
     cl = best.map.df$best.cl
     idx = match(cl, rownames(z_mean_sd))
     for (str in c("avg.path.cor", "avg.cor")) {
