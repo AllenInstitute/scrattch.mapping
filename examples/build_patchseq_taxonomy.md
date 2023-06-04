@@ -67,7 +67,7 @@ AIT.anndata = buildPatchseqTaxonomy(AIT.anndata,
 The `buildPatchseqTaxonomy` function return/created the following:
 
 * An updated AIT.anndata object for patchseq mapping and QC steps.
-* Created the required marker and expression files for patchseqQC.
+* Created the required marker and expression files for patchseqQC and save under 'mode.name' sub-directory
 
 ### Set scrattch.mapping mode
 
