@@ -92,9 +92,6 @@ buildPatchseqTaxonomy = function(AIT.anndata,
   AIT.anndata$uns$QC_markers[[mode.name]] = file.path(taxonomyModeDir, "QC_markers.RData")
   ## TO BE UPDATED -- JEREMY
 
-  ## Save patch-seq taxonomy anndata
-  AIT.anndata$write_h5ad(file.path(taxonomyDir, "AI_taxonomy.h5ad"))
-
   ##################
   ## ------- Modify the dendrogram and save
   ##
@@ -112,6 +109,9 @@ buildPatchseqTaxonomy = function(AIT.anndata,
 
   ## Store the prunned dendrogram, in dend list under "patchseq" mode.name
   AIT.anndata$uns$dend[[mode.name]] = file.path(taxonomyModeDir,"dend.RData")
+
+  ## Save patch-seq taxonomy anndata
+  AIT.anndata$write_h5ad(file.path(taxonomyDir, "AI_taxonomy.h5ad"))
 
   ## Update markers after pruning
   dend = addDendrogramMarkers(AIT.anndata, mode=mode.name)
