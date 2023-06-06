@@ -32,7 +32,7 @@ buildPatchseqTaxonomy(
 
 \item{taxonomyDir}{= The location to save shiny output (default = current working directory).
 
-Nothing is returned; however an R data object called "QC_markers.RData" is returned with the following variables
+The following variables are added to AIT.anndata$uns
 markers,
 countsQC,
 cpmQC,
@@ -41,8 +41,8 @@ subclassF,
 allMarkers,}
 }
 \value{
-AIT.anndata
+AIT.anndata An updated AIT.anndata variable with the above content added to AIT.anndata$uns for the relevant mode.name.
 }
 \description{
-This function write a file called \code{QC_markers.RData} that contains all the variables required for applying the patchseq QC algorithm \code{pathseqtools} (which is an more flexible version of the \code{patchSeqQC} algorithm).  This is only used for patch-seq analysis.
+This function saves all the variables required for applying the patchseq QC algorithm \code{pathseqtools} (which is an more flexible version of the \code{patchSeqQC} algorithm) to AIT.anndata$uns. This is only used for patch-seq analysis.  Requirements for input include:
 }

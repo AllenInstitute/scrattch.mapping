@@ -106,13 +106,19 @@ loadTaxonomy = function(taxonomyDir,
       uns = list(
         dend        = list("standard" = file.path(taxonomyDir, "dend.RData")),  # FILE NAME with dendrogram
         filter      = list("standard" = rep(FALSE, nrow(datReference))),
-        QC_markers  = list("standard" = file.path(taxonomyDir, "QC_markers.RData")),
+        QC_markers  = list("standard"),# = file.path(taxonomyDir, "QC_markers.RData")),  # REPLACED WITH CODE BELOW
         clustersUse = clustersUse,
         clusterInfo = clusterInfo,
         taxonomyName = "",
         taxonomyDir = taxonomyDir
       )
     )
+    AIT.anndata$uns$QC_markers[["standard"]]$allMarkers = allMarkers
+    AIT.anndata$uns$QC_markers[["standard"]]$markers    = markers
+    AIT.anndata$uns$QC_markers[["standard"]]$countsQC   = countsQC
+    AIT.anndata$uns$QC_markers[["standard"]]$cpmQC      = cpmQC
+    AIT.anndata$uns$QC_markers[["standard"]]$classBr    = classBr
+    AIT.anndata$uns$QC_markers[["standard"]]$subclassF  = subclassF
     AIT.anndata$write_h5ad(file.path(taxonomyDir, "AI_taxonomy.h5ad")) ## Save the anndata taxonomy so the next person doesn't have to build it :).
   }else{
     stop("Required files to load Allen Institute taxonomy are missing.")

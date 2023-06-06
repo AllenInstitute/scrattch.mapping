@@ -231,7 +231,7 @@ applyPatchseqQC = function(AIT.anndata,
   
   ## Checks
   if(!all(colnames(query.data) == rownames(query.metadata))){stop("Colnames of `query.data` and rownames of `meta.data` do not match.")}
-  if(!file.exists(AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]])){stop("QC_markers file must be provided in AIT.anndata.")}
+  if(is.null(AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]])){stop(paste("QC_markers file must be provided for mode",AIT.anndata$uns$mode," in AIT.anndata in advance."))}
   
   ## Convert query.data to CPM
   if(is.element("data.frame",class(query.data))){stop("`query.data` should be a matrix or a sparse matrix, not a data.frame.")}
@@ -239,7 +239,14 @@ applyPatchseqQC = function(AIT.anndata,
   
   ## Load the reference files
   # ---- This includes markers, countsQC, cpmQC, classBr, subclassF, and allMarkers
-  load(AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]])
+  #load(AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]])
+  allMarkers = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$allMarkers 
+  markers    = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$markers
+  countsQC   = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$countsQC
+  cpmQC      = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$cpmQC
+  classBr    = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$classBr
+  subclassF  = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$subclassF
+  
   
   if(verbose) print("Format the reference and patch-seq data")
   ## -- NOTE: relevant reference data and type assignments are stored in refMarkerFile

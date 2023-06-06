@@ -11,6 +11,7 @@ build_train_list_on_taxonomy(
   query.genes = NA,
   prefix = "",
   mapping.method = c("flat", "hierarchy"),
+  nlevel = 2,
   prebuild = FALSE,
   newbuild = FALSE,
   mc.cores = 10,

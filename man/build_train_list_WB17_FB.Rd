@@ -25,6 +25,17 @@ build_train_list_WB17_FB(
   TaxFN,
   rm.cl = c()
 )
+
+build_train_list_WB17_FB(
+  pre.train.list = NA,
+  query.genes = NA,
+  WBDIR,
+  TaxDir,
+  prefix = "",
+  nlevel = 4,
+  TaxFN,
+  rm.cl = c()
+)
 }
 \arguments{
 \item{x}{to_be_added}
@@ -35,8 +46,12 @@ build_train_list_WB17_FB(
 ???
 
 ???
+
+???
 }
 \description{
+INFO -- PLEASE ADD --
+
 INFO -- PLEASE ADD --
 
 INFO -- PLEASE ADD --
