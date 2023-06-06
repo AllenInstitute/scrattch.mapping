@@ -59,8 +59,8 @@ RUN R -e 'remotes::install_github("AllenInstitute/scrattch.bigcat")'
 RUN R -e 'remotes::install_github("AllenInstitute/mfishtools")'
 
 ## scrattch-mapping install from local source
-COPY scrattch.mapping_0.17.tar.gz ./scrattch.mapping_0.17.tar.gz
-RUN R -e 'install.packages("scrattch.mapping_0.17.tar.gz", repos=NULL, type="source")'
+COPY scrattch.mapping_0.2.tar.gz ./scrattch.mapping_0.2.tar.gz
+RUN R -e 'install.packages("scrattch.mapping_0.2.tar.gz", repos=NULL, type="source")'
 
 ## Clean up
 RUN rm -rf /var/lib/apt/lists/*
@@ -69,3 +69,5 @@ RUN rm -rf /tmp/downloaded_packages
 ## Strip binary installed libraries from RSPM
 ## https://github.com/rocker-org/rocker-versioned2/issues/340
 RUN strip /usr/local/lib/R/site-library/*/libs/*.so
+
+##

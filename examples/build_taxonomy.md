@@ -55,5 +55,4 @@ AIT.anndata = loadTaxonomy("/allen/programs/celltypes/workgroups/rnaseqanalysis/
 
 ## Add markers to dendrogram
 addDendrogramMarkers(AIT.anndata = AIT.anndata)
-
 ```

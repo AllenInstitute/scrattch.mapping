@@ -1,35 +1,80 @@
 #' INFO -- PLEASE ADD --
 #'
-#' @param in.df to_be_added
-#' @param cl.df to_be_added
+#' @param querydat : count matrix (log-normalized)  Ngene X Ncell
+#' @param mapping.method : 'flat(one-step)'/'hierarchy'
+#'             run 'flat(one-step)' first
+#'            'hierarchy' mapping is recommended for mapping across platforms,
+#'             yet it is slow until we come up with further parallelization.
+#' @param prebuild : TRUE/FALSE
+#'            if prebuild==TRUE : if the template with 'prefix' exists already, use it.
+#'            if prebuild==FALSE : do not use preexisting template and build new template
+#'                                 with 'prefix'
+#' @param newbuild : TRUE/FALSE
+#'            When any marker is missing in the query data,
+#'            if newbuild==TRUE : it will find markers all over again from the gene list
+#'                                in query data. (can take a whole day)
+#'            if newbuild==FALSE : it will use the subset of markers which are in the query data 
+#'            selected markers are saved using 'prefix' as a key
+#' @param prefix : your data descriptor  and platform
+#'            '10x_nuclei', 'MFISH', 'patchseq', ....
+#'            matching templates are saved using 'prefix' as a key
+#'            when you mapping the data from the same platform, you don't need to rebuild the
+#'            template for the same platform and use the existing template with prebuild=TRUE
+#' @param mc.cores: (default 20) number of cores to be used in parallel processing
+#' @param iter : (default=100) number of iteration in mapping with subsampling to estimate
+#'               the confidence of mapping
+#' @param blocksize : (default=5000) processing by block to avoid the crash
+#' @param Taxonomy :   AIT id for available Taxonomies for mapping in the table
 #'
-#' @return ???
+#' @return map.freq
+#'            cl     : all clusters a sample is mapped in N iterations of mapping with
+#'                     sub-sampled markers
+#'            freq : frequencies a sample is mapped to each cluster, cl
+#'            dist  : distance to cluster template centroid (mean marker gene count)
+#'            path.cor : correlation of markers along the path of the hierarchy to the terminal node(cluster), in hierarchical mapping
+#' @return best.map.df
+
+#' @param      : all clusters a sample is mapped in N iterations of mapping with
+#'                     sub-sampled markers
+#'            freq : frequencies a sample is mapped to each cluster, cl
+#'            dist  : distance to cluster template centroid (mean marker gene count)
+#'            path.cor : correlation of markers along the path of the hierarchy to the terminal node(cluster), in hierarchical mapping
+#' @return best.map.df
+#'            best.cl  : the cluster a sample is mapped with highest freq in map.freq
+#'            prob     : probablity of a sample being mapped to best.cl cluster out of  N iterations
+#'            avg.dist : distance to the template cluster mean
+#'            avg.path.cor : correlation of markers along the path of the hierarchy to the terminal node(cluster), in hierarchical mapping
+#'            avg.cor  : correlation to template cluster mean
+#'            cor.zscore : z-normalized value of over avg.cor
+#' @return cl.df : taxonomy cluster annotation matched by "cl" (mapped[["best.map.df"]]$best.cl)
 #'
 #' @export
-run_mapping_on_taxonomy <- function(query.dat, 
-                             Taxonomy="AIT12.0_mouse", prefix="", TaxFN=NA, 
-                             prebuild=FALSE, newbuild=FALSE, 
-                             mapping.method=c('flat', 'hierarchy'),
-                             iter=100, mc.cores=7, blocksize=50000, dist.method="cor", topk=1, 
-                             subsample_pct=0.9, top.n.genes=15, rm.clusters=NA, 
-                             flag.serial=TRUE, flag.parallel.tmp=FALSE, flag.fuzzy=FALSE) 
+#'
+run_mapping_on_taxonomy <- function(query.dat,
+                             Taxonomy="AIT17.0_mouse", prefix="", TaxFN=NA,
+                             prebuild=FALSE, newbuild=FALSE,
+                             mapping.method=c('flat', 'one-step', 'hierarchy'), nlevel=4,
+                             iter=100, mc.cores=7, blocksize=50000, dist.method="cor", topk=1,
+                             subsample_pct=0.9, top.n.genes=15, rm.clusters=NA,
+                             flag.serial=TRUE, flag.parallel.tmp=FALSE, flag.fuzzy=FALSE)
 {
+   print("################ 5/29/2023 ###################")
    print("### Training Templates for Query Data")
-   train.list = build_train_list_on_taxonomy ( TaxFN, Taxonomy, pre.train.list, 
+   train.list = build_train_list_on_taxonomy ( TaxFN, Taxonomy,
                                                query.genes=rownames(query.dat),
-                                               prefix=prefix, mapping.method=mapping.method, 
-                                               prebuild=prebuild, newbuild=newbuild,
+                                               prefix=prefix, mapping.method=mapping.method,
+                                               nlevel=nlevel, prebuild=prebuild, newbuild=newbuild,
                                                mc.cores=mc.cores, subsample_pct=subsample_pct )
 
-   
    print("### Mapping on Training Templates")
-   query.dat.mapped = mapping_on_taxonomy (query.dat, train.list, blocksize=blocksize, mc.cores=mc.cores, 
-                                method=dist.method, iter=iter, topk=topk, 
+   query.dat.mapped = mapping_on_taxonomy (query.dat, train.list, 
+                                blocksize=blocksize, mc.cores=mc.cores,
+                                method=dist.method, iter=iter, topk=topk,
                                 flag.serial=flag.serial, flag.parallel.tmp, flag.fuzzy=flag.fuzzy )
 
    print("### Adding cluster related info")
    query.dat.mapped$cl.df = train.list$cl.df
-
+   query.dat.mapped$all.markers = train.list$all.markers
    return(query.dat.mapped)
 }
 
@@ -55,7 +100,7 @@ run_mapping_on_taxonomy <- function(query.dat,
 #' @export
 build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA, 
                                            query.genes=NA, prefix="", mapping.method=c('flat', 'hierarchy'),
-                                           prebuild=FALSE, newbuild=FALSE,
+                                           nlevel=2, prebuild=FALSE, newbuild=FALSE,
                                            mc.cores=10, div_thr=3, subsample_pct= 0.9, top.n.genes=15, 
                                            n.group.genes=3000, rm.cl=c() )
 {
@@ -69,6 +114,18 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
          load(TaxFN)
       }
    } else {
+      if (Taxonomy=="Human_MTG_Benchmarking_500") {
+         TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/Human_MTG_Benchmarking_500"
+         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/Human_MTG_Benchmarking_500"
+      }
+      if (Taxonomy=="Human_MTG_Benchmarking") {
+         TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/Human_MTG_Benchmarking"
+         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/Human_MTG_Benchmarking"
+      }
+      if (Taxonomy %in% c("AIT17_cl5196", "AIT17_cl5196_mouse")) { # WB 5196
+         TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb"
+         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT17_cl5196"
+      }
       if (Taxonomy=="AIT20.0_macaque") { 
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/changkyul/Macaquet_MTG"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT20.0_macaque"
@@ -156,7 +213,7 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
       #TaxDir = file.path(TaxDir , "Templates")
 
       # set hierarchy level for each  Taxonomy
-      if (mapping.method=="flat") {
+      if (mapping.method %in% c("flat", "one-step")) {
          nlevel=2
       } else {
          nlevel=4
@@ -176,6 +233,12 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
          print("### Building Base Training Teamplates ...")
          pre.train.list = NA
 
+         if (Taxonomy %in% c("Human_MTG_Benchmarking", "Human_MTG_Benchmarking_500")) train.list = build_train_list_default(
+                                                        pre.train.list, query.genes=NA, TrainDir, TaxDir,
+                                                        prefix="", nlevel=nlevel, TaxFN=TaxFN)
+         if (Taxonomy %in% c("AIT17_cl5196", "AIT17_cl5196_mouse")) train.list = build_train_list_WB17_cl5196(
+                                                        pre.train.list, query.genes=NA, TrainDir, TaxDir,
+                                                        prefix="", nlevel=nlevel, TaxFN=TaxFN, rm.cl=rm.cl)
          if (Taxonomy=="AIT20.0_macaque") train.list = build_train_list_20( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN)
@@ -613,7 +676,36 @@ predict_HKNN_cl_bs <- function (query, train.list, marker_index, iter=100, mc.co
    names(avg.cor) = best.map.df$sample_id
    best.map.df$cor.zscore = z_score(list(best.cl), avg.cor)
 
+   # calculate zscore based on reference data
+   if ("z_mean_sd" %in% names(train.list)) {
+      best.map.df = cal_prob_ref_zscore (best.map.df, train.list$z_mean_sd)
+   }
+
    return(list(map.freq=map.df, best.map.df = best.map.df))
+}
+
+#' INFO -- PLEASE ADD --
+#'
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
+#'
+#' @return ???
+#'
+#' @keywords internal
+cal_prob_ref_zscore <- function(best.map.df, z_mean_sd) 
+{
+    cl = best.map.df$best.cl
+    idx = match(cl, rownames(z_mean_sd))
+    for (str in c("avg.path.cor", "avg.cor")) {
+       mycor = best.map.df[, str]
+       if (str %in% colnames(best.map.df)) {
+          myz = (mycor-z_mean_sd[idx, paste0(str,".mean")])/z_mean_sd[idx,paste0(str, ".sd")]
+          myp = pnorm(myz, lower.tail=T)
+          best.map.df[, paste0(gsub("avg.", "", str), ".ref.zcore")] = myz
+          best.map.df[, paste0(str, ".ref.prob")] = myp
+       }
+    }
+    return(best.map.df)
 }
 
 #' INFO -- PLEASE ADD --

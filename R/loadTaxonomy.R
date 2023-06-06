@@ -104,10 +104,13 @@ loadTaxonomy = function(taxonomyDir,
         umap = umap.coords # A data frame with sample_id, and 2D coordinates for umap (or comparable) representation(s)
       ),
       uns = list(
-        dend        = file.path(taxonomyDir,"dend.RData"),  # FILE NAME with dendrogram
-        QC_markers  = file.path(taxonomyDir,"QC_markers.RData"), # FILE NAME with variables for patchseqQC
+        dend        = list("standard" = file.path(taxonomyDir, "dend.RData")),  # FILE NAME with dendrogram
+        filter      = list("standard" = rep(FALSE, nrow(datReference))),
+        QC_markers  = list("standard" = file.path(taxonomyDir, "QC_markers.RData")),
         clustersUse = clustersUse,
-        clusterInfo = clusterInfo
+        clusterInfo = clusterInfo,
+        taxonomyName = "",
+        taxonomyDir = taxonomyDir
       )
     )
     AIT.anndata$write_h5ad(file.path(taxonomyDir, "AI_taxonomy.h5ad")) ## Save the anndata taxonomy so the next person doesn't have to build it :).
