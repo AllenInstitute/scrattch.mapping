@@ -88,6 +88,9 @@ The rest of this example demonstrates how to read in patch-seq data and map it t
 ## Download data and metadata from GitHub repo for Berg et al 2022
 download.file("https://github.com/AllenInstitute/patchseq_human_L23/raw/master/data/input_patchseq_data_sets.RData","patchseq.RData",mode="wb")
 
+## Load the data
+load("patchseq.RData")
+
 ## Rename the query data and metadata for convenience
 query.anno = annoPatch  # Some cell annotations for all cells from the paper 
 query.logCPM = datPatch # logCPM values for all cells from the paper

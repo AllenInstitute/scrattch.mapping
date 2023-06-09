@@ -173,7 +173,7 @@ buildMappingDirectory = function(AIT.anndata,
     desc <- desc[!is.na(desc$base),]  # Remove missing values
     anno_desc <- desc
   }
-  write_feather(anno_desc, file.path(mappingFolder, "desc.feather"))
+  write_feather(as_tibble(anno_desc), file.path(mappingFolder, "desc.feather"))
   
   ## Minor reformatting of metadata file, then write metadata file
   meta.data$cluster = meta.data$cluster_label; # Not sure why this is needed
@@ -211,7 +211,7 @@ buildMappingDirectory = function(AIT.anndata,
                          name = "All Cells UMAP")
   
   write_feather(tsne, file.path(mappingFolder, "tsne.feather"))
-  write_feather(tsne_desc, file.path(mappingFolder, "tsne_desc.feather"))
+  write_feather(as_tibble(tsne_desc), file.path(mappingFolder, "tsne_desc.feather"))
 }
 
 #' This function applies patchseqQC, given a taxonomy and query data
@@ -255,8 +255,8 @@ applyPatchseqQC = function(AIT.anndata,
   cpmQC      = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$cpmQC
   classBr    = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$classBr
   subclassF  = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$subclassF
-  rownames(cpmQC) <- rownames(countsQC) <- AIT.anndata$uns$QC_markers[[mode.name]]$qc_genes
-  colnames(cpmQC) <- colnames(countsQC) <- AIT.anndata$uns$QC_markers[[mode.name]]$qc_samples
+  rownames(cpmQC) <- rownames(countsQC) <- AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$qc_genes
+  colnames(cpmQC) <- colnames(countsQC) <- AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$qc_samples
   
   if(verbose) print("Format the reference and patch-seq data")
   ## -- NOTE: relevant reference data and type assignments are stored in refMarkerFile
