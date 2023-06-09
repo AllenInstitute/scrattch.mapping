@@ -43,6 +43,7 @@ buildMappingDirectory = function(AIT.anndata,
   }
   
   ## Ensure directory exists, if not create it
+  mappingFolder <- file.path(mappingFolder) # Allow for unix or windows
   dir.create(mappingFolder, showWarnings = FALSE)
 
   ##

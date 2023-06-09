@@ -12,7 +12,7 @@ buildPatchseqTaxonomy(
   class.column = "class_label",
   off.target.types = c("Glia", "glia", "non-neuronal", "Non-neuronal"),
   num.markers = 50,
-  taxonomyDir = AIT.anndata$uns$taxonomyDir
+  taxonomyDir = file.path(AIT.anndata$uns$taxonomyDir)
 )
 }
 \arguments{

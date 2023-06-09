@@ -6,6 +6,21 @@
 #' @return AIT anndata with mode set for mapping
 #' 
 #' @export
+file.path <- function(AIT.anndata, mode){
+  if(!mode %in% names(AIT.anndata$uns$filter)){ stop(paste0(mode, " is invalid. Choose from: standard, patchseq")) }
+  AIT.anndata$uns$mode = mode
+  return(AIT.anndata)
+}
+
+
+#' Function to set mapping mode
+#'
+#' @param AIT.anndata A vector of cluster names in the reference taxonomy.
+#' @param mode Number of cells to keep per cluster.
+#'
+#' @return AIT anndata with mode set for mapping
+#' 
+#' @export
 mappingMode <- function(AIT.anndata, mode){
   if(!mode %in% names(AIT.anndata$uns$filter)){ stop(paste0(mode, " is invalid. Choose from: standard, patchseq")) }
   AIT.anndata$uns$mode = mode
@@ -104,6 +119,64 @@ rfTreeMapping <- function (dend, refDat, clustersF, mapDat = refDat, p = 0.8,
   return(memb)
 }
 
+
+####################################################################
+## Functions for reversing '\' and '/'
+
+#' Detect the operating system
+#' 
+#' This function was taken directly from https://conjugateprior.org/2015/06/identifying-the-os-from-r/ and all credit goes to Will Lowe from "conjugateprior".
+#' 
+#' @keywords internal
+
+get_os <- function(){
+  sysinf <- Sys.info()
+  if (!is.null(sysinf)){
+    os <- sysinf['sysname']
+    if (os == 'Darwin')
+      os <- "osx"
+  } else { ## mystery machine
+    os <- .Platform$OS.type
+    if (grepl("^darwin", R.version$os))
+      os <- "osx"
+    if (grepl("linux-gnu", R.version$os))
+      os <- "linux"
+  }
+  tolower(os)
+}
+
+#' Construct Path to File across platforms
+#'
+#' Construct the path to a file from components in a platform-independent way. This version is a wrapper of the base `file.path` function which also reverses '/' direction and can attempt to add double slashes if needed.
+#'
+#' @param ... character vectors. Long vectors are not supported.
+#' @param fsep the path separator to use (assumed to be ASCII).
+#' @param leading_string what is the leading character(s) (e.g., '/' or '\\\\'). By default this is guessed at based on operating system and/or existence of a file at the file path
+#' @param change_chars which characters should be changes to the fsep value (default NULL = "none"). If you want to change all slashes in the file path to the correct direction set change_chars = c("/","\\"))
+#'
+#' @return A file path with slashes going the correct direction.
+#'
+#' @export
+file.path <- function (...,fsep = .Platform$file.sep,leading_string=NULL,change_chars=NULL){
+  path <- base::file.path(...,fsep)
+  first_character <- grep('[^[:punct:]]', strsplit(path,"")[[1]])[1]
+  path <- substring(path,first_character,nchar(path))
+  if (!is.null(change_chars)){
+    path  <- strsplit(path,"")[[1]]
+    slash <- which(is.element(path,change_chars)) 
+    path[slash] <- fsep
+    path <- paste0(path,collapse="")
+  }
+  if (is.null(leading_string)){
+    leading_string="/"
+    if(get_os()=="windows") leading_string="\\\\" 
+  }
+  #remove trailing slashes
+  while((substring(path,nchar(path),nchar(path)))==fsep){
+    path = substring(path,1,nchar(path)-1)
+  }
+  paste0(leading_string,path)
+}
 
 ##################################################################################################################
 ## The functions below are mapping function from scrattch.hicat dev_zy branch that are required for tree mapping

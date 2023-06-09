@@ -29,13 +29,13 @@
 #'
 #' @export
 buildPatchseqTaxonomy = function(AIT.anndata,
-                                   mode.name = "patchseq", ## "Inhibitory"
-                                   subsample = 100,
-                                   subclass.column = "subclass_label",
-                                   class.column = "class_label",
-                                   off.target.types = c("Glia","glia","non-neuronal","Non-neuronal"), ## "Gluta", "NN"
-                                   num.markers = 50,
-                                   taxonomyDir = AIT.anndata$uns$taxonomyDir
+                                 mode.name = "patchseq", ## "Inhibitory"
+                                 subsample = 100,
+                                 subclass.column = "subclass_label",
+                                 class.column = "class_label",
+                                 off.target.types = c("Glia","glia","non-neuronal","Non-neuronal"), ## "Gluta", "NN"
+                                 num.markers = 50,
+                                 taxonomyDir = file.path(AIT.anndata$uns$taxonomyDir)
 ){
 
   ## Ensure filtering mode doesn't already exist
@@ -45,10 +45,10 @@ buildPatchseqTaxonomy = function(AIT.anndata,
   if(!is.element("counts", names(AIT.anndata$layers))){stop("`counts` must exist in AIT.anndata$layers, check taxonomy.")}
   if(!is.element(subclass.column, colnames(AIT.anndata$obs))){stop(paste(subclass.column,"is not a column in the metadata data frame."))}
   if(!is.element(class.column, colnames(AIT.anndata$obs))){stop(paste(class.column,"is not a column in the metadata data frame."))}
-  if(!dir.exists(taxonomyDir)){"Specified taxonomy folder does not exist."}
+  if(!dir.exists(file.path(taxonomyDir))){"Specified taxonomy folder does not exist."}
 
   ## Determine taxonomy mode directory (Move to utilty function)
-  if(mode.name == "standard"){ taxonomyModeDir = taxonomyDir } else { taxonomyModeDir = file.path(taxonomyDir, mode.name) }
+  if(mode.name == "standard"){ taxonomyModeDir = file.path(taxonomyDir) } else { taxonomyModeDir = file.path(file.path(taxonomyDir), mode.name) }
   if(!dir.exists(taxonomyModeDir)){  dir.create(taxonomyModeDir, showWarnings = FALSE) }
 
   ## Copy metadata

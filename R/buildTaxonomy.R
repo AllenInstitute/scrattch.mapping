@@ -87,6 +87,7 @@ buildTaxonomy = function(counts,
   }
     
   ## Ensure directory exists, if not create it
+  taxonomyDir <- file.path(taxonomyDir) # Convert from windows to unix or vice versa
   dir.create(taxonomyDir, showWarnings = FALSE)
 
   ## Subsample nuclei per cluster, max
@@ -312,7 +313,7 @@ buildTaxonomy = function(counts,
       umap = umap.coords ## A data frame with sample_id, and 2D coordinates for umap (or comparable) representation(s)
     ),
     uns = list(
-      dend        = list("standard" = file.path(taxonomyDir, "dend.RData")),  # FILE NAME with dendrogram
+      dend        = list("standard" = file.path(file.path(taxonomy), "dend.RData",leading_string="/")), # FILE NAME with dendrogram
       filter      = list("standard" = rep(FALSE, nrow(datReference))),
       #QC_markers  = list("standard" = file.path(taxonomyDir, "QC_markers.RData")), # Not needed
       clustersUse = clustersUse, #list("standard" = clustersUse),
@@ -386,7 +387,7 @@ addDendrogramMarkers = function(AIT.anndata,
   if(!is.element(celltypeColumn, colnames(AIT.anndata$obs))){stop(paste(celltypeColumn, "is not a column in the metadata data frame."))}
 
   ##
-  if(mode == "standard"){ taxonomyModeDir = AIT.anndata$uns$taxonomyDir } else { taxonomyModeDir = file.path(AIT.anndata$uns$taxonomyDir, mode) }
+  if(mode == "standard"){ taxonomyModeDir = file.path(AIT.anndata$uns$taxonomyDir) } else { taxonomyModeDir = file.path(file.path(AIT.anndata$uns$taxonomyDir), mode) }
   if(!dir.exists(taxonomyModeDir)){  stop("Taxonomy version doesn't exist, please run `buildPatchseqTaxonomy()` then retry.") }
 
   ## Filter
@@ -396,7 +397,7 @@ addDendrogramMarkers = function(AIT.anndata,
   keep.samples = subsampleCells(AIT.anndata$obs[[celltypeColumn]], subsample) ##  & is.element(cluster.vector, labels(dend))
 
   ## Checks and data formatting
-  dend = readRDS(AIT.anndata$uns$dend[[mode]])
+  dend = readRDS(file.path(AIT.anndata$uns$dend[[mode]]))
 
   ## norm.data
   norm.data = Matrix::t(AIT.anndata$X[keep.samples,])
