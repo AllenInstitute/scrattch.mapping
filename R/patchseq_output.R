@@ -2,7 +2,7 @@
 #'
 #' @param AIT.anndata A reference taxonomy object.
 #' @param mappingFolder The location to save output files for patch-seq (or other query data) results, e.g. "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/star/human/human_patchseq_MTG_JAM_TEST/current/"
-#' @param query.data A logCPM normalized matrix to be annotated.
+#' @param query.data A CPM normalized matrix to be annotated.
 #' @param query.metadata A data frame of metadata for the query data.  
 #' @param query.mapping Mapping results from `taxonomy_mapping()` or other mapping functions (optional).  If provided row names must match column names in query.data.
 #' @param doPatchseqQC Boolean indicating whether patch-seq QC metrics should be calculated (default) or not.
@@ -182,7 +182,7 @@ buildMappingDirectory = function(AIT.anndata,
   write_feather(meta.data, file.path(mappingFolder,"anno.feather"))
   
   ## Project mapped data into existing umap (if it exists) or generate new umap otherwise
-  binary.genes <- AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes]
+  binary.genes <- intersect(AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes],rownames(query.cpm))
   ref.umap     <- as.matrix(AIT.anndata$obsm[["umap"]][,colnames(AIT.anndata$obsm[["umap"]])!="sample_id"])
   rownames(ref.umap) <- rownames(AIT.anndata$obsm[["umap"]])
   ref.umap[is.na(ref.umap)] <- 0
@@ -217,7 +217,7 @@ buildMappingDirectory = function(AIT.anndata,
 #' This function applies patchseqQC, given a taxonomy and query data
 #'
 #' @param AIT.anndata A reference taxonomy object.
-#' @param query.data A count matrix for the query data.
+#' @param query.data A count or CPM matrix for the query data.
 #' @param query.metadata A data frame of metadata for the query data. 
 #' @param verbose Should status be printed to the screen? 
 #' 
@@ -235,6 +235,15 @@ applyPatchseqQC = function(AIT.anndata,
   
   ## Convert query.data to CPM
   if(is.element("data.frame",class(query.data))){stop("`query.data` should be a matrix or a sparse matrix, not a data.frame.")}
+  if(max(query.data)<20){
+    warning("`query.data` should not be log2-normalized. Converting back to linear space.")
+    if (is.matrix(query.data)) {
+      query.data <- 2^query.data - 1
+    }
+    else {
+      query.data@x <- 2^query.data@x - 1
+    }
+  }
   query.cpm <- cpm(query.data)
   
   ## Load the reference files
@@ -246,7 +255,8 @@ applyPatchseqQC = function(AIT.anndata,
   cpmQC      = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$cpmQC
   classBr    = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$classBr
   subclassF  = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$subclassF
-  
+  rownames(cpmQC) <- rownames(countsQC) <- AIT.anndata$uns$QC_markers[[mode.name]]$qc_genes
+  colnames(cpmQC) <- colnames(countsQC) <- AIT.anndata$uns$QC_markers[[mode.name]]$qc_samples
   
   if(verbose) print("Format the reference and patch-seq data")
   ## -- NOTE: relevant reference data and type assignments are stored in refMarkerFile

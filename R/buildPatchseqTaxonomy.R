@@ -84,7 +84,7 @@ buildPatchseqTaxonomy = function(AIT.anndata,
   countsQC   = datQC[allMarkers,]
   cpmQC      = cpm(datQC)[allMarkers,]  ## Only use of scrattch.hicat in this function
 
-  ## Identify offtarget cells to filter out.
+  ## Identify off target cells to filter out.
   AIT.anndata$uns$filter[[mode.name]] = is.element(metadata$class_label, off.target.types) | is.element(metadata$subclass_label, off.target.types)
   
   # Save patchseqQC information to uns
@@ -96,6 +96,8 @@ buildPatchseqTaxonomy = function(AIT.anndata,
   AIT.anndata$uns$QC_markers[[mode.name]]$cpmQC      = cpmQC
   AIT.anndata$uns$QC_markers[[mode.name]]$classBr    = classBr
   AIT.anndata$uns$QC_markers[[mode.name]]$subclassF  = subclassF
+  AIT.anndata$uns$QC_markers[[mode.name]]$qc_samples = colnames(countsQC) # since colnames are lost
+  AIT.anndata$uns$QC_markers[[mode.name]]$qc_genes   = rownames(countsQC) # since rownames are lost
 
   
   ##################

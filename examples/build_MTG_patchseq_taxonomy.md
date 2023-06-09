@@ -72,8 +72,9 @@ AIT.anndata = buildPatchseqTaxonomy(AIT.anndata,
 The `buildPatchseqTaxonomy` function return/created the following:
 
 * An updated AIT.anndata object for patchseq mapping and QC steps.
-* Created the required marker and expression files for patchseqQC and save under 'mode.name' in the uns
-* An updated dendrogram saved in the 'mode.name' subdirectory
+* Created the required marker and expression variables for 'QC_markers' and save under 'mode.name' in the uns
+* Created the required cell to cluster 'membership' variables and save under 'mode.name' in the uns
+* An updated dendrogram and a saved in the 'mode.name' subdirectory
 
 **At this point the reference taxonomy is created and ready for patch-seq mapping.**
 
@@ -96,35 +97,32 @@ query.logCPM = datPatch # logCPM values for all cells from the paper
 ### Set scrattch.mapping mode
 
 Now we will set scrattch.mapping to use only cells not in the off.target.types, this will filter the taxonomy and adjust the dendrogram to remove any `cluster` in `off.target.types`.
-
 ```R
 AIT.anndata = mappingMode(AIT.anndata, mode="patchseq")
 ```
 
-### Map against the patchseq taxonomy:
+### Map against the patchseq taxonomy
+
+This is the step that performs the mapping.  Since we have very different query and reference data sets, we are omitting Seurat mapping in this example. 
+
 ```R
 query.mapping = taxonomy_mapping(AIT.anndata= AIT.anndata,
-                                  query.data = query.logCPM, 
-                                  corr.map   = TRUE, # Flags for which mapping algorithms to run
-                                  tree.map   = TRUE, 
-                                  seurat.map = FALSE, 
-                                  label.cols = c("cluster_label", "broad_type_label")) # Columns to map against from AIT.anndata$obs
+                                 query.data = query.logCPM, 
+                                 corr.map   = TRUE, # Flags for which mapping algorithms to run
+                                 tree.map   = TRUE, 
+                                 seurat.map = FALSE, 
+                                 label.cols = c("cluster_label", "subclass_label" ,"class_label")) # Columns to map against from AIT.anndata$obs
 ```
 
-### Determine patchseq contamination with PatchseqQC:
-```R
-query.mapping = applyPatchseqQC(AIT.anndata, ## A patchseq taxonomy object.
-                                query.counts, ## Counts are required here.
-                                query.mapping, ## Results of the previous mapping or AIT.anndata$obs, no mapping is required.
-                                verbose=FALSE)
-```
+### Setup the patchseq Shiny taxonomy files for human MTG:
 
-### Setup the patchseq Shiny taxonomy files for MolGen Shiny:
+This step outputs the files necessary for visualization of Patch-seq data with molgen-shiny tools.  *Note that this code block also generates addional QC metrics including NMS with PatchseqQC.  To perform patch-seq QC without building this directory, use the `applyPatchseqQC` function.*
+
 ```R
 buildMappingDirectory(AIT.anndata    = AIT.anndata, 
-                      mappingFolder  = '/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/tasic_2016/patchseq_mapping',
-                      query.data     = query.counts, ## Counts are required here.
+                      mappingFolder  = "\\\\allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT15.2/TEST",
+                      query.data     = query.logCPM, ## Counts or CPM are required here, but function can convert from log to linear values
                       query.metadata = query.anno,
                       query.mapping  = query.mapping,
-                      doPatchseqQC   = FALSE)  ## Set to FALSE if not needed or if buildPatchseqTaxonomy was not run.
+                      doPatchseqQC   = TRUE)  ## Set to FALSE if not needed or if buildPatchseqTaxonomy was not run.
 ```
