@@ -1,6 +1,6 @@
 #' Read in a reference data set in Allen taxonomy format
 #'
-#' @param taxonomyDir Directory containing the Shiny taxonomy.
+#' @param taxonomyDir Directory containing the Shiny taxonomy -OR- a direct h5ad file name.
 #' @param sample_id Field in reference taxonomy that defines the sample_id.
 #' @param hGenes User supplied variable gene vector.  If not provided, then all genes are used.
 #' @param gene_id Field in counts.feather that defines the gene_id.
@@ -15,8 +15,17 @@ loadTaxonomy = function(taxonomyDir,
                         hGenes=NULL, 
                         gene_id = "gene",
                         force=FALSE){
-  ##
-  if(file.exists(file.path(taxonomyDir, "AI_taxonomy.h5ad")) & force == FALSE){
+  ## Load from file name input
+  if(substr(taxonomyDir,nchar(taxonomyDir)-3,nchar(taxonomyDir))=="h5ad"){
+    if(file.exists(taxonomyDir)){
+      print("Loading reference taxonomy into memory from .h5ad")
+      ## Load taxonomy directly!
+      AIT.anndata = read_h5ad(taxonomyDir)
+    } else {
+      stop(paste("h5ad file",taxonomyDir,"does not exist."))
+    }
+  ## Load from directory name input 
+  } else if(file.exists(file.path(taxonomyDir, "AI_taxonomy.h5ad")) & force == FALSE){
     print("Loading reference taxonomy into memory from .h5ad")
     ## Load taxonomy directly!
     AIT.anndata = read_h5ad(file.path(taxonomyDir, "AI_taxonomy.h5ad"))

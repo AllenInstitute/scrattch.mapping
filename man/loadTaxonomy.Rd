@@ -13,7 +13,7 @@ loadTaxonomy(
 )
 }
 \arguments{
-\item{taxonomyDir}{Directory containing the Shiny taxonomy.}
+\item{taxonomyDir}{Directory containing the Shiny taxonomy -OR- a direct h5ad file name.}
 
 \item{sample_id}{Field in reference taxonomy that defines the sample_id.}
 

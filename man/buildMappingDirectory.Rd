@@ -38,7 +38,7 @@ buildMappingDirectory(
 
 \item{bs.num, p, low.th}{Extra variables for the \code{map_dend_membership} function in scrattch.hicat.  Defaults are set reasonably.}
 
-\item{min.confidence}{Probability below which a cell cannot be assigned to a cell type (default 0.7).  In other words, if no cell types have probabilties greater than resolution.index, then the assigned cluster will be an internal node of the dendrogram.
+\item{min.confidence}{Probability below which a cell cannot be assigned to a cell type (default 0.7).  In other words, if no cell types have probabilities greater than resolution.index, then the assigned cluster will be an internal node of the dendrogram.
 
 This function writes files to the mappingFolder directory for visualization with molgen-shiny tools
 --- anno.feather - query metadata
