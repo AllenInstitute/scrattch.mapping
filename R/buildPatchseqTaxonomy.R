@@ -107,7 +107,7 @@ buildPatchseqTaxonomy = function(AIT.anndata,
   # AIT.anndata = AIT.anndata[!AIT.anndata$uns$filter[[mode.name]]]
 
   ## Load the complete dendrogram
-  dend = readRDS(AIT.anndata$uns$dend[["standard"]])
+  dend = readRDS(file.path(AIT.anndata$uns$dend[["standard"]]))
 
   ## Prune dendrogram to remove off.target types
   dend = prune(dend, setdiff(labels(dend), unique(AIT.anndata$obs$cluster_label[!AIT.anndata$uns$filter[[mode.name]]])))

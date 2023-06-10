@@ -4,13 +4,14 @@ In this example we demonstrate how to setup a patchseq Shiny taxonomy using scra
 
 ### Required inputs:
 
-* Standard Shiny taxonomy setup following the "build_taxonomy" tutorial.
-* Query patchseq count matrix and metadata.
+* Standard Shiny taxonomy setup following the "build_taxonomy" tutorial (repeated below)
+* Query patchseq count matrix and metadata (example provided below)
 
 ### Read in the REFERENCE MTG information (Hodge et al 2019)
 ```R
 ## Load the library
 library(scrattch.mapping)
+library(data.table) # for using fread below
 
 ## Load the complete dendrogram from this paper (saved in scrattch-mapping)
 data(dend_Hodge2019) 
@@ -123,7 +124,7 @@ This step outputs the files necessary for visualization of Patch-seq data with m
 
 ```R
 buildMappingDirectory(AIT.anndata    = AIT.anndata, 
-                      mappingFolder  = "\\\\allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT15.2/TEST",
+                      mappingFolder  = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT15.2/TEST",
                       query.data     = query.logCPM, ## Counts or CPM are required here, but function can convert from log to linear values
                       query.metadata = query.anno,
                       query.mapping  = query.mapping,
