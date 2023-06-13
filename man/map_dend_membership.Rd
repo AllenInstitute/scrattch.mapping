@@ -31,8 +31,6 @@ map_dend_membership(
 \item{seed}{= random seed}
 
 \item{...}{other variables to pass to map_dend}
-
-\item{cl}{A cluster factor object to compare to a reference}
 }
 \value{
 membership table

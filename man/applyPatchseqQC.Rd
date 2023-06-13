@@ -9,7 +9,7 @@ applyPatchseqQC(AIT.anndata, query.data, query.metadata, verbose = FALSE)
 \arguments{
 \item{AIT.anndata}{A reference taxonomy object.}
 
-\item{query.data}{A count matrix for the query data.}
+\item{query.data}{A count or CPM matrix for the query data.}
 
 \item{query.metadata}{A data frame of metadata for the query data.}
 

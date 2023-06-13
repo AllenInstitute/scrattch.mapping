@@ -49,7 +49,9 @@ Note that this strategy might not work outside the docker due to complicated dep
 
 3. [**Build a Shiny taxonomy**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/build_taxonomy.md) This examples provides the basics for creating a new Shiny taxonomy compatible with MolGen shiny and scrattch.mapping.
 
-4. [**Build and map against a PatchSeq taxonomy**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/build_patchseq_taxonomy.md) This examples provides the basics for updating a Shiny taxonomy to be compatible with patchseq style mapping and visualization on MolGen Shiny.
+4. [**Build and map against a small mouse PatchSeq taxonomy**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/build_patchseq_taxonomy.md) This examples provides the basics for updating a Shiny taxonomy to be compatible with patchseq style mapping and visualization on MolGen Shiny.
+
+5. [**Build and map against a human MTG PatchSeq taxonomy**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/build_MTG_patchseq_taxonomy.md) This examples provides a simplified example for creating a standard taxonomy and updating it to be compatible with patchseq style mapping and visualization on MolGen Shiny.  Data is from Hodge et al for human MTG and patch-seq examples are from Berg et al (layer 2-3, excitatory neurons). 
 
 ## Library vignettes
 

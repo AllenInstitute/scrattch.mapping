@@ -2,14 +2,14 @@
 #'
 #' @param AIT.anndata A reference taxonomy object.
 #' @param mappingFolder The location to save output files for patch-seq (or other query data) results, e.g. "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/star/human/human_patchseq_MTG_JAM_TEST/current/"
-#' @param query.data A logCPM normalized matrix to be annotated.
+#' @param query.data A CPM normalized matrix to be annotated.
 #' @param query.metadata A data frame of metadata for the query data.  
 #' @param query.mapping Mapping results from `taxonomy_mapping()` or other mapping functions (optional).  If provided row names must match column names in query.data.
 #' @param doPatchseqQC Boolean indicating whether patch-seq QC metrics should be calculated (default) or not.
 #' @param metadata_names An optional named character vector where the vector NAMES correspond to columns in the metadata matrix and the vector VALUES correspond to how these metadata should be displayed in Shiny. This is used for writing the desc.feather file later.
 #' @param mc.cores Number of cores to use for running this function to speed things up.  Default = 1.  Values>1 are only supported in an UNIX environment and require `foreach` and `doParallel` R libraries.
 #' @param bs.num,p,low.th Extra variables for the `map_dend_membership` function in scrattch.hicat.  Defaults are set reasonably.
-#' @param min.confidence Probability below which a cell cannot be assigned to a cell type (default 0.7).  In other words, if no cell types have probabilties greater than resolution.index, then the assigned cluster will be an internal node of the dendrogram. 
+#' @param min.confidence Probability below which a cell cannot be assigned to a cell type (default 0.7).  In other words, if no cell types have probabilities greater than resolution.index, then the assigned cluster will be an internal node of the dendrogram. 
 #' 
 #' This function writes files to the mappingFolder directory for visualization with molgen-shiny tools
 #' --- anno.feather - query metadata
@@ -43,6 +43,7 @@ buildMappingDirectory = function(AIT.anndata,
   }
   
   ## Ensure directory exists, if not create it
+  mappingFolder <- file.path(mappingFolder) # Allow for unix or windows
   dir.create(mappingFolder, showWarnings = FALSE)
 
   ##
@@ -173,7 +174,7 @@ buildMappingDirectory = function(AIT.anndata,
     desc <- desc[!is.na(desc$base),]  # Remove missing values
     anno_desc <- desc
   }
-  write_feather(anno_desc, file.path(mappingFolder, "desc.feather"))
+  write_feather(as_tibble(anno_desc), file.path(mappingFolder, "desc.feather"))
   
   ## Minor reformatting of metadata file, then write metadata file
   meta.data$cluster = meta.data$cluster_label; # Not sure why this is needed
@@ -182,7 +183,7 @@ buildMappingDirectory = function(AIT.anndata,
   write_feather(meta.data, file.path(mappingFolder,"anno.feather"))
   
   ## Project mapped data into existing umap (if it exists) or generate new umap otherwise
-  binary.genes <- AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes]
+  binary.genes <- intersect(AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes],rownames(query.cpm))
   ref.umap     <- as.matrix(AIT.anndata$obsm[["umap"]][,colnames(AIT.anndata$obsm[["umap"]])!="sample_id"])
   rownames(ref.umap) <- rownames(AIT.anndata$obsm[["umap"]])
   ref.umap[is.na(ref.umap)] <- 0
@@ -211,13 +212,13 @@ buildMappingDirectory = function(AIT.anndata,
                          name = "All Cells UMAP")
   
   write_feather(tsne, file.path(mappingFolder, "tsne.feather"))
-  write_feather(tsne_desc, file.path(mappingFolder, "tsne_desc.feather"))
+  write_feather(as_tibble(tsne_desc), file.path(mappingFolder, "tsne_desc.feather"))
 }
 
 #' This function applies patchseqQC, given a taxonomy and query data
 #'
 #' @param AIT.anndata A reference taxonomy object.
-#' @param query.data A count matrix for the query data.
+#' @param query.data A count or CPM matrix for the query data.
 #' @param query.metadata A data frame of metadata for the query data. 
 #' @param verbose Should status be printed to the screen? 
 #' 
@@ -231,15 +232,32 @@ applyPatchseqQC = function(AIT.anndata,
   
   ## Checks
   if(!all(colnames(query.data) == rownames(query.metadata))){stop("Colnames of `query.data` and rownames of `meta.data` do not match.")}
-  if(!file.exists(AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]])){stop("QC_markers file must be provided in AIT.anndata.")}
+  if(is.null(AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]])){stop(paste("QC_markers file must be provided for mode",AIT.anndata$uns$mode," in AIT.anndata in advance."))}
   
   ## Convert query.data to CPM
   if(is.element("data.frame",class(query.data))){stop("`query.data` should be a matrix or a sparse matrix, not a data.frame.")}
+  if(max(query.data)<20){
+    warning("`query.data` should not be log2-normalized. Converting back to linear space.")
+    if (is.matrix(query.data)) {
+      query.data <- 2^query.data - 1
+    }
+    else {
+      query.data@x <- 2^query.data@x - 1
+    }
+  }
   query.cpm <- cpm(query.data)
   
   ## Load the reference files
   # ---- This includes markers, countsQC, cpmQC, classBr, subclassF, and allMarkers
-  load(AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]])
+  #load(AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]])
+  allMarkers = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$allMarkers 
+  markers    = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$markers
+  countsQC   = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$countsQC
+  cpmQC      = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$cpmQC
+  classBr    = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$classBr
+  subclassF  = AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$subclassF
+  rownames(cpmQC) <- rownames(countsQC) <- AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$qc_genes
+  colnames(cpmQC) <- colnames(countsQC) <- AIT.anndata$uns$QC_markers[[AIT.anndata$uns$mode]]$qc_samples
   
   if(verbose) print("Format the reference and patch-seq data")
   ## -- NOTE: relevant reference data and type assignments are stored in refMarkerFile

@@ -1,6 +1,6 @@
 #' Save marker genes for patchSeqQC
 #'
-#' This function write a file called `QC_markers.RData` that contains all the variables required for applying the patchseq QC algorithm `pathseqtools` (which is an more flexible version of the `patchSeqQC` algorithm).  This is only used for patch-seq analysis.
+#' This function saves all the variables required for applying the patchseq QC algorithm `pathseqtools` (which is an more flexible version of the `patchSeqQC` algorithm) to AIT.anndata$uns. This is only used for patch-seq analysis.  Requirements for input include:
 # ----- Subclass calls for each cell
 # ----- Broad class class calls for each cell
 # ----- Distinction of neuron (e.g., mappable type) vs. non-neuron (e.g., contamination type)
@@ -14,7 +14,7 @@
 #' @param num.markers The maximum number of markers to calculate per node per direction (default = 50)
 #' @param taxonomyDir = The location to save shiny output (default = current working directory).
 #' 
-#' Nothing is returned; however an R data object called "QC_markers.RData" is returned with the following variables
+#' The following variables are added to AIT.anndata$uns
 #' markers, 
 #' countsQC, 
 #' cpmQC, 
@@ -25,17 +25,17 @@
 #' @import patchseqtools
 #' @import scrattch.hicat
 #'
-#' @return AIT.anndata
+#' @return AIT.anndata An updated AIT.anndata variable with the above content added to AIT.anndata$uns for the relevant mode.name.
 #'
 #' @export
 buildPatchseqTaxonomy = function(AIT.anndata,
-                                   mode.name = "patchseq", ## "Inhibitory"
-                                   subsample = 100,
-                                   subclass.column = "subclass_label",
-                                   class.column = "class_label",
-                                   off.target.types = c("Glia","glia","non-neuronal","Non-neuronal"), ## "Gluta", "NN"
-                                   num.markers = 50,
-                                   taxonomyDir = AIT.anndata$uns$taxonomyDir
+                                 mode.name = "patchseq", ## "Inhibitory"
+                                 subsample = 100,
+                                 subclass.column = "subclass_label",
+                                 class.column = "class_label",
+                                 off.target.types = c("Glia","glia","non-neuronal","Non-neuronal"), ## "Gluta", "NN"
+                                 num.markers = 50,
+                                 taxonomyDir = file.path(AIT.anndata$uns$taxonomyDir)
 ){
 
   ## Ensure filtering mode doesn't already exist
@@ -45,10 +45,10 @@ buildPatchseqTaxonomy = function(AIT.anndata,
   if(!is.element("counts", names(AIT.anndata$layers))){stop("`counts` must exist in AIT.anndata$layers, check taxonomy.")}
   if(!is.element(subclass.column, colnames(AIT.anndata$obs))){stop(paste(subclass.column,"is not a column in the metadata data frame."))}
   if(!is.element(class.column, colnames(AIT.anndata$obs))){stop(paste(class.column,"is not a column in the metadata data frame."))}
-  if(!dir.exists(taxonomyDir)){"Specified taxonomy folder does not exist."}
+  if(!dir.exists(file.path(taxonomyDir))){"Specified taxonomy folder does not exist."}
 
   ## Determine taxonomy mode directory (Move to utilty function)
-  if(mode.name == "standard"){ taxonomyModeDir = taxonomyDir } else { taxonomyModeDir = file.path(taxonomyDir, mode.name) }
+  if(mode.name == "standard"){ taxonomyModeDir = file.path(taxonomyDir) } else { taxonomyModeDir = file.path(file.path(taxonomyDir), mode.name) }
   if(!dir.exists(taxonomyModeDir)){  dir.create(taxonomyModeDir, showWarnings = FALSE) }
 
   ## Copy metadata
@@ -84,14 +84,22 @@ buildPatchseqTaxonomy = function(AIT.anndata,
   countsQC   = datQC[allMarkers,]
   cpmQC      = cpm(datQC)[allMarkers,]  ## Only use of scrattch.hicat in this function
 
-  ## 
-  save(markers, countsQC, cpmQC, classBr, subclassF, allMarkers, file=file.path(taxonomyModeDir, "QC_markers.RData"))
-
-  ## Identify offtarget cells to filter out.
+  ## Identify off target cells to filter out.
   AIT.anndata$uns$filter[[mode.name]] = is.element(metadata$class_label, off.target.types) | is.element(metadata$subclass_label, off.target.types)
-  AIT.anndata$uns$QC_markers[[mode.name]] = file.path(taxonomyModeDir, "QC_markers.RData")
-  ## TO BE UPDATED -- JEREMY
+  
+  # Save patchseqQC information to uns
+  #save(markers, countsQC, cpmQC, classBr, subclassF, allMarkers, file=file.path(taxonomyModeDir, "QC_markers.RData"))
+  #AIT.anndata$uns$QC_markers[[mode.name]] = file.path(taxonomyModeDir, "QC_markers.RData")
+  AIT.anndata$uns$QC_markers[[mode.name]]$allMarkers = allMarkers
+  AIT.anndata$uns$QC_markers[[mode.name]]$markers    = markers
+  AIT.anndata$uns$QC_markers[[mode.name]]$countsQC   = countsQC
+  AIT.anndata$uns$QC_markers[[mode.name]]$cpmQC      = cpmQC
+  AIT.anndata$uns$QC_markers[[mode.name]]$classBr    = classBr
+  AIT.anndata$uns$QC_markers[[mode.name]]$subclassF  = subclassF
+  AIT.anndata$uns$QC_markers[[mode.name]]$qc_samples = colnames(countsQC) # since colnames are lost
+  AIT.anndata$uns$QC_markers[[mode.name]]$qc_genes   = rownames(countsQC) # since rownames are lost
 
+  
   ##################
   ## ------- Modify the dendrogram and save
   ##
@@ -99,7 +107,7 @@ buildPatchseqTaxonomy = function(AIT.anndata,
   # AIT.anndata = AIT.anndata[!AIT.anndata$uns$filter[[mode.name]]]
 
   ## Load the complete dendrogram
-  dend = readRDS(AIT.anndata$uns$dend[["standard"]])
+  dend = readRDS(file.path(AIT.anndata$uns$dend[["standard"]]))
 
   ## Prune dendrogram to remove off.target types
   dend = prune(dend, setdiff(labels(dend), unique(AIT.anndata$obs$cluster_label[!AIT.anndata$uns$filter[[mode.name]]])))
@@ -107,7 +115,7 @@ buildPatchseqTaxonomy = function(AIT.anndata,
   ## Save dendrogram
   saveRDS(dend, file.path(taxonomyModeDir,"dend.RData"))
 
-  ## Store the prunned dendrogram, in dend list under "patchseq" mode.name
+  ## Store the pruned dendrogram, in dend list under "patchseq" mode.name
   AIT.anndata$uns$dend[[mode.name]] = file.path(taxonomyModeDir,"dend.RData")
 
   ## Save patch-seq taxonomy anndata

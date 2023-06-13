@@ -17,7 +17,9 @@ addDendrogramMarkers(
   mc.cores = 1,
   bs.num = 100,
   p = 0.8,
-  low.th = 0.1
+  low.th = 0.1,
+  taxonomyDir = getwd(),
+  overwriteMarkers = TRUE
 )
 }
 \arguments{
@@ -45,16 +47,14 @@ addDendrogramMarkers(
 
 \item{low.th}{the minimum difference in Pearson correlation required to decide on which branch}
 
-\item{taxonomyDir}{The location to save shiny output, if desired
+\item{taxonomyDir}{The location to save shiny output, if desired}
+
+\item{overwriteMarkers}{If markers already are calculated a tree, should they be overwritten (default = TRUE)
 
 NOTES
 By default VERY loose parameters are set for de_param in an effort to get extra marker genes for each node.  The defaults previously proposed for 10x nuclei are the following \code{de_param(low.th = 1, padj.th = 0.01, lfc.th = 1, q1.th = 0.3, q2.th = NULL, q.diff.th = 0.7, de.score.th = 100, min.cells = 2, min.genes = 5)}. See the function \code{de_param} in the scrattch.hicat for more details.
 
-If save.shiny.output=TRUE, the following files will be generated:
-reference.rda, which includes a variable \code{reference} as follows:
-reference$cl.dat - These are the cluster means that are used for mapping comparisons
-reference$dend   - This is the dendrogram with marker genes attached
-membership_information_reference.rda, which includes two variables
+If save.shiny.output=TRUE, membership_information_reference.rda will be generated, which includes two variables
 \code{memb.ref}   - matrix indicating how much confusion there is the mapping between each cell all of the nodes in the tree (including all cell types) when comparing clustering and mapping results with various subsamplings of the data
 \code{map.df.ref} - Result of tree mapping for each cell in the reference against the clustering tree, including various statistics and marker gene evidence.  This is the same output that comes from tree mapping.#'}
 }

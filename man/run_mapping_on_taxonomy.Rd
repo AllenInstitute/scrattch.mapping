@@ -6,12 +6,13 @@
 \usage{
 run_mapping_on_taxonomy(
   query.dat,
-  Taxonomy = "AIT12.0_mouse",
+  Taxonomy = "AIT17.0_mouse",
   prefix = "",
   TaxFN = NA,
   prebuild = FALSE,
   newbuild = FALSE,
-  mapping.method = c("flat", "hierarchy"),
+  mapping.method = c("flat", "one-step", "hierarchy"),
+  nlevel = 4,
   iter = 100,
   mc.cores = 7,
   blocksize = 50000,
@@ -26,12 +27,65 @@ run_mapping_on_taxonomy(
 )
 }
 \arguments{
-\item{in.df}{to_be_added}
+\item{Taxonomy}{:   AIT id for available Taxonomies for mapping in the table}
 
-\item{cl.df}{to_be_added}
+\item{prefix}{: your data descriptor  and platform
+'10x_nuclei', 'MFISH', 'patchseq', ....
+matching templates are saved using 'prefix' as a key
+when you mapping the data from the same platform, you don't need to rebuild the
+template for the same platform and use the existing template with prebuild=TRUE}
+
+\item{prebuild}{: TRUE/FALSE
+if prebuild==TRUE : if the template with 'prefix' exists already, use it.
+if prebuild==FALSE : do not use preexisting template and build new template
+with 'prefix'}
+
+\item{newbuild}{: TRUE/FALSE
+When any marker is missing in the query data,
+if newbuild==TRUE : it will find markers all over again from the gene list
+in query data. (can take a whole day)
+if newbuild==FALSE : it will use the subset of markers which are in the query data 
+selected markers are saved using 'prefix' as a key}
+
+\item{mapping.method}{: 'flat(one-step)'/'hierarchy'
+run 'flat(one-step)' first
+'hierarchy' mapping is recommended for mapping across platforms,
+yet it is slow until we come up with further parallelization.}
+
+\item{iter}{: (default=100) number of iteration in mapping with subsampling to estimate
+the confidence of mapping}
+
+\item{blocksize}{: (default=5000) processing by block to avoid the crash}
+
+\item{querydat}{: count matrix (log-normalized)  Ngene X Ncell}
+
+\item{mc.cores:}{(default 20) number of cores to be used in parallel processing}
+
+\item{:}{all clusters a sample is mapped in N iterations of mapping with
+sub-sampled markers
+freq : frequencies a sample is mapped to each cluster, cl
+dist  : distance to cluster template centroid (mean marker gene count)
+path.cor : correlation of markers along the path of the hierarchy to the terminal node(cluster), in hierarchical mapping}
 }
 \value{
-???
+map.freq
+cl     : all clusters a sample is mapped in N iterations of mapping with
+sub-sampled markers
+freq : frequencies a sample is mapped to each cluster, cl
+dist  : distance to cluster template centroid (mean marker gene count)
+path.cor : correlation of markers along the path of the hierarchy to the terminal node(cluster), in hierarchical mapping
+
+best.map.df
+
+best.map.df
+best.cl  : the cluster a sample is mapped with highest freq in map.freq
+prob     : probablity of a sample being mapped to best.cl cluster out of  N iterations
+avg.dist : distance to the template cluster mean
+avg.path.cor : correlation of markers along the path of the hierarchy to the terminal node(cluster), in hierarchical mapping
+avg.cor  : correlation to template cluster mean
+cor.zscore : z-normalized value of over avg.cor
+
+cl.df : taxonomy cluster annotation matched by "cl" (mapped[\link{"best.map.df"}]$best.cl)
 }
 \description{
 INFO -- PLEASE ADD --

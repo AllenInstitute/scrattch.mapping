@@ -24,7 +24,7 @@ buildMappingDirectory(
 
 \item{mappingFolder}{The location to save output files for patch-seq (or other query data) results, e.g. "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/star/human/human_patchseq_MTG_JAM_TEST/current/"}
 
-\item{query.data}{A logCPM normalized matrix to be annotated.}
+\item{query.data}{A CPM normalized matrix to be annotated.}
 
 \item{query.metadata}{A data frame of metadata for the query data.}
 
@@ -38,7 +38,7 @@ buildMappingDirectory(
 
 \item{bs.num, p, low.th}{Extra variables for the \code{map_dend_membership} function in scrattch.hicat.  Defaults are set reasonably.}
 
-\item{min.confidence}{Probability below which a cell cannot be assigned to a cell type (default 0.7).  In other words, if no cell types have probabilties greater than resolution.index, then the assigned cluster will be an internal node of the dendrogram.
+\item{min.confidence}{Probability below which a cell cannot be assigned to a cell type (default 0.7).  In other words, if no cell types have probabilities greater than resolution.index, then the assigned cluster will be an internal node of the dendrogram.
 
 This function writes files to the mappingFolder directory for visualization with molgen-shiny tools
 --- anno.feather - query metadata
