@@ -1,6 +1,8 @@
 #' INFO -- PLEASE ADD --
 #'
 #' @param querydat : count matrix (log-normalized)  Ngene X Ncell
+#' @param Taxonomy : Taxonomy id
+#' @param TaxHome  : diretory path holding taxonomy refrence files
 #' @param mapping.method : 'flat(one-step)'/'hierarchy'
 #'             run 'flat(one-step)' first
 #'            'hierarchy' mapping is recommended for mapping across platforms,
@@ -33,7 +35,6 @@
 #'            dist  : distance to cluster template centroid (mean marker gene count)
 #'            path.cor : correlation of markers along the path of the hierarchy to the terminal node(cluster), in hierarchical mapping
 #' @return best.map.df
-
 #' @param      : all clusters a sample is mapped in N iterations of mapping with
 #'                     sub-sampled markers
 #'            freq : frequencies a sample is mapped to each cluster, cl
@@ -50,17 +51,19 @@
 #'
 #' @export
 #'
+
 run_mapping_on_taxonomy <- function(query.dat,
-                             Taxonomy="AIT17.0_mouse", prefix="", TaxFN=NA,
+                             Taxonomy="AIT17.0_mouse",
+                             TaxHome='/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/',
+                             prefix="", TaxFN=NA,
                              prebuild=FALSE, newbuild=FALSE,
                              mapping.method=c('flat', 'one-step', 'hierarchy'), nlevel=4,
                              iter=100, mc.cores=7, blocksize=50000, dist.method="cor", topk=1,
                              subsample_pct=0.9, top.n.genes=15, rm.clusters=NA,
                              flag.serial=TRUE, flag.parallel.tmp=FALSE, flag.fuzzy=FALSE)
 {
-   print("################ 5/29/2023 ###################")
    print("### Training Templates for Query Data")
-   train.list = build_train_list_on_taxonomy ( TaxFN, Taxonomy,
+   train.list = build_train_list_on_taxonomy ( TaxFN, Taxonomy, TaxHome=TaxHome,
                                                query.genes=rownames(query.dat),
                                                prefix=prefix, mapping.method=mapping.method,
                                                nlevel=nlevel, prebuild=prebuild, newbuild=newbuild,
@@ -98,12 +101,41 @@ run_mapping_on_taxonomy <- function(query.dat,
 #' @return Mapping results
 #'
 #' @export
-build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA, 
-                                           query.genes=NA, prefix="", mapping.method=c('flat', 'hierarchy'),
+
+build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, 
+                                           TaxHome='/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/',
+                                           pre.train.list=NA, 
+                                           query.genes=NA, prefix="", mapping.method=c('flat', 'one-step', 'hierarchy'),
                                            nlevel=2, prebuild=FALSE, newbuild=FALSE,
                                            mc.cores=10, div_thr=3, subsample_pct= 0.9, top.n.genes=15, 
                                            n.group.genes=3000, rm.cl=c() )
 {
+
+   AVAIL_TAXONOMIES = c( "Human_MTG_Benchmarking_500",
+                   "Human_MTG_Benchmarking",
+                   "AIT20.0_macaque",    # Macaque_MTG
+                   "AIT18.0_mouse", #WB snRNAseq	
+                   "AIT17_cl5196_mouse", #WB
+                   "AIT17_cl5196",       #WB
+                   "AIT17.BG.1_mouse",   #WB_BG
+                   "AIT17.FB.1_mouse",   #WB_FB
+                   "AIT17.TR_mouse",     #WB
+                   "AIT17.2_mouse", "AIT17.TH.1_mouse",                # WB_TH
+                   "AIT17.0_mouse",      #WB
+                   "AIT17.0_mouse_5199", #WB
+                   "AIT16.2_mouse",      #WB_TH
+                   "AIT16.1_mouse",      #WB
+                   "AIT16.0_mouse",      #WB
+                   "AIT14.0_mouse",      #WB
+                   "AIT13.0_mouse",      #WB
+                   "AIT13.2_mouse","AIT13.TH.1_mouse",                 # WB_TH
+                   "AIT12.1_mouse",      #WB
+                   "AIT12.0_mouse",      #WB
+                   "AIT11.0_mouse", "AIT9.4_mouse", "AIT9.BG.1_mouse", # BG
+                   "AIT10.0_mouse",      #WB
+                   "AIT9.0_mouse", "AIT9.LO10_mouse"                   # FB
+                   ) 
+
 
    if (is.na(Taxonomy)) {
       if (is.na(TaxFN)) {
@@ -114,21 +146,25 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
          load(TaxFN)
       }
    } else {
-      if (Taxonomy=="Human_MTG_Benchmarking_500") {
+      if (!(Taxonomy %in% AVAIL_TAXONOMIES)) {
+         TrainDir = file.path(TaxHome, Taxonomy)
+         TaxDir   = file.path(TaxHome, Taxonomy)
+      }
+      if (Taxonomy=="Human_MTG_Benchmarking_500") { 
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/Human_MTG_Benchmarking_500"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/Human_MTG_Benchmarking_500"
       }
-      if (Taxonomy=="Human_MTG_Benchmarking") {
+      if (Taxonomy=="Human_MTG_Benchmarking") { 
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/Human_MTG_Benchmarking"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/Human_MTG_Benchmarking"
-      }
-      if (Taxonomy %in% c("AIT17_cl5196", "AIT17_cl5196_mouse")) { # WB 5196
-         TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb"
-         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT17_cl5196"
       }
       if (Taxonomy=="AIT20.0_macaque") { 
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/changkyul/Macaquet_MTG"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT20.0_macaque"
+      }
+      if (Taxonomy=="AIT18.0_mouse") { 
+         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT18.0_mouse"
+         TrainDir = TaxDir
       }
       if (Taxonomy=="AIT17.BG.1_mouse") { #WB_TH
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb"
@@ -149,14 +185,18 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT17.2_mouse"
          TaxDir = file.path(TaxDir , "Templates")
       }
-      if (Taxonomy=="AIT17.0_mouse_5200") { #WB_2022_Yao
+      if (Taxonomy %in% c("AIT17_cl5196", "AIT17_cl5196_mouse")) { # WB 5196
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb"
-         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT17.0_mouse_5200"
-         TaxDir = file.path(TaxDir , "Templates")
+         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT17_cl5196"
       }
       if (Taxonomy=="AIT17.0_mouse") { #WB_2022_Yao
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT17.0_mouse"
+         TaxDir = file.path(TaxDir , "Templates")
+      }
+      if (Taxonomy=="AIT17.0_mouse_5199") { #WB_2022_Yao
+         TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb"
+         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT17.0_mouse_5199"
          TaxDir = file.path(TaxDir , "Templates")
       }
       if (Taxonomy=="AIT16.2_mouse") { #WB_TH
@@ -210,16 +250,10 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/forebrain_new"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT9.0_mouse/LO10"
       }
-      #TaxDir = file.path(TaxDir , "Templates")
 
       # set hierarchy level for each  Taxonomy
-      if (mapping.method %in% c("flat", "one-step")) {
+      if (mapping.method %in% c('flat', 'one-step')) {
          nlevel=2
-      } else {
-         nlevel=4
-         if (Taxonomy=="AIT20.0_macaque") { 
-            nlevel = 3
-         }
       }
       if (is.na(subsample_pct)) nlevel_str = paste0(nlevel, "_noboot") 
       else nlevel_str = nlevel
@@ -233,13 +267,15 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
          print("### Building Base Training Teamplates ...")
          pre.train.list = NA
 
-         if (Taxonomy %in% c("Human_MTG_Benchmarking", "Human_MTG_Benchmarking_500")) train.list = build_train_list_default(
-                                                        pre.train.list, query.genes=NA, TrainDir, TaxDir,
-                                                        prefix="", nlevel=nlevel, TaxFN=TaxFN)
-         if (Taxonomy %in% c("AIT17_cl5196", "AIT17_cl5196_mouse")) train.list = build_train_list_WB17_cl5196(
-                                                        pre.train.list, query.genes=NA, TrainDir, TaxDir,
-                                                        prefix="", nlevel=nlevel, TaxFN=TaxFN, rm.cl=rm.cl)
-         if (Taxonomy=="AIT20.0_macaque") train.list = build_train_list_20( 
+         if (!(Taxonomy %in% AVAIL_TAXONOMIES)) train.list = build_train_list_default( pre.train.list, query.genes=NA, TrainDir, TaxDir,
+                                     prefix="", nlevel=nlevel, TaxFN=TaxFN )
+         if (Taxonomy %in% c("AIT17_cl5196", "AIT17_cl5196_mouse")) train.list = build_train_list_WB17_cl5196( 
+                                                        pre.train.list, query.genes=NA, TrainDir, TaxDir, 
+							prefix="", nlevel=nlevel, TaxFN=TaxFN, rm.cl=rm.cl)
+         if (Taxonomy =="AIT20.0_macaque") train.list = build_train_list_20( 
+                                                        pre.train.list, query.genes=NA, TrainDir, TaxDir, 
+							prefix="", nlevel=nlevel, TaxFN=TaxFN)
+         if (Taxonomy =="AIT18.0_mouse") train.list = build_train_list_18( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN)
          if (Taxonomy=="AIT17.BG.1_mouse") train.list = build_train_list_WB17_BG( 
@@ -254,10 +290,14 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
          if (Taxonomy=="AIT17.2_mouse") train.list = build_train_list_TH17_2( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN)
-         if (Taxonomy=="AIT17.0_mouse") train.list = build_train_list_WB17( 
+
+         if (Taxonomy %in% c("AIT17_cl5196", "AIT17_cl5196_mouse")) train.list = build_train_list_WB17_cl5196( 
+                                                        pre.train.list, query.genes=NA, TrainDir, TaxDir, 
+							prefix="", nlevel=nlevel, TaxFN=TaxFN, rm.cl=rm.cl)
+         if (Taxonomy=="AIT17.0_mouse_5199") train.list = build_train_list_WB17_5199( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN)
-         if (Taxonomy=="AIT17.0_mouse_5200") train.list = build_train_list_WB17_5200( 
+         if (Taxonomy=="AIT17.0_mouse") train.list = build_train_list_WB17( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN)
          if (Taxonomy=="AIT14.0_mouse") train.list = build_train_list_WBnuc( 
@@ -293,7 +333,6 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, pre.train.list=NA
          if (Taxonomy=="AIT9.LO10_mouse")  train.list = build_train_list_FBLO10( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN)
-
          require(doMC)
          require(foreach)
          registerDoMC(cores=mc.cores)
@@ -491,6 +530,7 @@ cor_ancestor_markers <- function( qdat, assigned.df, train.cl.dat, ancestor_mark
       if (is.na(i.idx)) {
          print(paste("cor_ancestor_marker", i, i.cl, i.idx))
          out[i] = NA
+         browser()
       } else {
       cl.markers = intersect(ancestor_markers[[i.cl]], 
                              intersect(rownames(qdat), rownames(train.cl.dat)))
@@ -510,7 +550,6 @@ cor_ancestor_markers <- function( qdat, assigned.df, train.cl.dat, ancestor_mark
 #'
 #' @keywords internal
 call_ANN_cl <- function(iter_i, lvl, index.bs, qdat, prev.df, ancestor, blocksize=50000, mc.cores=10) {
-   #print("call_ANN_cl") ; browser()
    if (length(index.bs)==1 && is.na(index.bs)) { #no index
       out.df = prev.df
       # propagate best.cl to leaf level 
@@ -642,7 +681,9 @@ predict_HKNN_cl_bs <- function (query, train.list, marker_index, iter=100, mc.co
    registerDoMC(cores=mc.cores)
 
    library(data.table)
+   #map.list <- list()
    map.list <- foreach(i=1:iter, .combine="c") %dopar% {
+   #for(i in 1:iter) {#, .combine="c") %dopar% {
       cat('\r', 'iter', i, '/', iter)
       assigned.df = create_initial_df(colnames(query), "root") 
       assigned.df = predict_HKNN_cl( lvl=1, iter_i=i, marker_index,  
@@ -652,6 +693,7 @@ predict_HKNN_cl_bs <- function (query, train.list, marker_index, iter=100, mc.co
                               ancestor = train.list$ancestor, 
                               nodestr = "", topk )
       assigned.df$cl = replace_subclass_by_cl (assigned.df$cl, train.list$cl.df)
+      assigned.df$cl = replace_class_by_cl (assigned.df$cl, train.list$cl.df)
 
       if ("ancestor_markers" %in% names(train.list) && train.list$nlvl>2) {
          assigned.df$path.cor = cor_ancestor_markers(query, assigned.df, train.list$cl.dat, train.list$ancestor_markers)
@@ -660,6 +702,7 @@ predict_HKNN_cl_bs <- function (query, train.list, marker_index, iter=100, mc.co
       }
       assigned.df = add_labels (assigned.df, train.list$cl.df)
       list(assigned.df)
+   #   map.list[[i]] =list(assigned.df)
    }
    map.df = rbindlist(map.list)
    map.df = map.df %>% group_by(sample_id, cl) %>% summarize(freq=n(),dist = mean(dist), path.cor=mean(path.cor))
@@ -1022,24 +1065,22 @@ look_up_ancestor <- function(cl.df, nlvl=3) {
 
 
    library(dplyr)
+
    if (nlvl == 3) {
-      if ("neighborhood" %in% colnames(cl.df) && "subclass_label" %in% colnames(cl.df)) {
-         ancestor = cl.df %>% select(neighborhood, subclass_label, cl) %>% 
-                        mutate(level1=neighborhood, level2=subclass_label, level3=cl) %>% 
-                        select (level1, level2, level3)
-      }
-      if ("Level1_label" %in% colnames(cl.df) && "Level2_label" %in% colnames(cl.df)) {
-         ancestor = cl.df %>% select(Level1_label, Level2_label, cl) %>% 
-                        mutate(level1=Level1_label, level2=Level2_label, level3=cl) %>% 
+      if ("class_label" %in% colnames(cl.df) && "subclass_label" %in% colnames(cl.df)) {
+         ancestor = cl.df %>% select(class_label, subclass_label, cl) %>% 
+                        mutate(level1=class_label, level2=subclass_label, level3=cl) %>% 
                         select (level1, level2, level3)
       }
       ancestor$level0 = rep("root", nrow(ancestor))
       out = ancestor[, c(4,1,2,3)]
    }
    if (nlvl == 2) {
-      ancestor = cl.df %>% select(group, cl) %>% 
-                        mutate(level1=group, level2=cl) %>% 
+      if ("class_label" %in% colnames(cl.df)) {
+         ancestor = cl.df %>% select(neighborhood, cl) %>% 
+                        mutate(level1=neighborhood, level2=cl) %>% 
                         select (level1, level2)
+      }
       ancestor$level0 = rep("root", nrow(ancestor))
       out = ancestor[, c(3,1,2)]
    }
@@ -1069,15 +1110,15 @@ look_up_children <- function(cl.df, nlvl=3) {
    children <- list()
 
    if (nlvl == 3) {
-     if ("neighborhood" %in% colnames(cl.df) && "subclass_label" %in% colnames(cl.df)) {
-       # root / neighborhood / subclass / cluster 
+     if ("class_label" %in% colnames(cl.df) && "subclass_label" %in% colnames(cl.df)) {
+       # root / class_label / subclass_label / cluster 
        nodestr = "root" 
-       neighborhoods = unique(cl.df$neighborhood)
-       children[[nodestr]] = neighborhoods
-       for (nn in neighborhoods) {
+       classes = unique(cl.df$class_label)
+       children[[nodestr]] = classes
+       for (nn in classes) {
          nn.str = paste0(nodestr, ":", nn)
          #print(nn.str)
-         nn.cl.df = cl.df %>% filter(neighborhood == nn)
+         nn.cl.df = cl.df %>% filter(class_label == nn)
          nn.subclasses = unique(nn.cl.df$subclass_label)
          children[[nn.str]] = nn.subclasses
    
@@ -1095,50 +1136,26 @@ look_up_children <- function(cl.df, nlvl=3) {
          }
        }
      }
-     if ("Level1_label" %in% colnames(cl.df) && "Level2_label" %in% colnames(cl.df)) {
-       # root / Level1_label / subclass / cluster 
-       nodestr = "root" 
-       Level1_labels = unique(cl.df$Level1_label)
-       children[[nodestr]] = Level1_labels
-       for (nn in Level1_labels) {
-         nn.str = paste0(nodestr, ":", nn)
-         #print(nn.str)
-         nn.cl.df = cl.df %>% filter(Level1_label == nn)
-         nn.Level2 = unique(nn.cl.df$Level2_label)
-         children[[nn.str]] = nn.Level2
-   
-         for (ss in nn.Level2) {
-            ss.str = paste0(nn.str, ":", ss)
+   }
+
+   if (nlvl == 2) {
+      if ("class_label" %in% colnames(cl.df)) {
+         # root / class(group) / cluster(cl)
+         nodestr = "root" 
+         groups = unique(cl.df$class_label)
+         children[[nodestr]] = groups
+
+         for (ss in groups) {
+            ss.str = paste0(nodestr, ":", ss)
             #print(ss.str)
-            ss.cl.df = nn.cl.df %>% filter(Level2_label == ss)
-            ss.cls = unique(nn.cl.df$cl)
+            ss.cl.df = cl.df %>% filter(class_label == ss)
+            ss.cls = unique(ss.cl.df$cl)
             children[[ss.str]] =ss.cls
-         
+      
             for (cc in ss.cls) {
                cc.str = paste0(ss.str, ":", cc)
                children[[cc.str]] = NA
             }
-         }
-       }
-     }
-   }
-
-   if (nlvl == 2) {
-      # root / subclass(group) / cluster(cl)
-      nodestr = "root" 
-      groups = unique(cl.df$group)
-      children[[nodestr]] = groups
-
-      for (ss in groups) {
-         ss.str = paste0(nodestr, ":", ss)
-         #print(ss.str)
-         ss.cl.df = cl.df %>% filter(group == ss)
-         ss.cls = unique(ss.cl.df$cl)
-         children[[ss.str]] =ss.cls
-      
-         for (cc in ss.cls) {
-            cc.str = paste0(ss.str, ":", cc)
-            children[[cc.str]] = NA
          }
       }
    }
@@ -1279,7 +1296,7 @@ build_marker_index_tree_cl <- function (train.list, pre.train.list=NA, query.gen
 
 {
 
-   # train.list$nlvl=4 : root / neighborhood / subclass / cluster 
+   # train.list$nlvl=4 : root / class / subclass / cluster 
    # train.list$nlvl=3 : root / subclass / cluster 
    # train.list$nlvl=2 : root / cluster 
    nlevel   = train.list$nlvl-1
@@ -1367,12 +1384,12 @@ prepare_train_mmean_list <- function( anal_dir = "/allen/programs/celltypes/work
          mydat = dd.dat$fbm[gdx, sdx]
       }
       idx = match(cl.clean[samplename.sel], cl.df.clean$cl)
-      myanno.neighborhood = cl.df.clean[idx,  "neighborhood"]
+      myanno.class = cl.df.clean[idx,  "class_label"]
       myanno.subclass = cl.df.clean[idx,  "subclass_label"]
       myanno.cl = cl.df.clean[idx,  "cl"]
       
-      my.mean.neighbor = t(apply(mydat, 1, 
-                           function(x) {y=aggregate(x, list(myanno.neighborhood), mean); 
+      my.mean.class = t(apply(mydat, 1, 
+                           function(x) {y=aggregate(x, list(myanno.class), mean); 
                                         yy=y$x ; names(yy)=y$Group.1 ; return(yy)}))
       my.mean.subclass = t(apply(mydat, 1, 
                            function(x) {y=aggregate(x, list(myanno.subclass), mean); 
@@ -1383,7 +1400,7 @@ prepare_train_mmean_list <- function( anal_dir = "/allen/programs/celltypes/work
       train.mmean.dat <- list()
       train.mmean.dat[["cluster" ]] = my.mean.cluster
       train.mmean.dat[["subclass"]] = my.mean.subclass
-      train.mmean.dat[["neighbor"]] = my.mean.neighbor
+      train.mmean.dat[["class"]]    = my.mean.class
 
       save(train.mmean.dat, file=paste0("train.mmean.list.", dd, ".clean.rda"))
       print(paste0("train.mmean.list.", dd, ".clean.rda"))
@@ -1439,18 +1456,32 @@ replace_label_by_cl <- function (pred, cl.df) {
 replace_subclass_by_cl <- function (pred, cl.df) {
    mypred = pred
    cl.df = as.data.frame(cl.df)
-   if ("Level2_label" %in% colnames(cl.df)) {
-      Level2_label.idx = which(mypred %in% cl.df$Level2_label)
-      if (length(Level2_label.idx) > 0) {
-         mypred.lbl = mypred[Level2_label.idx]
-         mypred[Level2_label.idx] = cl.df[match(mypred.lbl, cl.df$Level2_label), "cl"]
-      }
-   }
    if ("subclass_label" %in% colnames(cl.df)) {
       subclass.label.idx = which(mypred %in% cl.df$subclass_label)
       if (length(subclass.label.idx) > 0) {
          mypred.lbl = mypred[subclass.label.idx]
          mypred[subclass.label.idx] = cl.df[match(mypred.lbl, cl.df$subclass_label), "cl"]
+      }
+   }
+   mypred
+}
+
+#' INFO -- PLEASE ADD --
+#'
+#' @param in.df to_be_added
+#' @param cl.df to_be_added
+#'
+#' @return ???
+#'
+#' @keywords internal
+replace_class_by_cl <- function (pred, cl.df) {
+   mypred = pred
+   cl.df = as.data.frame(cl.df)
+   if ("class_label" %in% colnames(cl.df)) {
+      class.label.idx = which(mypred %in% cl.df$class_label)
+      if (length(class.label.idx) > 0) {
+         mypred.lbl = mypred[class.label.idx]
+         mypred[class.label.idx] = cl.df[match(mypred.lbl, cl.df$class_label), "cl"]
       }
    }
    mypred
@@ -1487,22 +1518,3 @@ get_last_field <- function(x, key) {
    unlist(lapply(strsplit(x, key), function(y) {n=length(y); y[n]}))
 }
 
-#' INFO -- PLEASE ADD --
-#'
-#' @param index.bs to_be_added
-#' @param qdat to_be_added
-#' @param prev to_be_added
-#' @param children  to_be_added
-#' @param gg  to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-call_ANN_0 <- function(index.bs, qdat, prev, children, gg) {
-   out = cl.clean[colnames(qdat)]
-   if (gg == "node") out.nnn = as.character(cl.df.clean[match(out, cl.df.clean$cl), "neighborhood"])
-   if (gg %in% neighborhoods) out.nnn = as.character(cl.df.clean[match(out, cl.df.clean$cl), "subclass_label"])
-   if (gg %in% subclasses) out.nnn = as.character(cl.df.clean[match(out, cl.df.clean$cl), "cl"])
-   names(out.nnn) = colnames(qdat)
-   return(out.nnn)
-}
