@@ -1,3 +1,25 @@
+## scrattch.mapping v0.21
+
+This version of scrattch.mapping additionally simplifies the PatchSeq workflow and file structure by moving content from additional files to the h5ad and by allowing for a precalculated dendogram to be input to `buildTaxonomy()`.
+
+### Major changes
+
+* `buildTaxonomy()` allows for a precalculated dendrogram to be input (back-compatible, so by default the dendrogram is generated).
+
+* Move the patchseqQC variables from file to Anndata object (only only remaining files outside h5ad are dend.RData, de.genes.rda, and membership_information_reference.rda, which we plan to move to the h5ad in future updates).
+
+### Minor changes
+
+* Create a new example for generating the [Hodge et al 2019](https://www.nature.com/articles/s41586-019-1506-7) MTG taxonomy and mapping patch-seq to it.
+
+* Allow `loadTaxonomy()` to read either a folder location or an anndata file directly.
+
+* Error correction in addDendrogramMarkers (and other functions).
+  
+* Auto-correct '\' --> '/' for different platforms in file paths to allow compatibility betwee Windows and Unix, through use of a `file.path()` wrapper (beta).
+
+---
+
 ## scrattch.mapping v0.2
 
 Updates to this version of scrattch.mapping are primarily associated with improving and simplifying the PatchSeq workflow by allowing for Taxonomy versions which filter out target cell types and can be re-used once built. Moving towards removal of label.cols from `taxonomy_mapping()`.
@@ -10,7 +32,7 @@ Updated examples for new workflows are provided on our github page.
 
 * Enabled the dynamic modification of a `base` taxonomy into a filtered taxonomy `version` for mapping using Corr, Tree and Seurat.
 
-* Taxonomy `versions` are store in the .h5ad file and can be reused in future mappings by an user.
+* Taxonomy `versions` are stored in the .h5ad file and can be reused in future mappings by an user.
 
 ### Minor changes
 
