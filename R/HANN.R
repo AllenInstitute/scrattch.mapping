@@ -117,6 +117,7 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy,
                    "AIT18.0_mouse", #WB snRNAseq	
                    "AIT17_cl5196_mouse", #WB
                    "AIT17_cl5196",       #WB
+                   "AIT17_knowledge",       #WB
                    "AIT17.BG.1_mouse",   #WB_BG
                    "AIT17.FB.1_mouse",   #WB_FB
                    "AIT17.TR_mouse",     #WB
@@ -188,6 +189,11 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy,
       if (Taxonomy %in% c("AIT17_cl5196", "AIT17_cl5196_mouse")) { # WB 5196
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT17_cl5196"
+      }
+
+      if (Taxonomy %in% c("AIT17_knowledge")) { # WB 5196
+         TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb"
+         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT17_knowledge"
       }
       if (Taxonomy=="AIT17.0_mouse") { #WB_2022_Yao
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb"
@@ -297,6 +303,10 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy,
          if (Taxonomy=="AIT17.0_mouse_5199") train.list = build_train_list_WB17_5199( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN)
+
+         if (Taxonomy %in% c("AIT17_knowledge")) train.list = build_train_list_knowledge( 
+                                                        pre.train.list, query.genes=NA, TrainDir, TaxDir, 
+							prefix="", nlevel=nlevel, TaxFN=TaxFN, rm.cl=rm.cl)
          if (Taxonomy=="AIT17.0_mouse") train.list = build_train_list_WB17( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN)
