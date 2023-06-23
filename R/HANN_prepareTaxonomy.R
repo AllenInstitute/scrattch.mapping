@@ -57,8 +57,11 @@ prepareTaxonomy <- function (
    pairs.FN = file.path(AIT.dir, "pairs.parquet")
    cl.bin.FN = file.path(AIT.dir, "cl.bin.rda")
 
+   
    if (is.null(big.dat)) {
       ## convert norm.data matrix to big.dat in parquet
+      count = count[, sample_cells[cl,200]]
+      cl = cl[colnames(count)]
       count.sparse = as(count, 'sparseMatrix')
       big.dat=convert_big.dat_parquet(count.sparse,  dir=dat.dir)
       save(big.dat, file=file.path(AIT.dir, "big.dat.rda"))
@@ -72,7 +75,7 @@ prepareTaxonomy <- function (
    cl.means = cl.stats$means
    save(cl.means, file=file.path(AIT.dir, "cl.means.rda"))
 
-   cl.df = rearrange_cl.df (cl.df.usrs, cl.hierarchy) 
+   cl.df = rearrange_cl.df (cl.df.users, cl.hierarchy) 
    save(cl.df, file=file.path(AIT.dir, "cl.df.rda"))
 
    ## calculate all-pairwise DE genes 
@@ -98,7 +101,7 @@ prepareTaxonomy <- function (
 #' @export
 rearrange_cl.df <- function (cl.df, cl.hierarchy) {
 
-   nlevel=1 + length(cl.hierarhcy)
+   nlevel=length(cl.hierarchy)
    if (nlevel==2) {
       hier_label = c('root', 'cl')
       cl         = cl.df[, cl.hierarchy[2]]
