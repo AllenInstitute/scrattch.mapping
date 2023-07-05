@@ -10,9 +10,8 @@
 #' @param cluster_colors An optional named character vector where the values correspond to colors and the names correspond to celltypes in celltypeColumn.  If this vector is incomplete, a warning is thrown and it is ignored. cluster_colors can also be provided in the metadata (see notes)
 #' @param metadata_names An optional named character vector where the vector NAMES correspond to columns in the metadata matrix and the vector VALUES correspond to how these metadata should be displayed in Shiny. This is used for writing the desc.feather file later.
 #' @param subsample The number of cells to retain per cluster
-#' @param reorder.dendrogram Should dendogram attempt to match a preset order? (Default = FALSE).  If TRUE, the dendrogram attempts to match the celltype factor order as closely as possible (if celltype is a character vector rather than a factor, this will sort clusters alphabetically, which is not ideal).
 #' @param dend Existing dendrogram associated with this taxonomy (e.g., one calculated elsewhere).  If NULL (default) a new dendrogram will be calculated based on the input `feature.set`
-#' @param return.anndata Should the anndata object be returned in addition to written to the file (default=FALSE)
+#' @param reorder.dendrogram Should dendogram attempt to match a preset order? (Default = FALSE).  If TRUE, the dendrogram attempts to match the celltype factor order as closely as possible (if celltype is a character vector rather than a factor, this will sort clusters alphabetically, which is not ideal).
 #' 
 #' Notes: Precomputed clusters must be provided.  In the anndata object these will be stored using the term "cluster".  If celltypeColumn is anything other than cluster, then any existing "cluster" column will be overwritten by celltypeColumn.  Values can be provided without colors and ids (e.g., "cluster") or with them (e.g., "cluster_label" + "cluster_color" + "cluster_id").  In this case cluster_colors is ignored and colors are taken directly from the metadata.  Cluster_id's will be overwritten to match dendrogram order.
 #' 
@@ -38,8 +37,7 @@ buildTaxonomy = function(counts,
                          metadata_names = NULL,
                          subsample=2000,
                          reorder.dendrogram = FALSE,
-                         dend = NULL,
-                         return.anndata=FALSE){
+                         dend = NULL){
 
   ## Checks
   if(sum(is.element(paste0(celltypeColumn,c("","_label")), colnames(meta.data)))==0){stop("cluster column must be defined in the meta.data object")}
@@ -47,7 +45,6 @@ buildTaxonomy = function(counts,
   if(is.null(umap.coords)){stop("Compute UMAP dimensions and supply umap.coords")}
   if(!all(colnames(counts) == rownames(meta.data))){stop("Colnames of `counts` and rownames of `meta.data` do not match.")}
   if(!is.data.frame(meta.data)){stop("meta.data must be a data.frame, convert using as.data.frame(meta.data)")}
-  #if(!is.matrix(counts)){stop("counts must be of type matrix.")}
 
   ## Rename celltypeColumn to "cluster" if needed
   celltypeColumn <- gsub("_label","",celltypeColumn)
@@ -62,13 +59,13 @@ buildTaxonomy = function(counts,
   if(sum(is.element(c("cluster","cluster_label"),colnames(meta.data)))>1){stop("Only a single cluster column can be provided (e.g., cluster or cluster_label but not both).")}
   
   ## Capture the cluster colors from the metadata if provided and if possible
-  if(length(is.element("cluster_color",colnames(meta.data)))==1){
+  if(sum(is.element("cluster_color", colnames(meta.data))) == 1){
     if(length(meta.data$cluster_label)>0){
-      cluster_colors <- setNames(meta.data$cluster_color,meta.data$cluster_label)
+      cluster_colors <- setNames(meta.data$cluster_color, meta.data$cluster_label)
       cluster_colors <- cluster_colors[unique(names(cluster_colors))]
       meta.data$cluster <- meta.data$cluster_label
       meta.data <- meta.data[,setdiff(colnames(meta.data),paste0("cluster",c("_label","_id","_color")))]
-    } else {
+    }else {
       warning("Cannot match cluster_label and cluster_color in meta.data, so cluster_color will be ignored.")
     }
   }
@@ -77,11 +74,11 @@ buildTaxonomy = function(counts,
   if(!is.null(dend)){
     if(!is.element("dendrogram",class(dend))){stop("If provided, dend must be of R class dendrogram.")}
     clusters=unique(meta.data$cluster)
-    extra_labels <- setdiff(labels(dend),clusters)
+    extra_labels <- setdiff(labels(dend), clusters)
     if(length(extra_labels)>0){stop(paste("Dendrogram has labels not included in metadata:",paste(extra_labels,collapse=", ")))}
-    extra_labels <- setdiff(clusters,labels(dend))
+    extra_labels <- setdiff(clusters, labels(dend))
     if(length(extra_labels)>0){
-      warning(paste0("Metadata include cluster labels not found in dendrogram: ",paste(extra_labels,collapse=", "),
+      warning(paste0("Metadata include cluster labels not found in dendrogram: ", paste(extra_labels, collapse=", "),
                      ". Cells from these clusters will be EXCLUDED from all taxonomy files."))
     }
   }
@@ -93,9 +90,9 @@ buildTaxonomy = function(counts,
   ## Subsample nuclei per cluster, max
   kpClusters <- rep(TRUE,length(meta.data$cluster))
   if(!is.null(dend))
-    kpClusters <- is.element(meta.data$cluster,labels(dend)) # exclude missing clusters, if any
+    kpClusters <- is.element(meta.data$cluster, labels(dend)) # exclude missing clusters, if any
   if((subsample > 0) & (subsample < Inf)){
-      kpSub = colnames(counts)[subsampleCells(meta.data$cluster, subsample)&kpClusters]
+      kpSub = colnames(counts)[subsampleCells(meta.data$cluster, subsample) & kpClusters]
   }else{
       kpSub = colnames(counts)[kpClusters]
   }
@@ -252,8 +249,6 @@ buildTaxonomy = function(counts,
   ##
   print("===== Building count, median, sum feathers =====")
   all_clusters = unique(meta.data$cluster_label) ## cluster_id
-  #all_clusters = all_clusters[order(all_clusters)]
-  #allClust = paste0("cluster_", all_clusters)
   count_gt0 = matrix(0, ncol = length(all_clusters), nrow = nrow(data.tibble))
   count_gt1 = sums = medianmat = count_gt0
 
@@ -261,8 +256,8 @@ buildTaxonomy = function(counts,
   for (i in 1:length(all_clusters)) {
     cluster = all_clusters[i]
     cluster_samples = which(meta.data$cluster_label == cluster)
-    cluster_data    = tpm.matrix[,cluster_samples]
-    cluster_counts  = counts[,colnames(cluster_data)]
+    cluster_data    = tpm.matrix[,cluster_samples,drop=F]
+    cluster_counts  = counts[,colnames(cluster_data),drop=F]
     count_gt0[, i]  = Matrix::rowSums(cluster_counts > 0)
     count_gt1[, i]  = Matrix::rowSums(cluster_counts > 1)
     sums[, i]       = Matrix::rowSums(cluster_counts)
@@ -313,19 +308,20 @@ buildTaxonomy = function(counts,
       umap = umap.coords ## A data frame with sample_id, and 2D coordinates for umap (or comparable) representation(s)
     ),
     uns = list(
-      dend        = list("standard" = file.path(file.path(taxonomy), "dend.RData",leading_string="/")), # FILE NAME with dendrogram
+      dend        = list("standard" = file.path(taxonomyDir, "dend.RData", leading_string="/")), # FILE NAME with dendrogram
       filter      = list("standard" = rep(FALSE, nrow(datReference))),
-      #QC_markers  = list("standard" = file.path(taxonomyDir, "QC_markers.RData")), # Not needed
-      clustersUse = clustersUse, #list("standard" = clustersUse),
-      clusterInfo = clusterInfo, #list("standard" = clusterInfo),
+      QC_markers  = list("standard" = NA), ## Standard should always be empty for QC_markers
+      mode = "standard", ## Default mode to standard
+      clustersUse = clustersUse,
+      clusterInfo = clusterInfo,
       taxonomyName = taxonomyName,
       taxonomyDir = taxonomyDir
     )
   )
   AIT.anndata$write_h5ad(file.path(taxonomyDir, "AI_taxonomy.h5ad"))
   
-  ## Optionally return the anndata object
-  if(return.anndata) return(AIT.anndata)
+  ## Return the anndata object
+  return(AIT.anndata)
 }
 
 #' Add marker genes to reference dendrogram for tree mapping
@@ -342,7 +338,6 @@ buildTaxonomy = function(counts,
 #' @param bs.num Number of bootstrap runs for creating the dendrogram (default of 100)
 #' @param p proportion of marker genes to include in each iteration of the mapping algorithm.
 #' @param low.th the minimum difference in Pearson correlation required to decide on which branch
-#' @param taxonomyDir The location to save shiny output, if desired
 #' @param overwriteMarkers If markers already are calculated a tree, should they be overwritten (default = TRUE)
 #'
 #' NOTES
@@ -380,22 +375,23 @@ addDendrogramMarkers = function(AIT.anndata,
                                 bs.num=100, 
                                 p=0.8, 
                                 low.th=0.1,
-                                taxonomyDir = getwd(),
                                 overwriteMarkers = TRUE){
-
+  print("Define some relevant variables")
   ## We should already know this? Clean up in future.
-  if(!is.element(celltypeColumn, colnames(AIT.anndata$obs))){stop(paste(celltypeColumn, "is not a column in the metadata data frame."))}
+  if(!is.element(celltypeColumn, colnames(AIT.anndata$obs))){ stop(paste(celltypeColumn, "is not a column in the metadata data frame.")) }
 
   ##
   if(mode == "standard"){ taxonomyModeDir = file.path(AIT.anndata$uns$taxonomyDir) } else { taxonomyModeDir = file.path(file.path(AIT.anndata$uns$taxonomyDir), mode) }
-  if(!dir.exists(taxonomyModeDir)){  stop("Taxonomy version doesn't exist, please run `buildPatchseqTaxonomy()` then retry.") }
+  if(!dir.exists(taxonomyModeDir)){ stop("Taxonomy version doesn't exist, please run `buildPatchseqTaxonomy()` then retry.") }
 
+  print("Define some relevant variables")
   ## Filter
   AIT.anndata = AIT.anndata[!AIT.anndata$uns$filter[[mode]]]
 
   ## Subsample
   keep.samples = subsampleCells(AIT.anndata$obs[[celltypeColumn]], subsample) ##  & is.element(cluster.vector, labels(dend))
 
+  print("Define some relevant variables")
   ## Checks and data formatting
   dend = readRDS(file.path(AIT.anndata$uns$dend[[mode]]))
 
@@ -423,9 +419,7 @@ addDendrogramMarkers = function(AIT.anndata,
   
   ## Compute markers
   print("Define marker genes and gene scores for the tree")
-  
-  if((sum(!is.na(get_nodes_attr(dend, "markers")))==0)|(overwriteMarkers==FALSE)){
-  
+  if((sum(!is.na(get_nodes_attr(dend, "markers"))) == 0) | (overwriteMarkers == TRUE)){
     if((!file.exists(file.path(taxonomyModeDir, "de.genes.rda"))) | calculate.de.genes){
       print("=== NOTE: This step can be very slow (several minute to many hours).")
       print("      To speed up the calculation (or if it crashes) try decreasing the value of subsample.")
@@ -462,17 +456,18 @@ addDendrogramMarkers = function(AIT.anndata,
     }))
     labels(reference$dend) = setNames(colnames(reference$cl.dat), colnames(reference$cl.dat))
     print("...marker gene calculation for reference complete")
-  } else { # NOTE: THIS IS UNTESTED
+  } else {
+    ## Use already defined marker genes on tree
     print("Build the reference dendrogram")
     reference <- list(
       dend = dend,
-      cl.dat = get_cl_means(norm.dat, cl)
+      cl.dat = get_cl_means(norm.data, select.cl)
     )
     print("...existing markers used in reference")
   }
     
   ##
-  if(sum(!is.na(get_nodes_attr(reference$dend, "original_label"))>0)){
+  if(sum(!is.na(get_nodes_attr(reference$dend, "original_label")) > 0)){
     print("This section is needed if the starting dendrogram is from the nomenclature GitHub ")
     reference$dend = revert_dend_label(reference$dend,get_nodes_attr(reference$dend, "original_label"),"label")
   }
@@ -480,8 +475,8 @@ addDendrogramMarkers = function(AIT.anndata,
   print("Save the reference dendrogram for this mode")
   dend = reference$dend
   saveRDS(dend, file.path(taxonomyModeDir, "dend.RData"))
-  # Note, this overwrites the initial dendrogram but has slightly different formatting from the read, which could cause issues
-  # dend = readRDS(AIT.anndata$uns$dend[[mode]])
+  ## Note, this overwrites the initial dendrogram but has slightly different formatting from the read, which could cause issues
+  ## dend = readRDS(AIT.anndata$uns$dend[[mode]])
     
   if(save.shiny.output){
     ## NOTE: These are used for a version of mapping not yet implemented (KL mapping)

@@ -16,8 +16,7 @@ buildTaxonomy(
   metadata_names = NULL,
   subsample = 2000,
   reorder.dendrogram = FALSE,
-  dend = NULL,
-  return.anndata = FALSE
+  dend = NULL
 )
 }
 \arguments{
@@ -41,13 +40,11 @@ buildTaxonomy(
 
 \item{subsample}{The number of cells to retain per cluster}
 
-\item{reorder.dendrogram}{Should dendogram attempt to match a preset order? (Default = FALSE).  If TRUE, the dendrogram attempts to match the celltype factor order as closely as possible (if celltype is a character vector rather than a factor, this will sort clusters alphabetically, which is not ideal).}
-
-\item{dend}{Existing dendrogram associated with this taxonomy (e.g., one calculated elsewhere).  If NULL (default) a new dendrogram will be calculated based on the input \code{feature.set}}
-
-\item{return.anndata}{Should the anndata object be returned in addition to written to the file (default=FALSE)
+\item{reorder.dendrogram}{Should dendogram attempt to match a preset order? (Default = FALSE).  If TRUE, the dendrogram attempts to match the celltype factor order as closely as possible (if celltype is a character vector rather than a factor, this will sort clusters alphabetically, which is not ideal).
 
 Notes: Precomputed clusters must be provided.  In the anndata object these will be stored using the term "cluster".  If celltypeColumn is anything other than cluster, then any existing "cluster" column will be overwritten by celltypeColumn.  Values can be provided without colors and ids (e.g., "cluster") or with them (e.g., "cluster_label" + "cluster_color" + "cluster_id").  In this case cluster_colors is ignored and colors are taken directly from the metadata.  Cluster_id's will be overwritten to match dendrogram order.}
+
+\item{dend}{Existing dendrogram associated with this taxonomy (e.g., one calculated elsewhere).  If NULL (default) a new dendrogram will be calculated based on the input \code{feature.set}}
 }
 \value{
 AIT anndata object in the specified format (only if return.anndata=TRUE)

@@ -55,13 +55,13 @@ buildPatchseqTaxonomy = function(AIT.anndata,
   metadata = AIT.anndata$obs
 
   ## Ensure variable naming scheme matches assumptions
-  metadata$subclass_label = metadata[,subclass.column]  # For compatibility with existing code.
-  metadata$class_label = metadata[,class.column]  # For compatibility with existing code.
+  metadata$subclass_label = AIT.anndata$obs[,subclass.column]  # For compatibility with existing code.
+  metadata$class_label = AIT.anndata$obs[,class.column]  # For compatibility with existing code.
   
   ## Subsample and filter metadata and data
   kpSamp2  = subsampleCells(metadata$subclass_label, subsample)
   goodSamp = !is.na(metadata$class_label)  # For back-compatibility; usually not used
-  kpSamp2  = kpSamp2&goodSamp              # For back-compatibility; usually not used
+  kpSamp2  = kpSamp2 & goodSamp            # For back-compatibility; usually not used
   annoQC   = metadata[kpSamp2,]
   annoQC$subclass_label = make.names(annoQC$subclass_label)
   datQC    = as.matrix(Matrix::t(AIT.anndata$layers["counts"])[,kpSamp2])
@@ -71,6 +71,7 @@ buildPatchseqTaxonomy = function(AIT.anndata,
   offTarget = is.element(annoQC$class_label, off.target.types) | is.element(annoQC$subclass_label, off.target.types)
   if(sum(offTarget)==0){stop("No valid off-target classes or subclasses are provided. Please update off.target.types accordingly.")}
   
+  ## 
   classBr   = annoQC$subclass_label
   classBr[!offTarget] = annoQC$class_label[!offTarget]
   classBr   = factor(classBr)
@@ -87,9 +88,7 @@ buildPatchseqTaxonomy = function(AIT.anndata,
   ## Identify off target cells to filter out.
   AIT.anndata$uns$filter[[mode.name]] = is.element(metadata$class_label, off.target.types) | is.element(metadata$subclass_label, off.target.types)
   
-  # Save patchseqQC information to uns
-  #save(markers, countsQC, cpmQC, classBr, subclassF, allMarkers, file=file.path(taxonomyModeDir, "QC_markers.RData"))
-  #AIT.anndata$uns$QC_markers[[mode.name]] = file.path(taxonomyModeDir, "QC_markers.RData")
+  ## Save patchseqQC information to uns
   AIT.anndata$uns$QC_markers[[mode.name]]$allMarkers = allMarkers
   AIT.anndata$uns$QC_markers[[mode.name]]$markers    = markers
   AIT.anndata$uns$QC_markers[[mode.name]]$countsQC   = countsQC
@@ -98,13 +97,10 @@ buildPatchseqTaxonomy = function(AIT.anndata,
   AIT.anndata$uns$QC_markers[[mode.name]]$subclassF  = subclassF
   AIT.anndata$uns$QC_markers[[mode.name]]$qc_samples = colnames(countsQC) # since colnames are lost
   AIT.anndata$uns$QC_markers[[mode.name]]$qc_genes   = rownames(countsQC) # since rownames are lost
-
   
   ##################
   ## ------- Modify the dendrogram and save
   ##
-  ## Filter the taxonomy to remove off.target types
-  # AIT.anndata = AIT.anndata[!AIT.anndata$uns$filter[[mode.name]]]
 
   ## Load the complete dendrogram
   dend = readRDS(file.path(AIT.anndata$uns$dend[["standard"]]))

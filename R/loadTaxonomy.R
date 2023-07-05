@@ -1,6 +1,7 @@
 #' Read in a reference data set in Allen taxonomy format
 #'
 #' @param taxonomyDir Directory containing the Shiny taxonomy -OR- a direct h5ad file name.
+#' @param anndata_file File name of the anndata object to be loaded.
 #' @param sample_id Field in reference taxonomy that defines the sample_id.
 #' @param hGenes User supplied variable gene vector.  If not provided, then all genes are used.
 #' @param gene_id Field in counts.feather that defines the gene_id.
@@ -11,30 +12,26 @@
 #'
 #' @export
 loadTaxonomy = function(taxonomyDir, 
+                        anndata_file = "AI_taxonomy.h5ad",
                         sample_id = "sample_id", 
                         hGenes=NULL, 
                         gene_id = "gene",
                         force=FALSE){
-  ## Load from file name input
-  if(substr(taxonomyDir,nchar(taxonomyDir)-3,nchar(taxonomyDir))=="h5ad"){
-    if(file.exists(taxonomyDir)){
-      print("Loading reference taxonomy into memory from .h5ad")
-      ## Load taxonomy directly!
-      AIT.anndata = read_h5ad(taxonomyDir)
-    } else {
-      stop(paste("h5ad file",taxonomyDir,"does not exist."))
-    }
+
   ## Load from directory name input 
-  } else if(file.exists(file.path(taxonomyDir, "AI_taxonomy.h5ad")) & force == FALSE){
+  if(file.exists(file.path(taxonomyDir, anndata_file)) & force == FALSE){
     print("Loading reference taxonomy into memory from .h5ad")
     ## Load taxonomy directly!
     AIT.anndata = read_h5ad(file.path(taxonomyDir, "AI_taxonomy.h5ad"))
+    ## Ensure anndata is in scrattch.mapping format
+    ## ..
   } else if(all(file.exists(c(file.path(taxonomyDir,"anno.feather"), 
-                             file.path(taxonomyDir,"data.feather"), 
-                             file.path(taxonomyDir,"counts.feather"), 
-                             file.path(taxonomyDir,"tsne.feather"))))){
+                              file.path(taxonomyDir,"data.feather"), 
+                              file.path(taxonomyDir,"counts.feather"), 
+                              file.path(taxonomyDir,"tsne.feather"))))){
+    ##
     print("Loading reference taxonomy into memory from .feather")
-
+    
     ## Read in reference data and annotation files and format correctly
     annoReference   = feather(file.path(taxonomyDir,"anno.feather")) 
     exprReference   = feather(file.path(taxonomyDir,"data.feather"))
@@ -122,12 +119,6 @@ loadTaxonomy = function(taxonomyDir,
         taxonomyDir = taxonomyDir
       )
     )
-    AIT.anndata$uns$QC_markers[["standard"]]$allMarkers = allMarkers
-    AIT.anndata$uns$QC_markers[["standard"]]$markers    = markers
-    AIT.anndata$uns$QC_markers[["standard"]]$countsQC   = countsQC
-    AIT.anndata$uns$QC_markers[["standard"]]$cpmQC      = cpmQC
-    AIT.anndata$uns$QC_markers[["standard"]]$classBr    = classBr
-    AIT.anndata$uns$QC_markers[["standard"]]$subclassF  = subclassF
     AIT.anndata$write_h5ad(file.path(taxonomyDir, "AI_taxonomy.h5ad")) ## Save the anndata taxonomy so the next person doesn't have to build it :).
   }else{
     stop("Required files to load Allen Institute taxonomy are missing.")

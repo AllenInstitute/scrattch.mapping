@@ -18,7 +18,6 @@ addDendrogramMarkers(
   bs.num = 100,
   p = 0.8,
   low.th = 0.1,
-  taxonomyDir = getwd(),
   overwriteMarkers = TRUE
 )
 }
@@ -46,8 +45,6 @@ addDendrogramMarkers(
 \item{p}{proportion of marker genes to include in each iteration of the mapping algorithm.}
 
 \item{low.th}{the minimum difference in Pearson correlation required to decide on which branch}
-
-\item{taxonomyDir}{The location to save shiny output, if desired}
 
 \item{overwriteMarkers}{If markers already are calculated a tree, should they be overwritten (default = TRUE)
 

@@ -7,6 +7,7 @@
 run_mapping_on_taxonomy(
   query.dat,
   Taxonomy = "AIT17.0_mouse",
+  TaxHome = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/",
   prefix = "",
   TaxFN = NA,
   prebuild = FALSE,
@@ -28,6 +29,8 @@ run_mapping_on_taxonomy(
 }
 \arguments{
 \item{Taxonomy}{:   AIT id for available Taxonomies for mapping in the table}
+
+\item{TaxHome}{: diretory path holding taxonomy refrence files}
 
 \item{prefix}{: your data descriptor  and platform
 '10x_nuclei', 'MFISH', 'patchseq', ....

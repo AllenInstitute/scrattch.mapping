@@ -22,8 +22,29 @@ file.path <- function(AIT.anndata, mode){
 #' 
 #' @export
 mappingMode <- function(AIT.anndata, mode){
-  if(!mode %in% names(AIT.anndata$uns$filter)){ stop(paste0(mode, " is invalid. Choose from: standard, patchseq")) }
+  if(!mode %in% names(AIT.anndata$uns$filter)){ stop(paste0(mode, " is invalid. Choose from: ", names(AIT.anndata$uns$filter))) }
   AIT.anndata$uns$mode = mode
+  ## Backwards compatibility for new QC markers storage
+  if(is.null(AIT.anndata$uns$QC_markers[[mode]]$allMarkers)){
+    QC_marker_file = file.path(AIT.anndata$uns$taxonomyDir, mode, "QC_markers.rda")
+    if(file.exists(QC_marker_file)){
+      ## 
+      print("Converting taxonomy .h5ad to new format and saving. This should only happen once per taxonomy.")
+      ##
+      load(QC_marker_file)
+      AIT.anndata$uns$QC_markers[[mode]]$allMarkers = allMarkers
+      AIT.anndata$uns$QC_markers[[mode]]$markers    = markers
+      AIT.anndata$uns$QC_markers[[mode]]$countsQC   = countsQC
+      AIT.anndata$uns$QC_markers[[mode]]$cpmQC      = cpmQC
+      AIT.anndata$uns$QC_markers[[mode]]$classBr    = classBr
+      AIT.anndata$uns$QC_markers[[mode]]$subclassF  = subclassF
+      AIT.anndata$uns$QC_markers[[mode]]$qc_samples = colnames(countsQC) # since colnames are lost
+      AIT.anndata$uns$QC_markers[[mode]]$qc_genes   = rownames(countsQC) # since rownames are lost
+      AIT.anndata$write_h5ad(file.path(AIT.anndata$uns$taxonomyDir, "AI_taxonomy.h5ad"))
+    }else{
+      stop("Could not find QC marker files required for taxonomy mode. Please run buildPatchseqTaxonomy and try again.")
+    }
+  }
   return(AIT.anndata)
 }
 

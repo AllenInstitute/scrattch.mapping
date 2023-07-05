@@ -17,18 +17,18 @@ library(data.table) # for using fread below
 data(dend_Hodge2019) 
 
 ## Download data and metadata from the website (this is slow)
-# NOT AVAILABLE YET. Instead copy the two files below from "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT15.2/" to your working directory
+## NOT AVAILABLE YET. Instead copy Hodge2019_metadata.csv and Hodge2019_counts.csv.gz from "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT15.2/" to your working directory.
 
 ## Read data and metadata into R
-taxonomy.metadata <- read.csv("Hodge2019_metadata.csv",row.names=1)
-taxonomy.counts   <- as.matrix(fread("Hodge2019_counts.csv.gz"),rownames=1)
+taxonomy.metadata <- read.csv("/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT15.2/Hodge2019_metadata.csv",row.names=1)
+taxonomy.counts   <- as.matrix(fread("/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT15.2/Hodge2019_counts.csv.gz"),rownames=1) ## This requires R.utils
 colnames(taxonomy.counts) <- rownames(taxonomy.metadata) # To correct "-" to "." conversion introduced at some point. 
 ```
 
 ### Create the base Shiny Taxonomy for the ENTIRE Hodge et al 2019 data set
 ```R
 ## This is where our taxonomy will be created
-taxonomy = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT15.2/"
+taxonomy = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT15.2_test/"
 
 ## Compute top 1000 binary marker genes for clusters
 binary.genes = top_binary_genes(taxonomy.counts, taxonomy.metadata$cluster_label, 1000)
@@ -41,18 +41,17 @@ umap.coords = umap(pcs[,1:30])$layout
 rownames(umap.coords) = colnames(taxonomy.counts)
 
 ## Build Shiny taxonomy 
-buildTaxonomy(counts      = taxonomy.counts,
+AIT.anndata = buildTaxonomy(counts = taxonomy.counts,
               meta.data   = taxonomy.metadata,
               dend        = dend_Hodge2019,  # Can be omitted and buildTaxonomy will generate a dendrogram
               feature.set = binary.genes,
               umap.coords = umap.coords,
               taxonomyName= "MTG_Hodge2019", ## NEW!
               taxonomyDir = taxonomy,
-              subsample   = 100,
-              return.anndata = FALSE) # If TRUE, can skip "loadTaxonomy" step
+              subsample   = 100)
 
 ## Load the taxonomy (from h5ad file name)
-AIT.anndata = loadTaxonomy("AI_taxonomy.h5ad")
+AIT.anndata = loadTaxonomy(taxonomy, "AI_taxonomy.h5ad")
 ```
 
 ### Build the patchseq taxonomy:
@@ -87,7 +86,7 @@ The rest of this example demonstrates how to read in patch-seq data and map it t
 ### Now read in and process QUERY patch-seq data
 ```R
 ## Download data and metadata from GitHub repo for Berg et al 2022
-download.file("https://github.com/AllenInstitute/patchseq_human_L23/raw/master/data/input_patchseq_data_sets.RData","patchseq.RData",mode="wb")
+download.file("https://github.com/AllenInstitute/patchseq_human_L23/raw/master/data/input_patchseq_data_sets.RData", "patchseq.RData", mode="wb")
 
 ## Load the data
 load("patchseq.RData")

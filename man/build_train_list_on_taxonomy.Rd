@@ -7,10 +7,11 @@
 build_train_list_on_taxonomy(
   TaxFN = NA,
   Taxonomy,
+  TaxHome = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/",
   pre.train.list = NA,
   query.genes = NA,
   prefix = "",
-  mapping.method = c("flat", "hierarchy"),
+  mapping.method = c("flat", "one-step", "hierarchy"),
   nlevel = 2,
   prebuild = FALSE,
   newbuild = FALSE,
