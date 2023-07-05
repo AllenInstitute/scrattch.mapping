@@ -115,6 +115,8 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy,
                    "Human_MTG_Benchmarking",
                    "AIT20.0_macaque",    # Macaque_MTG
                    "AIT18.0_mouse", #WB snRNAseq	
+                   "AIT18.1_mouse", #WB snRNAseq	
+                   "AIT19.0_mouse", #WB snRNAseq	
                    "AIT17_cl5196_mouse", #WB
                    "AIT17_cl5196",       #WB
                    "AIT17_knowledge",       #WB
@@ -162,6 +164,14 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy,
       if (Taxonomy=="AIT20.0_macaque") { 
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/changkyul/Macaquet_MTG"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT20.0_macaque"
+      }
+      if (Taxonomy=="AIT19.0_mouse") { 
+         TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb"
+         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT19.0_mouse"
+      }
+      if (Taxonomy=="AIT18.1_mouse") { 
+         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT18.1_mouse"
+         TrainDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT18.0_mouse"
       }
       if (Taxonomy=="AIT18.0_mouse") { 
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT18.0_mouse"
@@ -281,6 +291,12 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy,
          if (Taxonomy =="AIT20.0_macaque") train.list = build_train_list_20( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN)
+         if (Taxonomy =="AIT19.0_mouse") train.list = build_train_list_19( 
+                                                        pre.train.list, query.genes=NA, TrainDir, TaxDir, 
+							prefix="", nlevel=nlevel, TaxFN=TaxFN)
+         if (Taxonomy =="AIT18.1_mouse") train.list = build_train_list_18_1( 
+                                                        pre.train.list, query.genes=NA, TrainDir, TaxDir, 
+							prefix="", nlevel=nlevel, TaxFN=TaxFN)
          if (Taxonomy =="AIT18.0_mouse") train.list = build_train_list_18( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN)
@@ -346,8 +362,9 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy,
          require(doMC)
          require(foreach)
          registerDoMC(cores=mc.cores)
-
+     
          MI_str = paste0('nlevel', nlevel_str, '_marker_index')
+         print(MI_str)
          train.list = build_marker_index_tree_cl ( train.list, pre.train.list=pre.train.list, query.genes=NA,
                                                    outdir=file.path(TaxDir, MI_str),
                                                    div_thr=3, subsample_pct=subsample_pct,
@@ -645,8 +662,9 @@ predict_HKNN_cl <- function(lvl, iter_i, marker_index, query, assigned.df, child
       nn.sample   = names(assigned)[which(assigned == gg)]
       nn.children = children[[nn]]
       if ( nn %in% names(marker_index) && 
-           length(marker_index[[nn]]$marker_tree)>0 && 
-           !is.na(marker_index[[nn]]$marker_tree) ) {
+           !is.na(marker_index[[nn]]$index_tree) && 
+           !is.na(marker_index[[nn]]$marker_tree) &&
+           !is.null(marker_index[[nn]]$marker_tree) ) {
          if (is.null(children[[nn]]) || is.na(children[[nn]])) {       # no children
             nn.assigned.df = assigned.df[nn.sample, ] 
          } else {                             # more than 1 children
@@ -1220,6 +1238,7 @@ build_marker_index_cl <- function( nn.str, lvl, nlevel, pre.marker_index=NA, que
       nn.markers.FN = paste0(outdir, "/marker.", nn.tmp,".rda")
       nn.markers.level.FN = paste0(outdir, "/marker.", lvl, ".", nn.tmp,".rda")
       if (file.exists(nn.markers.FN)) {
+         #print(paste(nn.markers.FN, "is there"))
          if (file.info(nn.markers.FN)$size > 0) {
             load(nn.markers.FN)
             save(nn.markers, file=nn.markers.level.FN)
@@ -1249,6 +1268,7 @@ build_marker_index_cl <- function( nn.str, lvl, nlevel, pre.marker_index=NA, que
       nn.cl.idx  = match(intersect(colnames(train.dat), nn.cl), colnames(train.dat))
    
       nn.dat = train.dat[nn.markers, nn.cl.idx]
+      #print(paste(nn.markers.FN, " : index is being calculated"))
       nn.index = build_train_index_bs( nn.dat, method="cor", 
                                        fn=paste0(outdir, "/index.", nn.tmp), 
                                        sample.markers.prop=subsample_pct, mc.cores=mc.cores )
@@ -1279,7 +1299,7 @@ build_marker_index_node_cl <- function( lvl, nlevel, nodestr, cl.df, marker_inde
       nn = paste0(nodestr, gg)
       nn.lvl = lvl
       if (!(length(children[[nn]])==1 && is.na(children[[nn]]))) {
-         print(paste("group :", nn))
+         #print(paste("group :", nn, " build_marker_index_cl"))
          marker_index = build_marker_index_cl ( nn.str=nn, nn.lvl, nlevel, pre.marker_index, query.genes, train.dat, cl.df, marker_index, 
                                                 mc.cores, div_thr=div_thr, de.dir, subsample_pct, top.n.genes, n.group.genes,
                                                 select.markers, cl.bin, outdir)
@@ -1334,7 +1354,6 @@ build_marker_index_tree_cl <- function (train.list, pre.train.list=NA, query.gen
    } else {
       pre.marker_index=NA
    }
-   marker_index <- list()
    marker_index = build_marker_index_node_cl (lvl=1, nlevel, nodestr="", cl.df=cl.df.clean,
                                               marker_index, children, pre.marker_index, query.genes, train.dat,
                                               mc.cores=mc.cores, div_thr=div_thr, de.dir, 
