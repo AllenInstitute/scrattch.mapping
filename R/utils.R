@@ -6,21 +6,6 @@
 #' @return AIT anndata with mode set for mapping
 #' 
 #' @export
-file.path <- function(AIT.anndata, mode){
-  if(!mode %in% names(AIT.anndata$uns$filter)){ stop(paste0(mode, " is invalid. Choose from: standard, patchseq")) }
-  AIT.anndata$uns$mode = mode
-  return(AIT.anndata)
-}
-
-
-#' Function to set mapping mode
-#'
-#' @param AIT.anndata A vector of cluster names in the reference taxonomy.
-#' @param mode Number of cells to keep per cluster.
-#'
-#' @return AIT anndata with mode set for mapping
-#' 
-#' @export
 mappingMode <- function(AIT.anndata, mode){
   if(!mode %in% names(AIT.anndata$uns$filter)){ stop(paste0(mode, " is invalid. Choose from: ", names(AIT.anndata$uns$filter))) }
   AIT.anndata$uns$mode = mode
@@ -88,7 +73,6 @@ top_binary_genes <- function(data, cluster.names, gene.count=2000){
   return(top.genes)
 }
 
-
 #' Tree-based mapping
 #'
 #' Returns the mapping membership of each cell to each node and leaf using a
@@ -140,65 +124,6 @@ rfTreeMapping <- function (dend, refDat, clustersF, mapDat = refDat, p = 0.8,
   return(memb)
 }
 
-
-####################################################################
-## Functions for reversing '\' and '/'
-
-#' Detect the operating system
-#' 
-#' This function was taken directly from https://conjugateprior.org/2015/06/identifying-the-os-from-r/ and all credit goes to Will Lowe from "conjugateprior".
-#' 
-#' @keywords internal
-
-get_os <- function(){
-  sysinf <- Sys.info()
-  if (!is.null(sysinf)){
-    os <- sysinf['sysname']
-    if (os == 'Darwin')
-      os <- "osx"
-  } else { ## mystery machine
-    os <- .Platform$OS.type
-    if (grepl("^darwin", R.version$os))
-      os <- "osx"
-    if (grepl("linux-gnu", R.version$os))
-      os <- "linux"
-  }
-  tolower(os)
-}
-
-#' Construct Path to File across platforms
-#'
-#' Construct the path to a file from components in a platform-independent way. This version is a wrapper of the base `file.path` function which also reverses '/' direction and can attempt to add double slashes if needed.
-#'
-#' @param ... character vectors. Long vectors are not supported.
-#' @param fsep the path separator to use (assumed to be ASCII).
-#' @param leading_string what is the leading character(s) (e.g., '/' or '\\\\'). By default this is guessed at based on operating system and/or existence of a file at the file path
-#' @param change_chars which characters should be changes to the fsep value (default NULL = "none"). If you want to change all slashes in the file path to the correct direction set change_chars = c("/","\\"))
-#'
-#' @return A file path with slashes going the correct direction.
-#'
-#' @export
-file.path <- function (...,fsep = .Platform$file.sep,leading_string=NULL,change_chars=NULL){
-  path <- base::file.path(...,fsep)
-  first_character <- grep('[^[:punct:]]', strsplit(path,"")[[1]])[1]
-  path <- substring(path,first_character,nchar(path))
-  if (!is.null(change_chars)){
-    path  <- strsplit(path,"")[[1]]
-    slash <- which(is.element(path,change_chars)) 
-    path[slash] <- fsep
-    path <- paste0(path,collapse="")
-  }
-  if (is.null(leading_string)){
-    leading_string="/"
-    if(get_os()=="windows") leading_string="\\\\" 
-  }
-  #remove trailing slashes
-  while((substring(path,nchar(path),nchar(path)))==fsep){
-    path = substring(path,1,nchar(path)-1)
-  }
-  paste0(leading_string,path)
-}
-
 ##################################################################################################################
 ## The functions below are mapping function from scrattch.hicat dev_zy branch that are required for tree mapping
 # Libraries required for these functions
@@ -207,52 +132,6 @@ file.path <- function (...,fsep = .Platform$file.sep,leading_string=NULL,change_
 #library(randomForest)
 #library(doMC)     # for parallelization in Unix environments
 #library(foreach)  # for parallelization in Unix environments
-
-#' Function for building the standard reference format, including adding marker genes to the clustering tree
-#'
-#' @param cl Factor vector where values are cluster ids (e.g., a numeric vector of corresponding to cell type order in the tree) and values are sample ids for cells (e.g., this vector has length = number of cells) 
-#' @param norm.dat log normalized expression data
-#' @param dend Input dendrogram 
-#' @param de.genes output from `display_cl` function
-#' @param cl.label Factor vector here values are cluster ids (e.g., a numeric vector of corresponding to cell type order in the tree) and values are dendrogram labels (e.g., this vector has length = number of clusters) 
-#' @param up.gene.score Output from `get_gene_score`
-#' @param down.gene.score Output from `get_gene_score`
-#' @param n.markers Number of marker genes to return per comparison (default=30)
-#'
-#' @return A list where `dend` is the updated dendrogram with markers attached and `cl.dat` is a matrix of cluster means
-#'
-#' @keywords internal
-build_reference <- function(cl, norm.dat, dend, de.genes, cl.label=NULL, up.gene.score=NULL, down.gene.score=NULL, n.markers=30)
-{
-  suppressPackageStartupMessages({
-    library(randomForest)
-    library(scrattch.hicat)
-  })
-  
-  cl.dat = get_cl_means(norm.dat, cl)
-  if(is.null(up.gene.score)){
-    de.gene.score = get_gene_score(de.genes)
-    up.gene.score = de.gene.score[[1]]
-    down.gene.score = de.gene.score[[2]]
-  }    
-  select.genes = intersect(row.names(norm.dat), row.names(up.gene.score))
-  dend = select_dend_markers(dend, norm.dat=norm.dat, cl=cl, de.genes=de.genes,
-                             up.gene.score=up.gene.score[select.genes,], 
-                             down.gene.score=down.gene.score[select.genes,], n.markers=n.markers)
-  dend = select_pos_dend_markers(dend= dend, norm.dat = norm.dat, cl = cl)
-  if(!is.null(cl.label)){
-    colnames(cl.dat) = cl.label[colnames(cl.dat)]
-    labels(dend) = cl.label[labels(dend)]
-  }
-  dend = label_dend(dend)[[1]]
-  labels(dend) <- setNames(colnames(cl.dat),colnames(cl.dat)) # This line might not be needed
-  
-  if(sum(!is.na(get_nodes_attr(dend, "original_label"))>0)){
-    print("This section is needed if the starting dendrogram includes ccn nomenclature.")
-    dend <- revert_dend_label(dend,get_nodes_attr(dend, "original_label"),"label")
-  }
-  return(list(cl.dat=cl.dat, dend=dend))
-}
 
 #' Compute cluster sums for each row in a matrix
 #' 
@@ -294,6 +173,33 @@ get_cl_means <- function (mat, cl)
   cl.size <- table(cl)
   cl.means <- as.matrix(Matrix::t(Matrix::t(cl.sums)/as.vector(cl.size[colnames(cl.sums)])))
   return(cl.means)
+}
+
+#' Compute cluster medians for each row in a matrix
+#' 
+#' @param mat A gene (rows) x samples (columns) sparse matrix
+#' @param cl A cluster factor object
+#' 
+#' @return a matrix of genes (rows) x clusters (columns) with medians for each cluster
+#'
+#' @keywords external
+get_cl_medians <- function(mat, cl)
+{
+  library(Matrix)
+  library(matrixStats)
+  
+  cl.med <- do.call("cbind",
+                    tapply(names(cl), 
+                           cl, 
+                           function(x){
+                             matrixStats::rowMedians(as.matrix(mat[,x]))
+                           }
+                    )
+  )
+  
+  rownames(cl.med) <- rownames(mat)
+  
+  return(cl.med)
 }
 
 #' Strip extra annotation information from dendrogram
@@ -587,31 +493,4 @@ build_dend <- function(cl.dat, cl.cor=NULL, l.rank=NULL, l.color=NULL, nboot=100
     dend =reorder_dend(dend,l.rank)
   }
   return(list(dend=dend, cl.cor=cl.cor, pvclust.result=pvclust.result))
-}
-
-#' Compute cluster medians for each row in a matrix
-#' 
-#' @param mat A gene (rows) x samples (columns) sparse matrix
-#' @param cl A cluster factor object
-#' 
-#' @return a matrix of genes (rows) x clusters (columns) with medians for each cluster
-#'
-#' @keywords external
-get_cl_medians <- function(mat, cl)
-{
-  library(Matrix)
-  library(matrixStats)
-  
-  cl.med <- do.call("cbind",
-                    tapply(names(cl), 
-                           cl, 
-                           function(x){
-                             matrixStats::rowMedians(as.matrix(mat[,x]))
-                           }
-                    )
-  )
-  
-  rownames(cl.med) <- rownames(mat)
-  
-  return(cl.med)
 }
