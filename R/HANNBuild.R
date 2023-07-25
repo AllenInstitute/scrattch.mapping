@@ -1,5 +1,157 @@
+#' Starting point for optimized tree mapping
+#'
+#' @param TaxFN to_be_added
+#' @param Taxonomy to_be_added
+#' @param pre.train.list to_be_added
+#' @param query.genes to_be_added
+#' @param prefix to_be_added
+#' @param mapping.method to_be_added
+#' @param prebuild to_be_added
+#' @param newbuild to_be_added
+#' @param mc.cores to_be_added
+#' @param div_thr to_be_added
+#' @param subsample_pct to_be_added
+#' @param top.n.genes to_be_added
+#' @param n.group.genes to_be_added
+#' @param rm.cl to_be_added
+#'
+#' @import doMC
+#' @import foreach
+#'
+#' @return Mapping results
+#'
+#' @export
+build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy, 
+                                           TaxHome='/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/',
+                                           pre.train.list=NA, 
+                                           query.genes=NA, 
+                                           prefix="", 
+                                           mapping.method=c('flat', 'one-step', 'hierarchy'),
+                                           nlevel=2, 
+                                           prebuild=FALSE, 
+                                           newbuild=FALSE,
+                                           mc.cores=10, 
+                                           div_thr=3, 
+                                           subsample_pct= 0.9, 
+                                           top.n.genes=15, 
+                                           n.group.genes=3000, 
+                                           rm.cl=c()){
 
-#' INFO -- PLEASE ADD --
+   ##
+   if (is.na(Taxonomy)) {
+      if (is.na(TaxFN)) {
+         print("error : Either Taxonomy or TaxFN needs to be specified")
+         break
+      } else {
+         print(paste("loading taxonomy train templates", TaxFN))
+         load(TaxFN)
+      }
+   } 
+   else {
+      ##
+      TrainDir = file.path(TaxHome, Taxonomy)
+      TaxDir   = file.path(TaxHome, Taxonomy)
+
+      # set hierarchy level for each  Taxonomy
+      if (mapping.method %in% c('flat', 'one-step')) {
+         nlevel=2
+      }
+      
+      ##
+      if(is.na(subsample_pct)) nlevel_str = paste0(nlevel, "_noboot") else nlevel_str = nlevel
+   
+      ##
+      if(is.na(TaxFN)) TaxFN = file.path(TaxDir, paste0('train.list.nlevel', nlevel_str, '_marker_index.rda'))
+
+      ##
+      if(file.exists(TaxFN)) {
+         print(paste("### ", Taxonomy, " Base Training Template (markers & indices) are being read ..."))
+         load(TaxFN)
+      }else{
+         print("### Building Base Training Teamplates ...")
+         pre.train.list = NA
+         ##
+         train.list = build_train_list_default(pre.train.list, 
+                                                query.genes=NA, 
+                                                TrainDir, 
+                                                TaxDir,
+                                                prefix="", 
+                                                nlevel=nlevel, 
+                                                TaxFN=TaxFN)
+         ##
+         registerDoMC(cores=mc.cores)
+
+         ##
+         MI_str = paste0('nlevel', nlevel_str, '_marker_index')
+         train.list = build_marker_index_tree_cl (train.list, 
+                                                   pre.train.list=pre.train.list, 
+                                                   query.genes=NA,
+                                                   outdir=file.path(TaxDir, MI_str),
+                                                   div_thr=3, 
+                                                   subsample_pct=subsample_pct,
+                                                   top.n.genes=15, 
+                                                   n.group.genes=3000, 
+                                                   mc.cores=mc.cores)
+         save(train.list, file=train.list$TaxFN)
+      }
+
+      print("### Base Training Teamplates Are Ready.\n")
+
+      ##
+      gdx = match(train.list$all.markers, query.genes)
+      if (any(is.na(gdx))) {
+         print("### Alert! Some marker genes are missing in your data")
+         train.list$TaxFN = gsub("train.list", paste0(prefix, "_train.list"), TaxFN) 
+         if (prebuild && file.exists(train.list$TaxFN)) {
+            print("### Marker gene selection is already done. let's load it")
+            print(paste("### !!! You chose to use the exisiting marker_index for", prefix, "data."))
+            print(TaxFN)
+            print("### Enter 'c' to continue. Or rerun with prebuild=FALSE")
+            tmp = load(train.list$TaxFN)
+         } else {
+            print(paste(sum(is.na(gdx)), 'genes are missing :'))
+            print(head(train.list$all.markers[is.na(gdx)]))
+            print("...")
+            print(tail(train.list$all.markers[is.na(gdx)]))
+            if (newbuild) {
+               print("### Rebuilding the marker genes and indices using only availble genes.")
+               pre.train.list = NA
+               #prefix = paste0(prefix, "_rebuilt")
+               train.list$cl.dat = train.list$cl.dat[train.list$all.markers,]
+               select.markers = intersect(train.list$all.markers, query.genes)
+               train.list$select.markers = select.markers
+            } else {
+               print("### Using the subset of existing marker genes and indices.")
+               pre.train.list = train.list
+               train.list$cl.dat = pre.train.list$cl.dat[train.list$all.markers,]
+               select.markers = intersect(pre.train.list$all.markers, query.genes)
+               train.list$select.markers = select.markers
+            }
+            
+            MI_str = paste0(prefix, '_nlevel', nlevel, '_marker_index')
+            ##
+            registerDoMC(cores=mc.cores)
+            train.list = build_marker_index_tree_cl(train.list, 
+                                                      pre.train.list=pre.train.list, 
+                                                      query.genes,
+                                                      outdir=file.path(TaxDir, MI_str),
+                                                      div_thr=3, 
+                                                      subsample_pct=subsample_pct,
+                                                      top.n.genes=15, 
+                                                      n.group.genes=3000, 
+                                                      mc.cores=mc.cores)
+            save(train.list, file=train.list$TaxFN)
+         }
+      } else {
+         print("### All marker genes are in your data set.")
+         print("### Precalculated marker genes and indices for hierarchical knn mapping will be  used.")
+      }
+      print("### Training Teamplates Are Ready for Query Data.\n")
+   }
+   return(train.list)
+}
+
+#' INFO -- PLEASE ADD -- @CK please document this function
 #'
 #' @param x  to_be_added
 #' @param key  to_be_added
@@ -7,19 +159,25 @@
 #' @return ???
 #'
 #' @keywords internal
-
-build_train_list_default <- function(pre.train.list=NA, query.genes=NA, TrainDir, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
+build_train_list_default <- function(pre.train.list=NA, 
+                                       query.genes=NA, 
+                                       TrainDir, 
+                                       TaxDir, 
+                                       prefix="", 
+                                       nlevel=4, 
+                                       TaxFN, 
+                                       rm.cl=c())
 {
    tmp = load(file.path(TrainDir, "cl.df.rda"))
    #cl.df = cl.df.clean
    cl.df$cl = as.character(cl.df$cl)
-   if ("class_label" %in% colnames(cl.df)) {
+   if("class_label" %in% colnames(cl.df)){
       cl.df$class_label = gsub("/","_",cl.df$class_label)
    }
-   if ("neighborhood_label" %in% colnames(cl.df)) {
+   if("neighborhood_label" %in% colnames(cl.df)){
       cl.df$neighborhood_label = gsub("/", "_", cl.df$neighborhood_label)
    }
-   if ("subclass_label" %in% colnames(cl.df)) {
+   if("subclass_label" %in% colnames(cl.df)){
       cl.df$subclass_label = gsub("/","_",cl.df$subclass_label)
    }
    tt21 = table(cl.df$subclass_label, cl.df$class_label)
@@ -74,1454 +232,3 @@ build_train_list_default <- function(pre.train.list=NA, query.genes=NA, TrainDir
 
    return(train.list)
 }
-
-
-
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x  to_be_added
-#' @param key  to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_WB17_FB <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   tmp = load(file.path(TaxDir, "cl.rda"))
-   cl.df = as.data.frame(cl.df)
-   cl.df$cl = as.character(cl.df$cl)
-
-   tt21 = table(cl.df$subclass_label, cl.df$class_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$class_label   = tt21.major[cl.df$subclass_label]# cl.df$Level1_label
-
-   tmp=load(file.path(TaxDir, "cl.means.rda"))
-   train.cl.dat = cl.means
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(WBDIR, "comb_de_parquet")
-   pairsFN = file.path(WBDIR, "pairs.parquet")
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(WBDIR, "cl.bin.rda"))
-   load(file.path(TaxDir, "select.markers.short.rda")) # pooled
-   if (is.na(query.genes)) query.genes = select.markers.short
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers.short, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x  to_be_added
-#' @param key  to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_WB17_FB <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   CLSDIR = WBDIR
-   tmp = load(file.path(TaxDir, "cl.clean.rda"))
-   #cl.df = cl.df.clean
-   cl.df$cl = as.character(cl.df$cl)
-
-   tt21 = table(cl.df$Level2_label, cl.df$Level1_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$subclass_label = cl.df$Level2_label
-   cl.df$neighborhood   = tt21.major[cl.df$Level2_label]# cl.df$Level1_label
-
-   tmp=load(file.path(TaxDir, "cl.means.clean.rda"))
-   train.cl.dat = cl.means 
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(WBDIR, "comb_de_parquet")
-   pairsFN = file.path(WBDIR, "pairs.parquet")
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(WBDIR, "cl.bin.rda"))
-   load(file.path(TaxDir, "select.markers.short.rda")) # pooled
-   if (is.na(query.genes)) query.genes = select.markers.short
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers.short, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x  to_be_added
-#' @param key  to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_WB17_TR <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   CLSDIR = WBDIR
-   tmp = load(file.path(TaxDir, "cl.clean.rda"))
-   cl.df = cl.df.clean
-   cl.df$cl = as.character(cl.df$cl)
-
-   tt21 = table(cl.df$Level2_label, cl.df$Level1_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$subclass_label = cl.df$Level2_label
-   cl.df$neighborhood   = tt21.major[cl.df$Level2_label]# cl.df$Level1_label
-
-   tmp=load(file.path(TaxDir, "cl.means.clean.rda"))
-   train.cl.dat = cl.means.clean 
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(WBDIR, "comb_de_parquet")
-   pairsFN = file.path(WBDIR, "pairs.parquet")
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(WBDIR, "cl.bin.rda"))
-   load(file.path(TaxDir, "select.markers.short.rda")) # pooled
-   if (is.na(query.genes)) query.genes = select.markers.short
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers.short, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_20 <- function(pre.train.list=NA, query.genes=NA, TrainDir, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   tmp = load(file.path(TrainDir, "cl.df.rda"))
-   #cl.df = cl.df.clean
-   cl.df$cl = as.character(cl.df$cl)
-   cl.df$subclass_label = gsub("/","_",cl.df$subclass_label)
-   cl.df$neighborhood_label = gsub("/", "_", cl.df$neighborhood_label)
-   cl.df$Level2_label = cl.df$subclass_label
-   cl.df$Level1_label = cl.df$neighborhood_label
-   tt21 = table(cl.df$subclass_label, cl.df$neighborhood_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$neighborhood   = tt21.major[cl.df$subclass_label]# cl.df$Level1_label
-
-   tmp=load(file.path(TrainDir, "cl.means.rda"))
-   train.cl.dat = cl.means 
-   colnames(train.cl.dat) = gsub("\\.0$", "", colnames(cl.means))
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(TrainDir, "de_parquet")
-   pairsFN = file.path(TrainDir, "pairs.parquet")
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(TrainDir, "cl.bin.rda"))
-
-   select.markers.short = rownames(train.cl.dat)
-   if (is.na(query.genes)) query.genes = select.markers.short
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers.short, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_18 <- function(pre.train.list=NA, query.genes=NA, TrainDir, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   tmp = load(file.path(TrainDir, "cl.df.rda"))
-   #cl.df = cl.df.clean
-   cl.df$cl = as.character(cl.df$cl)
-   cl.df$subclass_label = gsub("/","_",cl.df$subclass_label)
-   cl.df$class_label = gsub("/", "_", cl.df$class_label)
-   tt21 = table(cl.df$subclass_label, cl.df$class_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$class   = tt21.major[cl.df$subclass_label]# cl.df$Level1_label
-
-   tmp=load(file.path(TrainDir, "cl.means.rda"))
-   train.cl.dat = cl.means 
-   colnames(train.cl.dat) = gsub("\\.0$", "", colnames(cl.means))
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(TrainDir, "de_parquet")
-   pairsFN = file.path(TrainDir, "pairs.parquet")
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(TrainDir, "cl.bin.rda"))
-
-   select.markers.short = rownames(train.cl.dat)
-   if (is.na(query.genes)) query.genes = select.markers.short
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers.short, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_WB17_BG <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   tmp = load(file.path(TaxDir, "BG.cl.df.rda"))
-   cl.df = as.data.frame(BG.cl.df)
-   cl.df$cl = as.character(cl.df$cl)
-
-   tt21 = table(cl.df$Level2_label, cl.df$Level1_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$subclass_label = cl.df$Level2_label
-   cl.df$neighborhood   = tt21.major[cl.df$Level2_label]# cl.df$Level1_label
-
-   tmp=load(file.path(TaxDir, "BG.cl.means.rda"))
-   train.cl.dat = BG.cl.means 
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(WBDIR, "comb_de_parquet")
-   pairsFN = file.path(WBDIR, "pairs.parquet")
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(WBDIR, "cl.bin.rda"))
-
-   load(file.path(TaxDir, "select.markers.short.rda")) # pooled
-   if (is.na(query.genes)) query.genes = select.markers.short
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers.short, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_WB17_FB <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   CLSDIR = WBDIR
-   tmp = load(file.path(TaxDir, "cl.clean.rda"))
-   #cl.df = cl.df.clean
-   cl.df$cl = as.character(cl.df$cl)
-
-   tt21 = table(cl.df$Level2_label, cl.df$Level1_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$subclass_label = cl.df$Level2_label
-   cl.df$neighborhood   = tt21.major[cl.df$Level2_label]# cl.df$Level1_label
-
-   tmp=load(file.path(TaxDir, "cl.means.clean.rda"))
-   train.cl.dat = cl.means 
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(WBDIR, "comb_de_parquet")
-   pairsFN = file.path(WBDIR, "pairs.parquet")
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(WBDIR, "cl.bin.rda"))
-   load(file.path(TaxDir, "select.markers.short.rda")) # pooled
-   if (is.na(query.genes)) query.genes = select.markers.short
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers.short, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_WB17_TR <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   CLSDIR = WBDIR
-   tmp = load(file.path(TaxDir, "cl.clean.rda"))
-   cl.df = cl.df.clean
-   cl.df$cl = as.character(cl.df$cl)
-
-   tt21 = table(cl.df$Level2_label, cl.df$Level1_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$subclass_label = cl.df$Level2_label
-   cl.df$neighborhood   = tt21.major[cl.df$Level2_label]# cl.df$Level1_label
-
-   tmp=load(file.path(TaxDir, "cl.means.clean.rda"))
-   train.cl.dat = cl.means.clean 
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(WBDIR, "comb_de_parquet")
-   pairsFN = file.path(WBDIR, "pairs.parquet")
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(WBDIR, "cl.bin.rda"))
-   load(file.path(TaxDir, "select.markers.short.rda")) # pooled
-   if (is.na(query.genes)) query.genes = select.markers.short
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers.short, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_TH17_2 <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   tmp = load(file.path(TaxDir, "cl.df.rda"))
-   cl.df$cl = as.character(cl.df$cl)
-
-   tt21 = table(cl.df$Level2_label, cl.df$Level1_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$subclass_label = cl.df$Level2_label
-   cl.df$neighborhood   = tt21.major[cl.df$Level2_label]# cl.df$Level1_label
-
-   tmp=load(file.path(TaxDir, "cl.means.rda"))
-   train.cl.dat = cl.means
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-
-   # WholeBrain Parquet
-   dsFN = file.path(WBDIR, "comb_de_parquet")
-   pairsFN = file.path(WBDIR, "pairs.parquet")
-   #ds = open_dataset(dsFN)
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(WBDIR, "cl.bin.rda"))
-
-   load(file.path(TaxDir, "select.markers.TH.rda")) # pooled
-   if (is.na(query.genes)) query.genes = select.markers.TH
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers.TH, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   #train.list$ds        = ds
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$all.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_WB17 <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   CLSDIR = WBDIR
-   tmp = load(file.path(TaxDir, "cl.clean.rda"))
-   cl.df = cl.df.clean
-   cl.df$cl = as.character(cl.df$cl)
-
-   tt21 = table(cl.df$Level2_label, cl.df$Level1_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$subclass_label = cl.df$Level2_label
-   cl.df$neighborhood   = tt21.major[cl.df$Level2_label]# cl.df$Level1_label
-
-   tmp=load(file.path(TaxDir, "cl.means.clean.rda"))
-   train.cl.dat = cl.means.clean 
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(WBDIR, "comb_de_parquet")
-   pairsFN = file.path(WBDIR, "pairs.parquet")
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(WBDIR, "cl.bin.rda"))
-   load(file.path(TaxDir, "select.markers.short.rda")) # pooled
-   if (is.na(query.genes)) query.genes = select.markers.short
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers.short, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_knowledge <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   tmp = load(file.path(TaxDir, "cl.rda"))
-   cl.df = as.data.frame(cl.df)
-   cl.df$cl = as.character(cl.df$cl)
-
-   tt21 = table(cl.df$Level2_label, cl.df$Level1_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$subclass_label = cl.df$Level2_label
-   cl.df$neighborhood   = tt21.major[cl.df$Level2_label]# cl.df$Level1_label
-
-   tmp=load(file.path(TaxDir, "cl.means.rda"))
-   train.cl.dat = cl.means
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(WBDIR, "comb_de_parquet")
-   pairsFN = file.path(WBDIR, "pairs.parquet")
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(WBDIR, "cl.bin.rda"))
-
-   load(file.path(TaxDir, "select.markers.short.rda")) # pooled
-   if (is.na(query.genes)) query.genes = select.markers.short
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers.short, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_WBnuc <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   CLSDIR = WBDIR
-   #tmp = load(file.path(WBDIR, "anno.df.rda"))
-   tmp = load(file.path(TaxDir, "cl.clean.rda"))
-   cl.df = cl.df.clean
-
-   tt21 = table(cl.df$Level2_label, cl.df$Level1_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$subclass_label = cl.df$Level2_label
-   cl.df$neighborhood   = tt21.major[cl.df$Level2_label]# cl.df$Level1_label
-
-   tmp=load(file.path(TaxDir, "train.cl.means.rda"))
-   train.cl.dat = cl.means 
-   common.cluster = intersect(colnames(train.cl.dat),cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(WBDIR, "comb_de_parquet")
-   pairsFN = file.path(WBDIR, "pairs.parquet")
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(WBDIR, "cl.bin.rda"))
-   load(file.path(WBDIR, "conserved.markers.rda")) # pooled
-   if (is.na(query.genes)) query.genes = select.markers.short
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers.short, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_WB16nuc <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   CLSDIR = WBDIR
-   #tmp = load(file.path(WBDIR, "anno.df.rda"))
-   tmp = load(file.path(WBDIR, "cl.clean.rda"))
-   cl.df = cl.df.clean
-   cl.df$cl = as.character(cl.df$cl)
-
-   tt21 = table(cl.df$Level2_label, cl.df$Level1_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$subclass_label = cl.df$Level2_label
-   cl.df$neighborhood   = tt21.major[cl.df$Level2_label]# cl.df$Level1_label
-
-   tmp=load(file.path(WBDIR, "nuclei.impute.cl.means.rda"))
-   train.cl.dat = cl.means 
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(WBDIR, "comb_de_parquet")
-   pairsFN = file.path(WBDIR, "pairs.parquet")
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(WBDIR, "cl.bin.rda"))
-   load(file.path(WBDIR, "select.markers.short.rda")) # pooled
-   select.markers.short  = intersect(rownames(cl.means), select.markers.short)
-
-   if (is.na(query.genes)) query.genes = select.markers.short
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers.short, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_WB16 <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   CLSDIR = WBDIR
-   #tmp = load(file.path(WBDIR, "anno.df.rda"))
-   tmp = load(file.path(WBDIR, "cl.clean.rda"))
-   cl.df = cl.df.clean
-   cl.df$cl = as.character(cl.df$cl)
-
-   tt21 = table(cl.df$Level2_label, cl.df$Level1_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$subclass_label = cl.df$Level2_label
-   cl.df$neighborhood   = tt21.major[cl.df$Level2_label]# cl.df$Level1_label
-
-   tmp=load(file.path(WBDIR, "cl.means.clean.rda"))
-   train.cl.dat = cl.means.clean 
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(WBDIR, "comb_de_parquet")
-   pairsFN = file.path(WBDIR, "pairs.parquet")
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(WBDIR, "cl.bin.rda"))
-   load(file.path(WBDIR, "select.markers.short.rda")) # pooled
-   if (is.na(query.genes)) query.genes = select.markers.short
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers.short, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_WB13 <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   #tmp = load(file.path(WBDIR, "anno.df.rda"))
-   tmp = load(file.path(WBDIR, "cl.clean.rda"))
-   cl.df = cl.df.clean
-   cl.df$cl = as.character(cl.df$cl)
-
-   tt21 = table(cl.df$Level2_label, cl.df$Level1_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$subclass_label = cl.df$Level2_label
-   cl.df$neighborhood   = tt21.major[cl.df$Level2_label]# cl.df$Level1_label
-
-   tmp=load(file.path(TaxDir, "train.cl.means.rda"))
-   train.cl.dat = cl.means 
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   CLSDIR = gsub("/v3", "",WBDIR)
-   dsFN = file.path(CLSDIR, "comb_de_parquet")
-   pairsFN = file.path(CLSDIR, "pairs.parquet")
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(CLSDIR, "cl.bin.rda"))
-   load(file.path(WBDIR, "select.markers.short.rda")) # pooled
-   if (is.na(query.genes)) query.genes = select.markers.short
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers.short, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_WBint <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   CLSDIR = WBDIR
-   tmp=load(file.path(WBDIR, "anno.df.rda"))
-   cl.df = read.csv(file.path(WBDIR, "short.cl.df.csv"))
-   cl.df$cl = as.character(cl.df$cluster_id)
-   cl.df$subclass_label = cl.df$Level2_label
-   cl.df$neighborhood   = cl.df$Level1_label
-   tmp=load(file.path(TaxDir, "train.mmean.list.10Xv3.rda"))
-   train.cl.dat = train.mmean.dat[["cluster"]]
-   common.cluster = intersect(colnames(train.cl.dat),as.character(anno.df$cl))
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   rownames(train.cl.dat) = train.mmean.dat[["genename"]]
-
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(WBDIR, "comb_de_parquet")
-   pairsFN = file.path(WBDIR, "pairs.parquet")
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(WBDIR, "cl.bin.rda"))
-   load(file.path(WBDIR, "select.markers.rda")) # pooled
-   if (is.na(query.genes)) query.genes = select.markers
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_WB <- function( pre.train.list=NA, query.genes, CLSDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   tmp=load(file.path(CLSDIR, "cl.HQ.subdiv.rda"))
-   cl.df.HQ = cl.df.HQ.subdiv
-
-   # WB train.mmeta
-   tmp=load(file.path(CLSDIR, "train.mmean.list.HQ.rda"))
-   train.cl.dat = train.mmean.dat[["cluster"]]
-   common.cluster = intersect(colnames(train.cl.dat),as.character(cl.df.HQ$cl))
-
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-   train.cl.dat = train.cl.dat[, common.cluster]
-   rownames(train.cl.dat) = train.mmean.dat[["genename"]]
-
-   cl.df.HQ = cl.df.HQ %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parque
-   dsFN = file.path(CLSDIR, "de_parquet")
-   pairsFN = file.path(CLSDIR, "all.pairs.parqeut")
-   load(file.path(CLSDIR, "select.markers.rda")) # pooled
-   all.pairs = read_parquet(pairsFN)
-
-   if (!is.list(pre.train.list)) {
-      select.markers = intersect(select.markers, query.genes)
-   } else {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df.HQ
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   train.list$all.pairs    = all.pairs
-   train.list$select.markers = select.markers
-   train.list$TaxFN  = TaxFN
-   train.list$TaxDir = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_TH13_2 <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   tmp = load(file.path(TaxDir, "cl.df.rda"))
-   cl.df$cl = as.character(cl.df$cl)
-
-   tt21 = table(cl.df$Level2_label, cl.df$Level1_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$subclass_label = cl.df$Level2_label
-   cl.df$neighborhood   = tt21.major[cl.df$Level2_label]# cl.df$Level1_label
-
-   tmp=load(file.path(TaxDir, "cl.means.rda"))
-   train.cl.dat = cl.means
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-
-   # WholeBrain Parquet
-   dsFN = file.path(WBDIR, "comb_de_parquet")
-   pairsFN = file.path(WBDIR, "pairs.parquet")
-   #ds = open_dataset(dsFN)
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(WBDIR, "cl.bin.rda"))
-
-   load(file.path(TaxDir, "select.markers_TH.rda")) # pooled
-   if (is.na(query.genes)) query.genes = select.markers
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   #train.list$ds        = ds
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$all.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_TH16_2 <- function(pre.train.list=NA, query.genes=NA, WBDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   tmp = load(file.path(TaxDir, "cl.df.rda"))
-   cl.df$cl = as.character(cl.df$cl)
-
-   tt21 = table(cl.df$Level2_label, cl.df$Level1_label)
-   tt21.major = colnames(tt21)[apply(tt21, 1, function(x){which.max(x)})]
-   names(tt21.major) = rownames(tt21)
-
-   cl.df$subclass_label = cl.df$Level2_label
-   cl.df$neighborhood   = tt21.major[cl.df$Level2_label]# cl.df$Level1_label
-
-   tmp=load(file.path(TaxDir, "cl.means.rda"))
-   train.cl.dat = cl.means
-   common.cluster = intersect(colnames(train.cl.dat), cl.df$cl)
-   if (length(rm.cl)>0) {
-      common.cluster = setdiff(common.cluster, rm.cl)
-   }
-
-   train.cl.dat = train.cl.dat[, common.cluster]
-   cl.df = cl.df %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-
-   # WholeBrain Parquet
-   dsFN = file.path(WBDIR, "comb_de_parquet")
-   pairsFN = file.path(WBDIR, "pairs.parquet")
-   #ds = open_dataset(dsFN)
-   all.pairs = read_parquet(pairsFN)
-   load(file.path(WBDIR, "cl.bin.rda"))
-
-   load(file.path(TaxDir, "select.markers_TH.rda")) # pooled
-   if (is.na(query.genes)) query.genes = select.markers
-
-   if (is.list(pre.train.list)) {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   } else {
-      select.markers = intersect(select.markers, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df
-   train.list$nlvl      = nlevel
-   train.list$dsFN      = dsFN
-   #train.list$ds        = ds
-   train.list$cl.bin    = cl.bin
-   train.list$select.markers = select.markers
-   train.list$all.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir    = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_FBLO10 <- function( pre.train.list=NA, query.genes, CLSDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   tmp=load(file.path(CLSDIR, "cl.clean.rda"))
-   cl.df.clean = cl.df.neighborhood
-
-   # FB train.mmeta
-   tmp=load(file.path(CLSDIR, "train.list.cl.mean.90.rda"))
-   train.cl.dat = FB.90.cl.mean
-   common.cluster = intersect(colnames(train.cl.dat),as.character(cl.df.clean$cl))
-   train.cl.dat = train.cl.dat[, common.cluster]
-
-   cl.df.clean = cl.df.clean %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(CLSDIR, "de_parquet")
-   pairsFN = file.path(CLSDIR, "pair.parquet")
-   load(file.path(CLSDIR, "select.markers.rda")) # pooled
-   all.pairs = read_parquet(pairsFN)
-
-   if (!is.list(pre.train.list)) {
-      select.markers = intersect(select.markers, query.genes)
-   } else {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df.clean
-   train.list$nlvl      = nlevel 
-   train.list$dsFN      = dsFN
-   train.list$all.pairs   = all.pairs
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_FB <- function( pre.train.list=NA, query.genes, CLSDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   tmp=load(file.path(CLSDIR, "cl.clean.rda"))
-   cl.df.clean = cl.df.neighborhood
-
-   # FB train.mmeta
-   tmp=load(file.path(CLSDIR, "train.mmean.list.10X_cells_v3.clean.rda"))
-   train.cl.dat = train.mmean.dat[["cluster"]]
-   common.cluster = intersect(colnames(train.cl.dat),as.character(cl.df.clean$cl))
-   train.cl.dat = train.cl.dat[, common.cluster]
-   rownames(train.cl.dat) = train.mmean.dat[["genename"]]
-
-   cl.df.clean = cl.df.clean %>% filter(cl %in% common.cluster)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-   # WholeBrain Parquet
-   dsFN = file.path(CLSDIR, "de_parquet")
-   pairsFN = file.path(CLSDIR, "pair.parquet")
-   load(file.path(CLSDIR, "select.markers.rda")) # pooled
-   all.pairs = read_parquet(pairsFN)
-
-   if (!is.list(pre.train.list)) {
-      select.markers = intersect(select.markers, query.genes)
-   } else {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   }
-
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df.clean
-   train.list$nlvl      = nlevel 
-   train.list$dsFN      = dsFN
-   train.list$all.pairs   = all.pairs
-   train.list$select.markers = select.markers
-   train.list$TaxFN     = TaxFN
-   train.list$TaxDir = TaxDir
-
-   return(train.list)
-}
-
-#' INFO -- PLEASE ADD --
-#'
-#' @param x to_be_added
-#' @param key to_be_added
-#'
-#' @return ???
-#'
-#' @keywords internal
-build_train_list_BG <- function( pre.train.list=NA, query.genes, BGDIR, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=c())
-{
-   BGDIR = "/home/changkyul/CK/Mapping_PatchSeq/BasalGanglia/FB_Joint_Taxonomy"
-   load(file.path(BGDIR, "BG.cl.df.clean.rda"))
-   cl.df.clean = BG.cl.df.clean
-
-   #BG train.mmeta
-   tmp=load(file.path(BGDIR, "train.mmean.list.FB.10X_cells_v3.clean.BG.rda"))
-   train.cl.dat = train.mmean.dat[["cluster"]]
-   common.cluster = intersect(colnames(train.cl.dat),as.character(cl.df.clean$cl))
-   train.cl.dat = train.cl.dat[, common.cluster]
-
-   cl.df.clean = cl.df.clean %>% filter(cl %in% common.cluster)
-
-   # ForeBrain Parquet
-   FBDIR = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/forebrain_new"
-
-   dsFN = file.path(FBDIR, "de_parquet")
-   pairsFN = file.path(FBDIR, "pair.parquet")
-   load(file.path(FBDIR, "select.markers.rda")) # pooled
-   all.pairs = read_parquet(pairsFN)
-
-   if (!is.list(pre.train.list)) {
-      print("=====================================")
-      print("  marker/index generation begins...  ")
-      print("  it will take a day  :)             ")
-      print("=====================================")
-   }
-
-   if (!is.list(pre.train.list)) {
-      all.markers = NA
-      select.markers = intersect(select.markers, query.genes)
-   } else {
-      select.markers = intersect(pre.train.list$all.markers, query.genes)
-   }
-
-   select.markers = intersect(select.markers, query.genes)
-   train.cl.dat = train.cl.dat[select.markers,]
-
-   train.list <-list()
-   train.list$cl.dat    = train.cl.dat
-   train.list$cl.df     = cl.df.clean
-   train.list$nlvl      = 4 
-   train.list$dsFN      = dsFN
-   train.list$all.pairs   = all.pairs
-   train.list$all.markers = all.markers
-   train.list$select.markers = select.markers
-   train.list$TaxFN  = TaxFN
-   train.list$TaxDir = TaxDir
-
-   return(train.list)
-}
-

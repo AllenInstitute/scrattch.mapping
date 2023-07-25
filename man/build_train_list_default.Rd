@@ -2,7 +2,7 @@
 % Please edit documentation in R/HANNBuild.R
 \name{build_train_list_default}
 \alias{build_train_list_default}
-\title{INFO -- PLEASE ADD --}
+\title{INFO -- PLEASE ADD -- @CK please document this function}
 \usage{
 build_train_list_default(
   pre.train.list = NA,
@@ -24,6 +24,6 @@ build_train_list_default(
 ???
 }
 \description{
-INFO -- PLEASE ADD --
+INFO -- PLEASE ADD -- @CK please document this function
 }
 \keyword{internal}

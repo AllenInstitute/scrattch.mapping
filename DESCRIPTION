@@ -1,6 +1,6 @@
 Package: scrattch.mapping
 Title: Generalized mapping of annotations from shiny taxonomy to query data.
-Version: 0.21
+Version: 0.3
 Authors@R: 
     person(given = "Nelson",
            family = "Johansen",
@@ -10,6 +10,10 @@ Authors@R:
            family = "Miller",
            role = c("aut", "cre"),
            email = "jeremy.miller@alleninstitute.org")
+    person(given = "Changkyu",
+            family = "Lee",
+            role = c("aut", "cre"),
+            email = "changkyul@alleninstitute.org")
 Description: ADD
 License: GPL-3
 Depends: feather,
@@ -33,7 +37,9 @@ Depends: feather,
     Seurat,
     cowplot,
     umap, 
-    arrow
+    arrow,
+    BiocNeighbors,
+    RANN
 Suggests: knitr,
     rmarkdown, 
     testthat,

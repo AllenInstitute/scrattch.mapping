@@ -17,3 +17,4 @@ A copy of the anndata object that is also written to disk
 \description{
 This function writes an anndata object in the correct format for all downstream mapping algoriths.
 }
+\keyword{internal}
