@@ -112,6 +112,7 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy,
 
    AVAIL_TAXONOMIES = c( "Human_MTG_Benchmarking_500",
                    "Human_MTG_Benchmarking",
+                   "AIT21.0_mouse", #WB 5322	
                    "AIT20.0_macaque",    # Macaque_MTG
                    "AIT18.0_mouse", #WB snRNAseq	
                    "AIT18.1_mouse", #WB snRNAseq	
@@ -159,6 +160,10 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy,
       if (Taxonomy=="Human_MTG_Benchmarking") { 
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/Human_MTG_Benchmarking"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/Human_MTG_Benchmarking"
+      }
+      if (Taxonomy=="AIT21.0_mouse") { 
+         TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb/"
+         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT21.0_mouse"
       }
       if (Taxonomy=="AIT20.0_macaque") { 
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/changkyul/Macaquet_MTG"
@@ -287,6 +292,9 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy,
          if (Taxonomy %in% c("AIT17_cl5196", "AIT17_cl5196_mouse")) train.list = build_train_list_WB17_cl5196( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN, rm.cl=rm.cl)
+         if (Taxonomy =="AIT21.0_mouse") train.list = build_train_list_WB21( 
+                                                        pre.train.list, query.genes=NA, TrainDir, TaxDir, 
+							prefix="", nlevel=nlevel, TaxFN=TaxFN)
          if (Taxonomy =="AIT20.0_macaque") train.list = build_train_list_20( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN)
@@ -1243,7 +1251,7 @@ build_marker_index_cl <- function( nn.str, lvl, nlevel, pre.marker_index=NA, que
             save(nn.markers, file=nn.markers.level.FN)
          } else nn.markers = NA
       } else {
-         #system(paste("cat /dev/null >", nn.markers.FN))
+         system(paste("cat /dev/null >", nn.markers.FN))
          if (is.na(pre.marker_index)) {
             if (length(nn.cl) == length(nn.group)) {
                nn.markers = select_markers_ds(de.dir, cl.bin, select.cl=nn.cl, top.n=top.n.genes)
