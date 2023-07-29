@@ -112,6 +112,7 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy,
 
    AVAIL_TAXONOMIES = c( "Human_MTG_Benchmarking_500",
                    "Human_MTG_Benchmarking",
+                   "AIT21.1_mouse", #WB 5322 with ensemble ncbi matching genes	
                    "AIT21.0_mouse", #WB 5322	
                    "AIT20.0_macaque",    # Macaque_MTG
                    "AIT18.0_mouse", #WB snRNAseq	
@@ -160,6 +161,10 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy,
       if (Taxonomy=="Human_MTG_Benchmarking") { 
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/Human_MTG_Benchmarking"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/Human_MTG_Benchmarking"
+      }
+      if (Taxonomy=="AIT21.1_mouse") { 
+         TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb/"
+         TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT21.1_mouse"
       }
       if (Taxonomy=="AIT21.0_mouse") { 
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb/"
@@ -292,6 +297,9 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy,
          if (Taxonomy %in% c("AIT17_cl5196", "AIT17_cl5196_mouse")) train.list = build_train_list_WB17_cl5196( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN, rm.cl=rm.cl)
+         if (Taxonomy =="AIT21.1_mouse") train.list = build_train_list_WB21.1( 
+                                                        pre.train.list, query.genes=NA, TrainDir, TaxDir, 
+							prefix="", nlevel=nlevel, TaxFN=TaxFN)
          if (Taxonomy =="AIT21.0_mouse") train.list = build_train_list_WB21( 
                                                         pre.train.list, query.genes=NA, TrainDir, TaxDir, 
 							prefix="", nlevel=nlevel, TaxFN=TaxFN)
