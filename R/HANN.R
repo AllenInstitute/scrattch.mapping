@@ -162,7 +162,7 @@ build_train_list_on_taxonomy <- function ( TaxFN=NA, Taxonomy,
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/Human_MTG_Benchmarking"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/Human_MTG_Benchmarking"
       }
-      if (Taxonomy=="AIT21.1_mouse") { 
+      if (Taxonomy=="AIT21.1_mouse" ) { 
          TrainDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/wb/"
          TaxDir   = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/AIT21.1_mouse"
       }
@@ -1244,7 +1244,7 @@ build_marker_index_cl <- function( nn.str, lvl, nlevel, pre.marker_index=NA, que
    }
    nn.group = unique(nn.cl.group$group)
    nn.cl = unique(nn.cl.group$cl)
-   print(paste0("@", lvl, "/", nlevel, "   ngroup=",length(nn.group), ", ncluster=", length(nn.cl)))
+   print(paste0("@", lvl, "/", nlevel, "   ", nn.str, "   ngroup=",length(nn.group), ", ncluster=", length(nn.cl)))
 
    if (length(nn.group)==1  && length(nn.cl)==1) {
       marker_index[[nn.str]] = list(index_tree=NA, marker_tree=NA)
@@ -1259,8 +1259,8 @@ build_marker_index_cl <- function( nn.str, lvl, nlevel, pre.marker_index=NA, que
             save(nn.markers, file=nn.markers.level.FN)
          } else nn.markers = NA
       } else {
-         system(paste("cat /dev/null >", nn.markers.FN))
-         if (is.na(pre.marker_index)) {
+         #system(paste("cat /dev/null >", nn.markers.FN))
+         if (is.null(pre.marker_index)) {
             if (length(nn.cl) == length(nn.group)) {
                nn.markers = select_markers_ds(de.dir, cl.bin, select.cl=nn.cl, top.n=top.n.genes)
 
@@ -1275,20 +1275,27 @@ build_marker_index_cl <- function( nn.str, lvl, nlevel, pre.marker_index=NA, que
          } else {
             nn.markers = pre.marker_index[[nn.str]]$marker_tree
          }
-         if (!is.na(query.genes)) nn.markers = intersect(nn.markers, query.genes )
+         if (is.null(nn.markers) || is.na(nn.markers) || length(nn.markers)==0) {print("build_marker_index_cl") ; browser() }
+         if (any(!is.na(query.genes))) nn.markers = intersect(nn.markers, query.genes )
          save(nn.markers, file=nn.markers.FN)
          save(nn.markers, file=nn.markers.level.FN)
       }
       nn.markers = intersect(rownames(train.dat), nn.markers)
-      nn.cl.idx  = match(intersect(colnames(train.dat), nn.cl), colnames(train.dat))
-   
-      nn.dat = train.dat[nn.markers, nn.cl.idx]
-      #print(paste(nn.markers.FN, " : index is being calculated"))
-      nn.index = build_train_index_bs( nn.dat, method="cor", 
-                                       fn=paste0(outdir, "/index.", nn.tmp), 
+      if (length(nn.markers)> 0) {
+         nn.cl.idx  = match(intersect(colnames(train.dat), nn.cl), colnames(train.dat))
+         print(length(nn.cl.idx))
+         if (length(nn.cl.idx) > 0) {
+            nn.dat = train.dat[nn.markers, nn.cl.idx]
+            nn.index = build_train_index_bs( nn.dat, method="cor",
+                                       fn=paste0(outdir, "/index.", nn.tmp),
                                        sample.markers.prop=subsample_pct, mc.cores=mc.cores )
-
-      marker_index[[nn.str]] = list(index_tree=nn.index, marker_tree=nn.markers)
+            marker_index[[nn.str]] = list(index_tree=nn.index, marker_tree=nn.markers)
+         } else {
+            marker_index[[nn.str]] = list(index_tree=NA, marker_tree=NA)
+         }
+      } else {
+         marker_index[[nn.str]] = list(index_tree=NA, marker_tree=NA)
+      }
    }
    return(marker_index)
 }
