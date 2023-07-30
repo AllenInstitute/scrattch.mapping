@@ -1244,7 +1244,7 @@ build_marker_index_cl <- function( nn.str, lvl, nlevel, pre.marker_index=NA, que
    }
    nn.group = unique(nn.cl.group$group)
    nn.cl = unique(nn.cl.group$cl)
-   print(paste0("@", lvl, "/", nlevel, "   ", nn.str, "   ngroup=",length(nn.group), ", ncluster=", length(nn.cl)))
+   cat(paste0("@", lvl, "/", nlevel, "   ", nn.str, "   ngroup=",length(nn.group), ", ncluster=", length(nn.cl)), "\r")
 
    if (length(nn.group)==1  && length(nn.cl)==1) {
       marker_index[[nn.str]] = list(index_tree=NA, marker_tree=NA)
@@ -1283,7 +1283,7 @@ build_marker_index_cl <- function( nn.str, lvl, nlevel, pre.marker_index=NA, que
       nn.markers = intersect(rownames(train.dat), nn.markers)
       if (length(nn.markers)> 0) {
          nn.cl.idx  = match(intersect(colnames(train.dat), nn.cl), colnames(train.dat))
-         print(length(nn.cl.idx))
+         #print(length(nn.cl.idx))
          if (length(nn.cl.idx) > 0) {
             nn.dat = train.dat[nn.markers, nn.cl.idx]
             nn.index = build_train_index_bs( nn.dat, method="cor",
