@@ -1309,7 +1309,7 @@ build_marker_index_cl <- function( nn.str, lvl, nlevel, pre.marker_index=NA, que
 #'
 #' @keywords internal
 build_marker_index_node_cl <- function( lvl, nlevel, nodestr, cl.df, marker_index, children, 
-                                        pre.marker_index=NA, query.genes, train.dat, mc.cores=10, div_thr=5, 
+                                        pre.marker_index=NULL, query.genes, train.dat, mc.cores=10, div_thr=5, 
                                         de.dir, subsample_pct, top.n.genes=15, n.group.genes=3000,
                                         select.markers, cl.bin, outdir)
 {
@@ -1375,7 +1375,7 @@ build_marker_index_tree_cl <- function (train.list, pre.train.list=NA, query.gen
       pre.marker_index = marker_index
       rm(marker_index)
    } else {
-      pre.marker_index=NA
+      pre.marker_index=NULL
    }
    marker_index <- list()
    marker_index = build_marker_index_node_cl (lvl=1, nlevel, nodestr="", cl.df=cl.df.clean,
