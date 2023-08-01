@@ -1,3 +1,94 @@
+####################################################################
+## Functions for reversing '\' and '/'
+
+#' Sets the default leading_string for file.path()
+#' 
+#' @param leading_string Default (NULL) sets to "\\\\" for Windows and "/" otherwise; or can provide any character vector
+#'
+#' @return leading_string for use as default in file.path().
+#'
+#' @export
+setLeadingString <- function(leading_string=NULL){
+  if (is.null(leading_string)){
+    leading_string="/"
+    if(get_os()=="windows") leading_string="\\\\" 
+  }
+  options("leading_string"=leading_string)
+}
+
+
+#' Sets the default path_separator for file.path()
+#' 
+#' @param path_separator Default (NULL) sets to .Platform$file.sep or can provide any character vector
+#'
+#' @return path_separator for use as default in file.path().
+#'
+#' @export
+setPathSeparator <- function(path_separator=NULL){
+  if (is.null(path_separator)){
+    path_separator = .Platform$file.sep
+  }
+  options("path_separator"=path_separator)
+}
+
+
+#' Detect the operating system
+#' 
+#' This function was taken directly from https://conjugateprior.org/2015/06/identifying-the-os-from-r/ and all credit goes to Will Lowe from "conjugateprior".
+#' 
+#' @keywords internal
+
+get_os <- function(){
+  sysinf <- Sys.info()
+  if (!is.null(sysinf)){
+    os <- sysinf['sysname']
+    if (os == 'Darwin')
+      os <- "osx"
+  } else { ## mystery machine
+    os <- .Platform$OS.type
+    if (grepl("^darwin", R.version$os))
+      os <- "osx"
+    if (grepl("linux-gnu", R.version$os))
+      os <- "linux"
+  }
+  tolower(os)
+}
+
+#' Construct Path to File across platforms
+#'
+#' Construct the path to a file from components in a platform-independent way. This version is a wrapper of the base `file.path` function which also reverses '/' direction and can attempt to add double slashes if needed.
+#'
+#' @param ... character vectors. Long vectors are not supported.
+#' @param path_separator the path separator to use (assumed to be ASCII).
+#' @param leading_string what is the leading character(s) (e.g., '/' or '\\\\'). A string can be provided, or by default if the "leading_string" global variable is set it takes that variable, otherwise this is guessed at based on operating system and/or existence of a file at the file path
+#' @param change_chars which characters should be changes to the path_separator value (default NULL = "none"). If you want to change all slashes in the file path to the correct direction set change_chars = c("/","\\"))
+#'
+#' @return A file path with slashes going the correct direction.
+#'
+#' @export
+file.path <- function (...,path_separator = getOption("path_separator"),leading_string=getOption("leading_string"),change_chars=NULL){
+  if(is.null(path_separator))
+    path_separator = .Platform$file.sep
+  path <- base::file.path(...,path_separator)
+  first_character <- grep('[^[:punct:]]', strsplit(path,"")[[1]])[1]
+  path <- substring(path,first_character,nchar(path))
+  if (!is.null(change_chars)){
+    path  <- strsplit(path,"")[[1]]
+    slash <- which(is.element(path,change_chars)) 
+    path[slash] <- path_separator
+    path <- paste0(path,collapse="")
+  }
+  if (is.null(leading_string)){
+    leading_string="/"
+    if(get_os()=="windows") leading_string="\\\\" 
+  }
+  #remove trailing slashes
+  while((substring(path,nchar(path),nchar(path)))==path_separator){
+    path = substring(path,1,nchar(path)-1)
+  }
+  paste0(leading_string,path)
+}
+
 #' Function to set mapping mode
 #'
 #' @param AIT.anndata A vector of cluster names in the reference taxonomy.
