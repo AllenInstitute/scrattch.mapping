@@ -203,6 +203,7 @@ build_train_index_bs <- function(cl.dat, method= c("Annoy.Cosine","cor","Annoy.E
     } else {
        ###for each cluster, find markers that discriminate it from other types
        train.dat <- foreach(i=1:iter, .combine="c") %dopar% {
+         cat(i, '\r')
          train.markers = sample(row.names(cl.dat), round(nrow(cl.dat) * sample.markers.prop))
          train.cl.dat = cl.dat[train.markers,]
          index = build_train_index(cl.dat = train.cl.dat, method=method, fn = paste0(fn, ".",i))
@@ -455,7 +456,7 @@ check_pairs_ds <- function(de.dir, to.add, genes,cl.bin, de=NULL, mc.cores=10,ma
 #' @return ???
 #'
 #' @keywords internal
-select_markers_ds <- function(de.dir, cl.bin, select.cl=NULL, top.n=20,mc.cores=10)
+select_markers_ds <- function(de.dir, cl.bin, genes, select.cl=NULL, top.n=20,mc.cores=10)
   {
     ds = open_dataset(de.dir)
 
@@ -474,12 +475,11 @@ select_markers_ds <- function(de.dir, cl.bin, select.cl=NULL, top.n=20,mc.cores=
         if(is.null(select.cl)){
           de = de %>% filter(P1 %in% select.cl & P2 %in% select.cl)            
         }
-        de %>% filter(rank <= top.n) %>% pull(gene) %>% unique
+        de %>%  filter(gene %in% genes) %>% filter(rank <= top.n) %>% pull(gene) %>% unique
       }
-    select.markers=unique(tmp)
+    select.markers=setdiff(intersect(genes,unique(tmp)), NA)
     return(select.markers)
   }
-
 
 #' INFO -- PLEASE ADD --
 #'
@@ -498,7 +498,6 @@ select_markers_pair_direction_ds <- function(de.dir, add.num, genes, cl.bin, de=
     }
     add.num = suppressMessages(add.num %>% left_join(cl.bin,by=c("P1"="cl")) %>% left_join(cl.bin,by=c("P2"="cl")))
     gene.score= get_gene_score_ds(ds, to.add=add.num, genes=genes,cl.bin=cl.bin, de=de,mc.cores=mc.cores,...)
-    print(dim(gene.score))
     while(nrow(add.num)>0 & length(genes)>0 & length(select.genes)< max.genes){      
       if(is.null(gene.score) | nrow(gene.score)==0){
         break
@@ -753,6 +752,9 @@ select_markers_groups <- function(de.dir, cl.group, genes, cl.bin, select.groups
     #save(group.markers, pairs, add.num, de.dir, genes, cl.bin, file="Debug.rda")
     more.markers <- select_markers_pair_direction_ds(de.dir, add.num=add.num,  genes=genes, cl.bin=cl.bin, mc.cores=10, byg=byg, ...)    
     select.markers = c(select.markers, more.markers$select.genes)
+    if (any(is.na(select.markers))) {print("markers include NA")}
+    select.markers = setdiff(select.markers, NA) 
+    if (any(is.na(select.markers))) {print("markers include NA") ; browser() }
     return(select.markers)
   }
 

@@ -89,10 +89,21 @@ prepareTaxonomy <- function (
    de.result = prep_parquet_de_all_pairs(norm.dat=NULL, cl=cl, cl.bin=NULL, mc.cores=30, 
                   pairs.fn=pairs.FN,  cl.bin.fn=cl.bin.FN, cl.means=cl.stats$means, 
                   cl.present=cl.stats$present, cl.sqr.means=cl.stats$sqr_means, 
-                  out.dir=de.dir, summary.dir=sum.dir)
+                  out.dir=de.dir, summary.dir=sum.dir, de.param=de_param())
    return(AIT.dir) 
 }
-
+# de_param default values
+#     de_param(
+#       low.th = 1,
+#       padj.th = 0.01,
+#       lfc.th = 1,
+#       q1.th = 0.5,
+#       q2.th = NULL,
+#       q.diff.th = 0.7,
+#       de.score.th = 150,
+#       min.cells = 4,
+#       min.genes = 5
+#     )
 
 #' Rearrange cl.df to internal format labels
 #'
@@ -104,7 +115,6 @@ prepareTaxonomy <- function (
 #'
 #' @export
 rearrange_cl.df <- function (cl.df, cl.hierarchy) {
-
    nlevel=length(cl.hierarchy)
    if (nlevel==2) {
       hier_label = c('root', 'cl')
