@@ -7,20 +7,24 @@ run_prepareTaxonomy <- function( h5adFN ) {
    library(reticulate)
    library(Matrix)  
    adata = read_h5ad(h5adFN)
-   norm.dat = t(adata$X)
-   rownames(norm.dat) = adata$var_names
-   colnames(norm.dat) = adata$obs_names
-   if (sum(names(cl) != adata$obs_names) > 0) { 
-      print("cl and adata$obs_names do not match")
+   bdata = adata$T
+   rm(adata)
+   ngenes_1 = length(bdata$obs_names)-1
+   norm.dat = bdata$chunk_X(0:ngenes_1)
+   rownames(norm.dat) = bdata$obs_names
+   colnames(norm.dat) = bdata$var_names
+
+   cl           = bdata$uns[['HANN']]$cl
+   names(cl)    = bdata$var_names
+   if (sum(names(cl) != bdata$var_names) > 0) {
+      print("cl and bdata$obs_names do not match")
    }
-   cl           = adata$uns[['HANN']]$cl
-   names(cl)    = adata$obs_names
-   cl.df        = adata$uns[['HANN']]$cl.df
+   cl.df        = bdata$uns[['HANN']]$cl.df
    cl.df        = py_to_r(cl.df)
 
-   cl.hierarchy = adata$uns[['HANN']]$cl.hierarchy
-   AIT.str      = adata$uns[['HANN']]$taxonomyName
-   taxonomy.dir = adata$uns[['HANN']]$taxonomyDir
+   cl.hierarchy = bdata$uns[['HANN']]$cl.hierarchy
+   AIT.str      = bdata$uns[['HANN']]$taxonomyName
+   taxonomy.dir = bdata$uns[['HANN']]$taxonomyDir
 
    AIT.dir = prepareTaxonomy ( count        = norm.dat,
                                cl           = cl,
