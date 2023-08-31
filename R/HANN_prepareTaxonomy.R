@@ -94,7 +94,7 @@ prepareTaxonomy <- function (
                   pairs.fn=pairs.FN,  cl.bin.fn=cl.bin.FN, cl.means=cl.stats$means, 
                   cl.present=cl.stats$present, cl.sqr.means=cl.stats$sqr_means, 
                   out.dir=de.dir, summary.dir=sum.dir, de.param=de_param())
-   return(AIT.dir) 
+   return(AIT.dir)
 }
 # de_param default values
 #     de_param(

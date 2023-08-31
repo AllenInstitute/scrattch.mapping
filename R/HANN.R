@@ -111,12 +111,17 @@ check_reference_ready <- function( h5adFN, flag.root=TRUE )
    if (!file.exists(AIT.dir)) dir.create(AIT.dir)
    adata$uns[['HANN']]$AIT.dir = AIT.dir
 
-   cl.df        = adata$uns[['HANN']]$cl.df
-   cl.df        = py_to_r(cl.df)
-   save(cl.df, file=file.path(AIT.dir, "cl.df.rda"))
-
    cl.hierarchy = adata$uns[['HANN']]$cl.hierarchy
    adata$uns[['HANN']]$nlevel = length(cl.hierarchy)
+
+   if (file.exists(file.path(AIT.dir, "cl.df.rda"))) {
+      load(file.path(AIT.dir, "cl.df.rda"))
+   } else {
+      cl.df = adata$uns[['HANN']]$cl.df
+      cl.df = py_to_r(cl.df)
+      cl.df = rearrange_cl.df (cl.df, cl.hierarchy)
+      save(cl.df, file=file.path(AIT.dir, "cl.df.rda"))
+   }
 
    if (flag.root) {
       #load(file.path(taxonomy.dir, "mfish.genes.curated.rda"))
