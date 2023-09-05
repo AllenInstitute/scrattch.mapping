@@ -21,6 +21,7 @@ run_prepareTaxonomy <- function( h5adFN ) {
    }
    cl.df        = bdata$uns[['HANN']]$cl.df
    cl.df        = py_to_r(cl.df)
+   rownames(cl.df) = cl.df$cl
 
    cl.hierarchy = bdata$uns[['HANN']]$cl.hierarchy
    AIT.str      = bdata$uns[['HANN']]$taxonomyName
