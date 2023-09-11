@@ -537,7 +537,7 @@ update_gene_score_ds <- function(gene.score, ds, to.remove, cl.bin, de=NULL, max
       }
     }
     tmp = suppressMessages(gene.score %>% left_join(rm.gene.score) %>% mutate(rm.score = ifelse(is.na(rm.score), 0, rm.score)) %>% mutate(new.score = score - rm.score))
-    tmp = tmp%>% select(gene, new.score) %>% rename(score=new.score) %>% filter(score > 0) %>% arrange(-score)
+    tmp = tmp%>% select(gene, new.score) %>% mutate(score=new.score) %>% filter(score > 0) %>% arrange(-score)
     return(tmp)
   }
 
