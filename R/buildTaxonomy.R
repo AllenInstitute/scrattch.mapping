@@ -267,7 +267,7 @@ buildTaxonomy = function(counts,
       taxonomyDir = taxonomyDir
     )
   )
-  AIT.anndata$write_h5ad(file.path(taxonomyDir, "AI_taxonomy.h5ad"))
+  AIT.anndata$write_h5ad(file.path(taxonomyDir, paste0(taxonomyName, ".h5ad")))
 }
 
 #' Add marker genes to reference dendrogram for tree mapping
