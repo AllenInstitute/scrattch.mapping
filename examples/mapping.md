@@ -17,7 +17,7 @@ query.data = logCPM(query.data)
 taxonomy = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/tasic_2016"
 
 ## Load the shiny taxonomy into a standard object for mapping.
-AIT.anndata = loadTaxonomy(taxonomyFolder = taxonomy)
+AIT.anndata = loadTaxonomy(taxonomyDir = taxonomy)
 
 ## Map! Returns a data.frame with mapping results.
 mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata, 
