@@ -29,6 +29,148 @@ l2norm <- function(X, by="column")
   }
 }
 
+#' Title
+#'
+#' @param cn
+#' @param direction
+#' @param include.self
+#'
+#' @return
+#' @export
+#'
+#' @examples
+create_pairs <- function(cn1, cn2=cn1,direction="nondirectional", include.self = FALSE)
+  {
+    cn1=as.character(cn1)
+    cn2=as.character(cn2)
+    cl.n1 = length(cn1)
+    cl.n2 = length(cn2)
+    pairs = cbind(rep(cn1, rep(cl.n2,cl.n1)), rep(cn2, cl.n1))
+    if(!identical(cn1,cn2) & direction!="unidirectional"){
+      down.pairs = cbind(rep(cn2, rep(cl.n1,cl.n2)), rep(cn1, cl.n2))
+      pairs = rbind(pairs, down.pairs)
+    }
+    if(direction=="nondirectional"){
+      pairs = pairs[pairs[,1]<=pairs[,2],,drop=F]
+    }
+    if(!include.self){
+      pairs = pairs[pairs[,1]!=pairs[,2],,drop=F]
+    }
+    colnames(pairs)=c("P1","P2")
+    row.names(pairs) = paste0(pairs[,1],"_",pairs[,2])
+    return(pairs)
+  }
+
+
+#' Compute differential expression summary statistics based on a differential results data.frame and de_param().
+#' 
+#' @param df A data.frame of pairwise differential expression results (i.e. from \code{score_selected_pairs()}).
+#' @param de.param A list of differential gene expression parameters from \code{de_param()}
+#' @param cl.size1 Optional: The number of samples in the first/high cluster
+#' @param cl.size2 Optional: The number of samples in the second/low cluster
+#' 
+#' @results A list of filtered differential expression results containing:
+#' \itemize{
+#' \item{score} The deScore value, equal to the sum of the -log10(p-values) of differentially expressed genes, with a cap of 20 per gene.
+#' \item{up.score} The deScore value for up-regulated genes.
+#' \item{down.score} The deScore value for down-regulated genes.
+#' \item{num} The number of differentially expressed genes
+#' \item{up.num} The number of up-regulated genes
+#' \item{down.num} The number of down-regulated genes
+#' \item{genes} Gene symbols for differentially expressed genes.
+#' \item{up.genes} Gene symbols for up-regulated genes.
+#' \item{down.genes} Gene symbols for down-regulated genes.
+#' \item{de.df} The df used as input, filtered for differentially expressed genes.
+#' }
+#' 
+de_stats_pair <- function(df,
+                          de.param = de_param(), 
+                          cl.size1 = NULL, 
+                          cl.size2 = NULL,
+                          select.genes = NULL,
+                          return.df = FALSE) {  
+  df <- df[order(df$pval, -abs(df$lfc)), ]
+  
+  select <- with(df, which(padj < de.param$padj.th & abs(lfc) > de.param$lfc.th))
+  select <- row.names(df)[select]
+  
+  if(!is.null(select.genes)){
+    select <- select[select %in% select.genes]
+  }
+  
+  if(is.null(select) | length(select) == 0){
+    return(null_de())
+  }
+  
+  up <- select[df[select, "lfc"] > 0]
+  down <- select[df[select, "lfc"] < 0]
+  df <- df[select, ]
+  
+  if(!is.null(de.param$q.diff.th) & is.null(df$q.diff)) {
+    
+    df$q.diff <- with(df, abs(q1 - q2) / pmax(q1, q2))
+    df$q.diff[is.na(df$q.diff)] <- 0
+    
+  }
+  
+  if(!is.null(de.param$q1.th)) {
+    up <- with(df[up, , drop = FALSE], up[q1 > de.param$q1.th])
+    if(!is.null(cl.size1)){
+      up <- with(df[up, , drop = FALSE], up[q1 * cl.size1 >= de.param$min.cells])
+    }
+    
+    down <- with(df[down, , drop = FALSE], down[q2 > de.param$q1.th])
+    if(!is.null(cl.size2)) {
+      down <- with(df[down, , drop = FALSE], down[q2 * cl.size2 >= de.param$min.cells])
+    }
+  }
+  
+  if(!is.null(de.param$q2.th)) {
+    up <- with(df[up, , drop = FALSE], up[q2 < de.param$q2.th])
+    down <- with(df[down, , drop = FALSE], down[q1 < de.param$q2.th])
+  }
+  
+  if(!is.null(de.param$q.diff.th)){
+    up <- with(df[up, , drop = FALSE], up[abs(q.diff) > de.param$q.diff.th])
+    down <- with(df[down, , drop = FALSE], down[abs(q.diff) > de.param$q.diff.th])
+  }
+  
+  select <- c(up, down)
+  
+  if(length(select) == 0){
+    return(null_de())
+  } else {
+
+    up.genes = setNames(-log10(df[up,"padj"]), up)
+    down.genes = setNames(-log10(df[down,"padj"]), down)
+    
+    tmp = up.genes
+    tmp[tmp > 20] = 20
+    up.score <- sum(tmp)
+    tmp = down.genes
+    tmp[tmp > 20] = 20
+    down.score <- sum(tmp)    
+   
+    result=list(
+      up.genes=up.genes,
+      down.genes=down.genes,
+      up.score = up.score,
+      down.score = down.score,
+      score = up.score + down.score,
+      up.num = length(up.genes),
+      down.num = length(down.genes),
+      num = length(up.genes) + length(down.genes)
+      )
+    
+
+    if(return.df){
+      result$de.df = df[select,]
+    }
+    return(result)
+  } 
+}
+
+
 #' Get KNN
 #'
 #' @param dat  to_be_added
@@ -395,7 +537,7 @@ update_gene_score_ds <- function(gene.score, ds, to.remove, cl.bin, de=NULL, max
       }
     }
     tmp = suppressMessages(gene.score %>% left_join(rm.gene.score) %>% mutate(rm.score = ifelse(is.na(rm.score), 0, rm.score)) %>% mutate(new.score = score - rm.score))
-    tmp = tmp%>% select(gene, new.score) %>% rename(score=new.score) %>% filter(score > 0) %>% arrange(-score)
+    tmp = tmp%>% select(gene, new.score) %>% mutate(score=new.score) %>% filter(score > 0) %>% arrange(-score)
     return(tmp)
   }
 
@@ -791,6 +933,7 @@ prep_parquet_de_all_pairs <- function (norm.dat, cl, cl.bin = NULL, cl.bin.size 
     cn <- as.character(sort(unique(cl)))
     pairs = create_pairs(cn)
     pairs = as.data.frame(pairs)
+
     pairs$pair = row.names(pairs)
     pairs$pair_id = 1:nrow(pairs)
     if (is.null(cl.bin)) {
@@ -847,6 +990,7 @@ prep_parquet_de_selected_pairs <- function (norm.dat, cl, pairs, cl.bin = NULL, 
             pairs$pair_id = 1:nrow(pairs)
         }
     }
+
     select.cl <- unique(c(pairs %>% pull(P1), pairs %>% pull(P2)))
     select.cl <- intersect(select.cl, names(cl.size)[cl.size >=
         de.param$min.cells])
@@ -934,6 +1078,7 @@ prep_parquet_de_selected_pairs <- function (norm.dat, cl, pairs, cl.bin = NULL, 
         }
     }
     all.bins = sort(unique(c(pairs$bin.x, pairs$bin.y)))
+    #print("check. all.bins") ; browser()
     de_list = foreach(bin1 = 1:length(all.bins), .combine = "c") %:%
         foreach(bin2 = bin1:length(all.bins), .combine = "c") %dopar%
        {
