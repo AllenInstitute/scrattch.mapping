@@ -3,9 +3,9 @@
 #' @param h5adFN     filename of anndata with uns[['HANN']]
 #' @export
 run_prepareTaxonomy <- function( h5adFN ) {
-   library(anndata)
-   library(reticulate)
-   library(Matrix)  
+   # library(anndata)
+   # library(reticulate)
+   # library(Matrix)  
    adata = read_h5ad(h5adFN)
    bdata = adata$T
    rm(adata)
@@ -57,8 +57,8 @@ prepareTaxonomy <- function (
    cl, cl.df.users, cl.hierarchy, AIT.str,
    taxonomy.dir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/Taxonomies/",
    h5ad_out = FALSE ) {
-   library(scrattch.bigcat)
-   library(dplyr)
+   # library(scrattch.bigcat)
+   # library(dplyr)
 
    ## Define reference-taxonomy folder and filenames
    AIT.dir = file.path(taxonomy.dir, AIT.str)
@@ -75,7 +75,7 @@ prepareTaxonomy <- function (
    count = count[, sample_cells(cl,200)]
    cl = cl[colnames(count)]
    count.sparse = as(count, 'sparseMatrix')
-   library(data.table)
+   # library(data.table)
    big.dat=convert_big.dat_parquet(count.sparse,  dir=dat.dir)
 
    print("## cluster stat")
@@ -142,7 +142,7 @@ rearrange_cl.df <- function (cl.df, cl.hierarchy) {
       cluster_id = cl
       df = data.frame(cl, cluster_id, subclass_label, class_label)
    }
-   library(dplyr)
+   # library(dplyr)
    rownames(df) = df$cl
    return(df)
 }

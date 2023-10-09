@@ -124,19 +124,16 @@ rfTreeMapping <- function (dend, refDat, clustersF, mapDat = refDat, p = 0.8,
   return(memb)
 }
 
-##################################################################################################################
-## The functions below are mapping function from scrattch.hicat dev_zy branch that are required for tree mapping
-# Libraries required for these functions
-#library(scrattch.hicat)
-#library(MatrixGenerics)
-#library(randomForest)
-#library(doMC)     # for parallelization in Unix environments
-#library(foreach)  # for parallelization in Unix environments
-
 #' Compute cluster sums for each row in a matrix
-#' 
+#'
 #' This is the scrattch.hicat version of this function (the scrattch.bigcat version crashes the code).
-#' 
+#'
+#' @import scrattch.hicat
+#' @import MatrixGenerics
+#' @import randomForest
+#' @import doMC     # for parallelization in Unix environments
+#' @import foreach  # for parallelization in Unix environments
+#'
 #' @param mat A gene (rows) x samples (columns) sparse matrix
 #' @param cl A cluster factor object
 #' 

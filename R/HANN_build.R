@@ -12,7 +12,6 @@
 #' @return train.list
 #'
 #' @export
-
 build_train_list_default <- function(pre.train.list=NA, query.genes=NA, TrainDir, TaxDir, prefix="", nlevel=4, TaxFN, rm.cl=NULL, root.markers=NULL)
 {
    tmp = load(file.path(TrainDir, "cl.df.rda"))

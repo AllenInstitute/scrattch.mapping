@@ -31,14 +31,13 @@ l2norm <- function(X, by="column")
 
 #' Title
 #'
-#' @param cn
-#' @param direction
-#' @param include.self
+#' @param cn DESCRIPTION
+#' @param direction DESCRIPTION
+#' @param include.self DESCRIPTION
 #'
-#' @return
-#' @export
+#' @return ???
 #'
-#' @examples
+#' @keywords internal
 create_pairs <- function(cn1, cn2=cn1,direction="nondirectional", include.self = FALSE)
   {
     cn1=as.character(cn1)
@@ -69,7 +68,8 @@ create_pairs <- function(cn1, cn2=cn1,direction="nondirectional", include.self =
 #' @param cl.size1 Optional: The number of samples in the first/high cluster
 #' @param cl.size2 Optional: The number of samples in the second/low cluster
 #' 
-#' @results A list of filtered differential expression results containing:
+#' @return A list of filtered differential expression results containing: List
+#' 
 #' \itemize{
 #' \item{score} The deScore value, equal to the sum of the -log10(p-values) of differentially expressed genes, with a cap of 20 per gene.
 #' \item{up.score} The deScore value for up-regulated genes.
@@ -82,7 +82,8 @@ create_pairs <- function(cn1, cn2=cn1,direction="nondirectional", include.self =
 #' \item{down.genes} Gene symbols for down-regulated genes.
 #' \item{de.df} The df used as input, filtered for differentially expressed genes.
 #' }
-#' 
+#'
+#' @keywords internal
 de_stats_pair <- function(df,
                           de.param = de_param(), 
                           cl.size1 = NULL, 
@@ -197,11 +198,11 @@ get_knn <- function(dat, ref.dat, k, method ="cor", dim=NULL,index=NULL, build.i
       dat = Matrix::t(dat)
     }
     if(method=="RANN"){
-      library(RANN)
+      #library(RANN)
       knn.result = RANN::nn2(ref.dat, dat, k=k)
     }
     else if(method %in% c("Annoy.Euclidean", "Annoy.Cosine","cor")){
-      library(BiocNeighbors)      
+      #library(BiocNeighbors)      
       if(is.null(index)){
         if(method=="cor"){
           ref.dat = ref.dat - rowMeans(ref.dat)
@@ -310,7 +311,7 @@ batch_process <- function(x, batch.size, FUN, mc.cores=1, .combine="c",...)
 #' @keywords internal
 build_train_index <- function(cl.dat, method= c("Annoy.Cosine","cor","Annoy.Euclidean"),fn=tempfile(fileext=".idx"))
   {
-    library(BiocNeighbors)
+    #library(BiocNeighbors)
     method = method[1]
     ref.dat = Matrix::t(cl.dat)
     if(method=="cor"){
@@ -334,7 +335,7 @@ build_train_index <- function(cl.dat, method= c("Annoy.Cosine","cor","Annoy.Eucl
 #' @keywords internal
 build_train_index_bs <- function(cl.dat, method= c("Annoy.Cosine","cor","Annoy.Euclidean"),sample.markers.prop=0.8, iter=100, mc.cores=10,fn=tempfile(fileext=".idx"))
   {
-    library(BiocNeighbors)
+    #library(BiocNeighbors)
     require(doMC)
     require(foreach)
     registerDoMC(cores=mc.cores)
@@ -415,7 +416,7 @@ map_cells_knn_bs <- function(topk=1, test.dat, iter=100,cl.dat=NULL,train.index.
       }
       train.index.bs = build_train_index_bs(cl.dat, method=method,iter=iter, ...)
     }
-    library(data.table)
+    #library(data.table)
     map.list <- foreach(i=1:iter, .combine="c") %dopar% {
       train.index = train.index.bs[[i]]$index
       cl.dat = train.index.bs[[i]]$cl.dat
@@ -607,7 +608,7 @@ select_markers_ds <- function(de.dir, cl.bin, genes, select.cl=NULL, top.n=20,mc
     }
     select.bin = cl.bin %>% pull(bin) %>% unique
     mc.cores=min(mc.cores, length(select.bin))
-    library(parallel)    
+    #library(parallel)    
     require(doMC)
     require(foreach)
     registerDoMC(cores=mc.cores)    
@@ -766,7 +767,7 @@ select_N_markers_ds<- function(de.dir, select.cl=NULL,pair.num=1, add.num=NULL, 
 #' @keywords internal
 select_pos_markers_ds <- function(de.dir, cl, select.cl, genes, cl.bin, n.markers=1,  mc.cores=1,out.dir="cl.markers",...)
   {
-    library(parallel)    
+    #library(parallel)    
     require(doMC)
     require(foreach)
     registerDoMC(cores=mc.cores)
@@ -801,7 +802,7 @@ select_pos_markers_ds <- function(de.dir, cl, select.cl, genes, cl.bin, n.marker
 #' @keywords internal
 select_top_pos_markers_ds<- function(ds, cl, select.cl, genes, cl.bin, n.markers=3, mc.cores=10,...)
   {
-    library(parallel)    
+    #library(parallel)    
     require(doMC)
     require(foreach)
     registerDoMC(cores=mc.cores)
@@ -833,8 +834,8 @@ select_top_pos_markers_ds<- function(ds, cl, select.cl, genes, cl.bin, n.markers
 select_markers_groups_top_ds <- function(ds, cl.group, select.groups=names(cl.group), n.markers=3,mc.cores=1,...)
   {
 
-    library(parallel)
-    library(parallel)    
+    #library(parallel)
+    #library(parallel)    
     require(doMC)
     require(foreach)
     registerDoMC(cores=mc.cores)
@@ -864,7 +865,7 @@ select_markers_groups <- function(de.dir, cl.group, genes, cl.bin, select.groups
     ds = open_dataset(de.dir)
     cl.group$cl = as.character(cl.group$cl)
     group_pair=create_pairs(unique(cl.group$group))
-    library(parallel)
+    #library(parallel)
     require(doMC)
     require(foreach)
     registerDoMC(cores=mc.cores)
@@ -940,7 +941,7 @@ prep_parquet_de_all_pairs <- function (norm.dat, cl, cl.bin = NULL, cl.bin.size 
        cl.bin.size = min(100, length(cn)/mc.cores)
        cl.bin = data.frame(cl = cn, bin = ceiling((1:length(cn)/cl.bin.size)))
     }
-    library(arrow)
+    #library(arrow)
     write_parquet(pairs, sink = pairs.fn)
     save(cl.bin, file=cl.bin.fn) 
     de.result = prep_parquet_de_selected_pairs(norm.dat, cl = cl, pairs = pairs,
@@ -965,7 +966,7 @@ prep_parquet_de_selected_pairs <- function (norm.dat, cl, pairs, cl.bin = NULL, 
     counts = NULL, mc.cores = 1, out.dir = NULL, summary.dir = NULL,
     top.n = 500, overwrite = FALSE, return.df = FALSE, return.summary = !is.null(summary.dir))
 {
-    library(arrow)
+    #library(arrow)
     method <- match.arg(method, choices = c("fast_limma", "limma",
         "chisq", "t.test"))
     require(parallel)
@@ -1057,7 +1058,7 @@ prep_parquet_de_selected_pairs <- function (norm.dat, cl, pairs, cl.bin = NULL, 
     mc.cores = min(mc.cores, ceiling(nrow(pairs)/5000))
     registerDoMC(cores = mc.cores)
     de_combine <- function(result.1, result.2) {
-        library(data.table)
+        #library(data.table)
         de.genes = c(result.1$de.genes, result.2$de.genes)
         if (!is.null(result.1$de.summary)) {
             de.summary = rbindlist(result.1$de.summary, result.2$de.summary)
@@ -1090,9 +1091,9 @@ prep_parquet_de_selected_pairs <- function (norm.dat, cl, pairs, cl.bin = NULL, 
                   return(list(de.genes = NULL, de.summary = NULL))
                 }
             }
-            library(dplyr)
-            library(arrow)
-            library(data.table)
+            #library(dplyr)
+            #library(arrow)
+            #library(data.table)
             tmp.pairs = pairs %>% filter(bin.x == x & bin.y ==
                 y | bin.x == y & bin.y == x)
             if (is.null(tmp.pairs) | nrow(tmp.pairs) == 0) {

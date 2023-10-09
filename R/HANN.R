@@ -36,12 +36,6 @@
 #'            dist  : distance to cluster template centroid (mean marker gene count)
 #'            path.cor : correlation of markers along the path of the hierarchy to the terminal node(cluster), in hierarchical mapping
 #' @return best.map.df
-#' @param      : all clusters a sample is mapped in N iterations of mapping with
-#'                     sub-sampled markers
-#'            freq : frequencies a sample is mapped to each cluster, cl
-#'            dist  : distance to cluster template centroid (mean marker gene count)
-#'            path.cor : correlation of markers along the path of the hierarchy to the terminal node(cluster), in hierarchical mapping
-#' @return best.map.df
 #'            best.cl  : the cluster a sample is mapped with highest freq in map.freq
 #'            prob     : probablity of a sample being mapped to best.cl cluster out of  N iterations
 #'            avg.dist : distance to the template cluster mean
@@ -100,9 +94,7 @@ run_mapping_on_taxonomy <- function(h5adFN, query.dat, prefix="",
 
 check_reference_ready <- function( h5adFN, flag.root=TRUE )
 {
-   library(anndata)
-   library(reticulate)
-   library(Matrix)
+   ##
    adata = read_h5ad(h5adFN)
 
    AIT.str      = adata$uns[['HANN']]$taxonomyName
@@ -505,7 +497,7 @@ predict_HKNN_cl_bs <- function (query, train.list, marker_index, iter=100, mc.co
    mc.cores = min(mc.cores, iter)
    registerDoMC(cores=mc.cores)
 
-   library(data.table)
+   #library(data.table)
    #map.list <- list()
    map.list <- foreach(i=1:iter, .combine="c") %dopar% {
    #for(i in 1:iter) {#, .combine="c") %dopar% {
@@ -889,7 +881,7 @@ call_ANN <- function(index.bs, qdat, prev) {
 look_up_ancestor <- function(cl.df, nlvl=3) {
 
 
-   library(dplyr)
+   #library(dplyr)
 
    if (nlvl == 3) {
       if ("class_label" %in% colnames(cl.df) && "subclass_label" %in% colnames(cl.df)) {
@@ -1204,7 +1196,7 @@ build_marker_index_tree_cl <- function (train.list, pre.train.list=NA, query.gen
 prepare_train_mmean_list <- function( anal_dir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/yzizhen/joint_analysis/forebrain_new",
                                 modality = "10X_cells_v3" ) {
 
-   library(dplyr)
+   #library(dplyr)
 
    # comb.dat  & imputed data
    tmp = load(file.path(anal_dir, "comb.dat.rda"))
