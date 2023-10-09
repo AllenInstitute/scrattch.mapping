@@ -2,7 +2,7 @@
 % Please edit documentation in R/HANN.R
 \name{run_mapping_on_taxonomy}
 \alias{run_mapping_on_taxonomy}
-\title{INFO -- PLEASE ADD --}
+\title{run_mapping_on_taxonomy}
 \usage{
 run_mapping_on_taxonomy(
   h5adFN,
@@ -83,5 +83,5 @@ cor.zscore : z-normalized value of over avg.cor
 cl.df : taxonomy cluster annotation matched by "cl" (mapped[\link{"best.map.df"}]$best.cl)
 }
 \description{
-INFO -- PLEASE ADD --
+Run HANN mapping on a taxonomy .h5ad
 }

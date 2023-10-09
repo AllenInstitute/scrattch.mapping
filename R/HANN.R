@@ -1,4 +1,6 @@
-#' INFO -- PLEASE ADD --
+#' run_mapping_on_taxonomy
+#'
+#' Run HANN mapping on a taxonomy .h5ad
 #'
 #' @param h5adFN   : h5ad filename, output of prepareTaxonomy()
 #' @param querydat : count matrix (log-normalized)  Ngene X Ncell
@@ -46,7 +48,6 @@
 #'
 #' @export
 #'
-
 run_mapping_on_taxonomy <- function(h5adFN, query.dat, prefix="", 
                              prebuild=FALSE, newbuild=FALSE, TaxFN=NA,
                              mapping.method=c('flat', 'one-step', 'hierarchy'),
