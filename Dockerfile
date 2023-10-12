@@ -58,9 +58,13 @@ RUN R -e 'remotes::install_github("AllenInstitute/scrattch.hicat")'
 RUN R -e 'remotes::install_github("AllenInstitute/scrattch.bigcat")'
 RUN R -e 'remotes::install_github("AllenInstitute/mfishtools")'
 
+## scrattch-taxonomy install from local source
+COPY scrattch.taxonomy_0.2.tar.gz ./scrattch.taxonomy_0.2.tar.gz
+RUN R -e 'install.packages("scrattch.taxonomy_0.2.tar.gz", repos=NULL, type="source")'
+
 ## scrattch-mapping install from local source
-COPY scrattch.mapping_0.43.tar.gz ./scrattch.mapping_0.43.tar.gz
-RUN R -e 'install.packages("scrattch.mapping_0.43.tar.gz", repos=NULL, type="source")'
+COPY scrattch.mapping_0.44.tar.gz ./scrattch.mapping_0.44.tar.gz
+RUN R -e 'install.packages("scrattch.mapping_0.44.tar.gz", repos=NULL, type="source")'
 
 ## Clean up
 RUN rm -rf /var/lib/apt/lists/*

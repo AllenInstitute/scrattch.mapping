@@ -2,42 +2,44 @@
 % Please edit documentation in R/utils.R
 \name{map_dend}
 \alias{map_dend}
-\title{map_dend}
+\title{Tree-based mapping}
 \usage{
 map_dend(
   dend,
-  cl.dat,
+  cl,
+  dat,
   map.dat,
-  select.cells = colnames(map.dat),
+  select.cells,
   p = 0.8,
-  low.th = 0.1,
-  default.markers = NULL,
-  seed = 42
+  low.th = 0.2,
+  default.markers = NULL
 )
 }
 \arguments{
-\item{dend}{A dendrogram in R format}
+\item{dend}{dendrogram for mapping}
 
-\item{cl.dat}{gene by cell type matrix (I think?)}
+\item{cl}{factor indicating which cluster each cell type is actually assigned to
+in the reference data set}
 
-\item{map.dat}{normalized data of the MAPPING data set.}
+\item{dat}{normalized data of the REFERENCE data set}
 
-\item{select.cells}{names of cells to map (e.g., the column names of the cell x gene matrix)}
+\item{map.dat}{normalized data of the MAPPING data set.  Default is to map the
+data onto itself.}
 
-\item{p}{proportion of marker genes to include in each iteration of the mapping algorithm.}
+\item{p}{proportion of marker genes to include in each iteration of the mapping
+algorithm.}
 
-\item{low.th}{the minimum difference in Pearson correlation required to decide on which branch}
+\item{low.th}{the minimum difference in Pearson correlation required to decide
+on which branch to map to. otherwise, a random branch is chosen.}
 
-\item{default.markers}{What genes to include in every bootstrap run (default is none)}
-
-\item{seed}{= random seed}
-
-\item{cl}{A cluster factor object to compare to a reference}
+\item{default.markers}{not used}
 }
 \value{
-tree mapping to the dendrogram table (cells x nodes with values as probabilities)
+a matrix of confidence scores (from 0 to 100) with rows as cells and columns
+as tree node/leafs.  Values indicate the fraction of permutations in which the cell
+mapped to that node/leaf using the subset of cells/genes in map_dend
 }
 \description{
-map_dend
+Returns the mapping membership of each cell to each node and leaf using a
+tree-based method.  This is a wrapper function for map_dend.
 }
-\keyword{internal}

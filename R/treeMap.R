@@ -22,7 +22,7 @@ treeMap = function(AIT.anndata,
     mappingTarget = tryCatch(
         expr = {
             ## Load dendrogram
-            dend = readRDS(AIT.anndata$uns$dend[[AIT.anndata$uns$mode]])
+            dend = json_to_dend(fromJSON(AIT.anndata$uns$dend[[AIT.anndata$uns$mode]]))
             ##
             clReference  = setNames(factor(AIT.anndata$obs$cluster_label, levels=AIT.anndata$uns$clustersUse), AIT.anndata$obs_names)
             ## Gather marker genes
@@ -39,6 +39,7 @@ treeMap = function(AIT.anndata,
                                        bootstrap=bootstrap, 
                                        seed=seed)
             },type="message"))
+            print("Results")
             ## Gather results
             topLeaf = getTopMatch(membNode[,AIT.anndata$uns$clustersUse])
             topLeaf = topLeaf[colnames(query.data),]

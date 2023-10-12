@@ -5,6 +5,7 @@ In this tutorial we demonstrate how to run standard mapping algorithms using scr
 ```R
 ## Load scrattch.mapping
 library(scrattch.mapping)
+library(scrattch.taxonomy)
 
 ## Load in example count data
 library(tasic2016data)
@@ -14,10 +15,10 @@ query.data = tasic_2016_counts
 query.data = logCPM(query.data)
 
 ## Specify which taxonomies to map against.
-taxonomy = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/tasic_2016"
+taxonomy = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/tasic_2016/"
 
 ## Load the shiny taxonomy into a standard object for mapping.
-AIT.anndata = loadTaxonomy(taxonomyDir = taxonomy)
+AIT.anndata = loadTaxonomy(taxonomyDir = taxonomy, anndata_file="Tasic2016.h5ad")
 
 ## Map! Returns a data.frame with mapping results.
 mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata, 
@@ -25,7 +26,7 @@ mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata,
                                 label.cols="cluster_label", ## Which obs in AIT.anndata contain annotations to map. E.g. "class", "subclass", etc.
                                 corr.map=TRUE, 
                                 tree.map=TRUE, 
-                                seurat.map=TRUE)
+                                seurat.map=FALSE)
                                 
 save(mapping.anno, file="mapping_anno.rda")
 ```

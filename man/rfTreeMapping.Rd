@@ -9,8 +9,8 @@ rfTreeMapping(
   refDat,
   clustersF,
   mapDat = refDat,
-  p = 0.8,
-  low.th = 0.1,
+  p = 0.7,
+  low.th = 0.15,
   bootstrap = 100,
   seed = 1
 )

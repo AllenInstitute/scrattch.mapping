@@ -2,42 +2,40 @@
 % Please edit documentation in R/utils.R
 \name{resolve_cl}
 \alias{resolve_cl}
-\title{resolve_cl}
+\title{Tree-based mapping (internal)}
 \usage{
 resolve_cl(
   cl.g,
-  cl.dat,
+  cl.med,
   markers,
+  dat,
   map.dat,
   select.cells,
-  p = 0.8,
-  low.th = 0.1,
-  seed = 42
+  p = 0.7,
+  low.th = 0.2
 )
 }
 \arguments{
-\item{cl.g}{Cluster labels in some format}
+\item{cl.g}{all clusters}
 
-\item{markers}{Genes to use as markers for this function}
+\item{cl.med}{cluster medians}
 
-\item{map.dat}{normalized data of the MAPPING data set.}
+\item{markers}{gene markers}
 
-\item{select.cells}{names of cells to map (e.g., the column names of the cell x gene matrix)}
+\item{dat}{normalized data of the REFERENCE data set}
+
+\item{map.dat}{normalized data of the MAPPING data set.  Default is to map the data onto itself.}
+
+\item{select.cells}{which cells to use?}
 
 \item{p}{proportion of marker genes to include in each iteration of the mapping algorithm.}
 
-\item{low.th}{the minimum difference in Pearson correlation required to decide on which branch}
-
-\item{seed}{\itemize{
-\item random seed for reproducibility
-}}
-
-\item{cl.med}{Cluster medians}
+\item{low.th}{the minimum difference in Pearson correlation required to decide on which branch
+to map to. otherwise, a random branch is chosen.}
 }
 \value{
-mapped.cl output
+a vector of the mapped cluster
 }
 \description{
-resolve_cl
+Returns the mapped cluster call of each cell to each leaf. This function is called by map_dend
 }
-\keyword{internal}
