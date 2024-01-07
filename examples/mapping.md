@@ -9,6 +9,10 @@ library(scrattch.taxonomy)
 
 ## Load in example count data
 library(tasic2016data)
+library(hodge2019data)
+
+## Optionally load hodge2019 data instead
+# query.data = data_Hodge2019
 
 ## Compute log CPM
 query.data = tasic_2016_counts
