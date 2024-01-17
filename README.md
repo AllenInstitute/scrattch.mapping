@@ -14,7 +14,7 @@ Update notes are here: ![Versions](https://github.com/AllenInstitute/scrattch-ma
 
 ## Docker
 
-We have setup a docker environemnt for scattch.mapping that contains all the required dependencies and the current version of scrattch.mapping. This docker is accessible through docker hub via: `bicore/scrattch_mapping:latest`.
+We have setup a docker environemnt for scattch.mapping that contains all the required dependencies and the current version of scrattch.mapping. This docker is accessible through docker hub via: `njjai/scrattch_mapping:0.52.1`.
 
 #### HPC usage:
 
