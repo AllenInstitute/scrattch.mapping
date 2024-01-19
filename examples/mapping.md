@@ -9,20 +9,16 @@ library(scrattch.taxonomy)
 
 ## Load in example count data
 library(tasic2016data)
-library(hodge2019data)
-
-## Optionally load hodge2019 data instead
-# query.data = data_Hodge2019
 
 ## Compute log CPM
 query.data = tasic_2016_counts
 query.data = logCPM(query.data)
 
 ## Specify which taxonomies to map against.
-taxonomy = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/tasic_2016/"
+taxonomyDir = "/home/nelson.johansen/tasic_2016"
 
 ## Load the shiny taxonomy into a standard object for mapping.
-AIT.anndata = loadTaxonomy(taxonomyDir = taxonomy, anndata_file="Tasic2016.h5ad")
+AIT.anndata = loadTaxonomy(taxonomyDir = taxonomyDir, anndata_file="Tasic2016.h5ad")
 
 ## Map! Returns a data.frame with mapping results.
 mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata, 
