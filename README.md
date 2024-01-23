@@ -14,15 +14,15 @@ Update notes are here: ![Versions](https://github.com/AllenInstitute/scrattch-ma
 
 ## Docker
 
-We have setup a docker environemnt for scattch.mapping that contains all the required dependencies and the current version of scrattch.mapping. This docker is accessible through docker hub via: `bicore/scrattch_mapping:latest`.
+We have setup a docker environemnt for scattch.mapping that contains all the required dependencies and the current version of scrattch.mapping. This docker is accessible through docker hub via: `njjai/scrattch_mapping:0.52.2`.
 
 #### HPC usage:
 
 ##### Non-interactive
-`singularity exec --cleanenv docker://njjai/scrattch_mapping:0.52.1 Rscript YOUR_CODE.R`
+`singularity exec --cleanenv docker://njjai/scrattch_mapping:0.52.2 Rscript YOUR_CODE.R`
 
 ##### Interactive
-`singularity shell --cleanenv docker://njjai/scrattch_mapping:0.52.1`
+`singularity shell --cleanenv docker://njjai/scrattch_mapping:0.52.2`
 
 
 ## Installation
