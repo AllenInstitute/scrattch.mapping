@@ -1,3 +1,15 @@
+## scrattch.mapping v0.52.2
+
+Major change to how we return mapping results.
+
+### Major changes
+`taxonomy_mapping` now returns an S4 class called `mappingClass`. We've included a single method `getMappingResults()` to extract the results table from the S4 class.
+
+### Minor changes
+Many bug fixes and path handling
+
+--
+
 ## scrattch.mapping v0.4
 
 Remove code associated with taxonomy building to scrattch.taxonomy.
