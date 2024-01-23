@@ -12,7 +12,9 @@
 #' @return Mapping results from all methods.
 #'
 #' @export
-taxonomy_mapping = function(AIT.anndata, query.data, corr.map=TRUE, tree.map=TRUE, seurat.map=TRUE, label.cols = c("cluster_label","subclass_label", "class_label")){
+taxonomy_mapping = function(AIT.anndata, query.data, 
+                            corr.map=TRUE, tree.map=TRUE, seurat.map=TRUE, 
+                            label.cols = c("cluster_label","subclass_label", "class_label")){
 
     print(paste("==============================","Mapping","======================="))
     print(date())
@@ -48,7 +50,7 @@ taxonomy_mapping = function(AIT.anndata, query.data, corr.map=TRUE, tree.map=TRU
     
     #############
     ## ----- Tree mapping -------------------------------------------------------------------------------
-    if(tree.map == TRUE & !is.null(AIT.anndata$uns$dend)){ mappingResults[["Tree"]] = treeMap(AIT.anndata, query.data) }
+    if(tree.map == TRUE & !is.null(AIT.anndata$uns$dend)){ mappingTree = treeMap(AIT.anndata, query.data); mappingResults[["Tree"]] = mappingTree[["result"]] }
     
     #############
     ## ----- Seurat mapping ------------------------------------------------------------------------------
@@ -57,11 +59,10 @@ taxonomy_mapping = function(AIT.anndata, query.data, corr.map=TRUE, tree.map=TRU
     #############
     ## Combine mapping results
     mappingAnno = Reduce(cbind, mappingResults)
-    rownames(mappingAnno) = colnames(query.data) ## Add query sample names to mapping results
-
+ 
     #############
     ## ---- Convert cell type mappings to subclass, neighborhood (if available), and class -------------------------------
-    methods <- sort(colnames(mappingAnno)[grepl("map",colnames(mappingAnno))])
+    methods <- sort(colnames(mappingAnno)[grepl("map", colnames(mappingAnno))])
     names(methods) <- gsub("map.", "", methods)
 
     ## Now map back up the tree to subclass and class based on cluster labels
@@ -71,6 +72,13 @@ taxonomy_mapping = function(AIT.anndata, query.data, corr.map=TRUE, tree.map=TRU
         mappingAnno <- cbind(mappingAnno, convert)
     }
     mappingAnno = mappingAnno[,-which(colnames(mappingAnno) %in% methods)]
+
+    ## Build mapping class object
+    resultAnno <- mappingClass(annotations = mappingAnno,
+                                detailed_results = list("corr" = NA, 
+                                                        "tree" = mappingTree[["detail"]], 
+                                                        "seurat" = NA))
     
-    return(mappingAnno)
+    ## Return annotations and detailed model results
+    return(resultAnno)
 }

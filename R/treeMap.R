@@ -39,13 +39,13 @@ treeMap = function(AIT.anndata,
                                        bootstrap=bootstrap, 
                                        seed=seed)
             },type="message"))
-            print("Results")
             ## Gather results
             topLeaf = getTopMatch(membNode[,AIT.anndata$uns$clustersUse])
             topLeaf = topLeaf[colnames(query.data),]
             ## Create results data.frame
             mappingTarget = data.frame(map.Tree=as.character(topLeaf$TopLeaf), 
-                                       score.Tree=topLeaf$Value)
+                                        score.Tree=topLeaf$Value,
+                                        row.names = colnames(query.data))
             mappingTarget
         },
         error = function(e){ 
@@ -56,5 +56,5 @@ treeMap = function(AIT.anndata,
         finally = {
         }
     )
-    return(mappingTarget)
+    return(list("result"=mappingTarget, "detail"=membNode))
 }

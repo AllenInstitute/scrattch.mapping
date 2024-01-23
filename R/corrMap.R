@@ -19,7 +19,8 @@ corrMap = function(AIT.anndata, query.data){
                                         clReference, 
                                         query.data[AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes],]) 
             mappingTarget = data.frame(map.Corr=as.character(corMapTarget[[1]]$pred.cl), 
-                                    score.Corr=corMapTarget[[1]]$pred.score)
+                                        score.Corr=corMapTarget[[1]]$pred.score,
+                                        row.names = colnames(query.data))
             mappingTarget
         },
         error = function(e){ 
