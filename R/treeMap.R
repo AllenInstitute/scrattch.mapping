@@ -44,8 +44,7 @@ treeMap = function(AIT.anndata,
             topLeaf = topLeaf[colnames(query.data),]
             ## Create results data.frame
             mappingTarget = data.frame(map.Tree=as.character(topLeaf$TopLeaf), 
-                                        score.Tree=topLeaf$Value,
-                                        row.names = colnames(query.data))
+                                        score.Tree=topLeaf$Value)
             mappingTarget
         },
         error = function(e){ 
@@ -54,7 +53,7 @@ treeMap = function(AIT.anndata,
             return(NULL)
         },
         finally = {
+            return(list("result"=mappingTarget, "detail"=membNode))
         }
     )
-    return(list("result"=mappingTarget, "detail"=membNode))
 }

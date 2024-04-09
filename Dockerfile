@@ -15,12 +15,12 @@ RUN R -e 'install.packages("anndata", update=TRUE)'
 RUN R -e 'install.packages("BiocManager", update=FALSE)' 
 RUN R -e 'BiocManager::install(c( "AnnotationDbi", "data.table", "GO.db", \
                                   "impute", "limma", "preprocessCore", "xml2", "rols"), dependenceis=NA, update=TRUE)' 
-RUN R -e 'BiocManager::install(c( "qlcMatrix", "munsell", "rhdf5", "dplyr", \
+RUN R -e 'BiocManager::install(c( "munsell", "rhdf5", "dplyr", \
                                   "optparse", "foreach", "doParallel", "futile.logger", \
                                   "ggplot2", "WGCNA"), dependenceis=NA, update=TRUE)' 
 RUN R -e 'BiocManager::install(c( "randomForest", "LaplacesDemon", "reshape2", \
                                   "feather", "future", "tibble", "dendextend", \
-                                  "matrixStats", "Matrix" ), dependenceis=NA, update=TRUE)' 
+                                  "Matrix" ), dependenceis=NA, update=TRUE)' 
 RUN R -e 'BiocManager::install(c( "mgcv", "edgeR", "caret", \
                                   "ggbeeswarm", "pvclust", \
                                   "cowplot" ), dependenceis=NA, update=TRUE)'
@@ -47,6 +47,7 @@ RUN R -e 'remotes::install_github("krlmlr/bindrcpp")'
 RUN R -e 'remotes::install_github("igraph/rigraph")'
 RUN R -e 'remotes::install_github("i-cyto/Rphenograph")' 
 RUN R -e 'remotes::install_github("PavlidisLab/patchSeqQC")'
+RUN R -e 'remotes::install_github("cysouw/qlcMatrix")'
 
 ## Allen Institute R installs
 RUN R -e 'remotes::install_github("AllenInstitute/CCN")'
@@ -59,12 +60,16 @@ RUN R -e 'remotes::install_github("AllenInstitute/scrattch.bigcat")'
 RUN R -e 'remotes::install_github("AllenInstitute/mfishtools")'
 
 ## scrattch-taxonomy install from local source
-COPY scrattch.taxonomy_0.2.tar.gz ./scrattch.taxonomy_0.2.tar.gz
-RUN R -e 'install.packages("scrattch.taxonomy_0.2.tar.gz", repos=NULL, type="source")'
+COPY scrattch.taxonomy_0.3.tar.gz ./scrattch.taxonomy_0.3.tar.gz
+RUN R -e 'install.packages("scrattch.taxonomy_0.3.tar.gz", repos=NULL, type="source")'
 
 ## scrattch-mapping install from local source
-COPY scrattch.mapping_0.51.tar.gz ./scrattch.mapping_0.51.tar.gz
-RUN R -e 'install.packages("scrattch.mapping_0.51.tar.gz", repos=NULL, type="source")'
+COPY scrattch.mapping_0.55.1.tar.gz ./scrattch.mapping_0.55.1.tar.gz
+RUN R -e 'install.packages("scrattch.mapping_0.55.1.tar.gz", repos=NULL, type="source")'
+
+##
+COPY matrixStats_1.1.0.tar.gz ./matrixStats_1.1.0.tar.gz
+RUN R -e 'install.packages("matrixStats_1.1.0.tar.gz", repos=NULL, type="source")'
 
 ## Clean up
 RUN rm -rf /var/lib/apt/lists/*
