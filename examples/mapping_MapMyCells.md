@@ -28,7 +28,7 @@ python -m cell_type_mapper.cli.from_specified_markers \
 --type_assignment.normalization raw \
 --precomputed_stats.path <path_to_your_taxonomy_files_directory>/<your_taxonomy>_precompute_stats.h5 \
 --query_markers.serialized_lookup <path_to_your_taxonomy_files_directory>/<your_taxonomy>_query_markers.json \
---extended_result_path <path_to_your_taxonomy_files_directory>/subsampled_self_proj_hann_results.json \
+--extended_result_path <path_to_your_taxonomy_files_directory>/<your_taxonomy>_results.json \
 --type_assignment.n_processors 16 \
 --type_assignment.chunk_size 1000
 ```
@@ -39,7 +39,7 @@ python -m cell_type_mapper.cli.from_specified_markers \
 * Change normalization to either 'log2CPM' or keep as 'raw' based on the count matrix of your taxonomy.
 * Change the name of the precompute_stats file if you're using a different taxonomy.
 * Change the name of the query_markers file if you're using a different taxonomy.
-* Change the name of the results file (subsampled_self_proj_hann_results.json) if you're using a different taxonomy.
+* Change the name of the results file if you're using a different taxonomy.
 * Change the n_processors and chunk_size based on the available CPU and memory.
 
 For more information about other command line parameters, run in your terminal:
