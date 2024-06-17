@@ -10,19 +10,19 @@ import json
 
 def fromSpecifiedMarkersRunner(anndata_path, extended_result_path,
                                chunk_size, n_processors, normalization, tmp_dir):
-    extended_result_path=os.path.join(tmp_dir, "mapmycells_results.json")
-
     if not tmp_dir:
         tmp_dir = "./temp_folder_" + time.strftime("%Y%m%d-%H%M%S")
         os.mkdir(tmp_dir)
         delete_tmp_folder = True
-
+        
+    extended_result_path=os.path.join(tmp_dir, "mapmycells_results.json")
     precomputed_stats_path = str(output_utils.uns_to_precomputed_stats(h5ad_path=anndata_path, uns_key="MapMyCells_HANN_precomp_stats", tmp_dir=tmp_dir))
     print(precomputed_stats_path)
     
     serialized_query_markers = anndata_utils.read_uns_from_h5ad(h5ad_path=anndata_path)["MapMyCells_query_markers"]
     query_markers_filename = "query_markers_" + time.strftime("%Y%m%d-%H%M%S") + ".h5"
     query_markers_output_path = os.path.join(tmp_dir, query_markers_filename)
+    
     with open(query_markers_output_path, "w") as file:
         json.dump(clean_for_json(serialized_query_markers), file)
     

@@ -21,7 +21,7 @@ Depends: feather, anndata, dplyr, dendextend, viridis, feather, tibble,
         Matrix, MatrixGenerics, foreach, pvclust, scrattch.io,
         scrattch.hicat, scrattch.bigcat, scrattch.taxonomy,
         scrattch.vis, mfishtools, patchseqtools, patchSeqQC, Seurat,
-        cowplot, umap, arrow, BiocNeighbors, RANN
+        cowplot, umap, arrow, BiocNeighbors, RANN, reticulate
 Suggests: knitr, rmarkdown, testthat, future, parallel, doMC
 Encoding: UTF-8
 VignetteBuilder: knitr
