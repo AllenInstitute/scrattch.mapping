@@ -46,15 +46,15 @@ taxonomy_mapping = function(AIT.anndata, query.data,
 
     ############
     ## ----- Correlation mapping ------------------------------------------------------------------------
-    if(corr.map == TRUE){ mappingResults[["Corr"]] = corrMap(AIT.anndata, query.data) }
+    if(corr.map == TRUE){ mappingResults[["Corr"]] = corrMap(AIT.anndata, query.data) } else  { mappingResults[["Corr"]] = NULL }
     
     #############
     ## ----- Tree mapping -------------------------------------------------------------------------------
-    if(tree.map == TRUE & !is.null(AIT.anndata$uns$dend)){ mappingTree = treeMap(AIT.anndata, query.data); mappingResults[["Tree"]] = mappingTree[["result"]] }
+    if(tree.map == TRUE & !is.null(AIT.anndata$uns$dend)){ mappingTree = treeMap(AIT.anndata, query.data); mappingResults[["Tree"]] = mappingTree[["result"]] } else{ mappingTree = NULL }
     
     #############
     ## ----- Seurat mapping ------------------------------------------------------------------------------
-    if(seurat.map == TRUE){ mappingResults[["Seurat"]] = seuratMap(AIT.anndata, query.data) }
+    if(seurat.map == TRUE){ mappingResults[["Seurat"]] = seuratMap(AIT.anndata, query.data) } else{ mappingResults[["Seurat"]] = NULL }
 
     #############
     ## Combine mapping results

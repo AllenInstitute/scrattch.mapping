@@ -25,7 +25,7 @@ mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata,
                                 query.data=query.data,
                                 label.cols="cluster_label", ## Which obs in AIT.anndata contain annotations to map. E.g. "class", "subclass", etc.
                                 corr.map=TRUE,
-                                tree.map=TRUE,
+                                tree.map=FALSE,
                                 seurat.map=FALSE)
 
 ## Extract mapping results from S4 mappingClass
