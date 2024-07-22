@@ -43,6 +43,9 @@ save(mapping.results, file="mapping_results.rda")
 In this tutorial we demonstrate how to run MapMyCells HANN mapping algorithms using scrattch.mapping on the Tasic et al. 2016 study. Available taxonomies can be found under `/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/` on hpc.
 
 ```R
+library(reticulate)
+cell_type_mapper <- import("cell_type_mapper")
+
 ## Map! Returns an S4 class with mapping results.
 mapMyCells.anno = mapHANNMapMyCells(AIT.anndata)
 
