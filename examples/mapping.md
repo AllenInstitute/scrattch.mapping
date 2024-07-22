@@ -25,7 +25,7 @@ mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata,
                                 query.data=query.data,
                                 label.cols="cluster_label", ## Which obs in AIT.anndata contain annotations to map. E.g. "class", "subclass", etc.
                                 corr.map=TRUE,
-                                tree.map=TRUE,
+                                tree.map=FALSE,
                                 seurat.map=FALSE)
 
 ## Extract mapping results from S4 mappingClass
@@ -36,22 +36,4 @@ tree.bootstraps = mapping.anno@detailed_results[["tree"]]
 
 ## Save
 save(mapping.results, file="mapping_results.rda")
-```
-
-# Tutorial: Standard taxonomy mapping using flat, tree and Seurat.
-
-In this tutorial we demonstrate how to run MapMyCells HANN mapping algorithms using scrattch.mapping on the Tasic et al. 2016 study. Available taxonomies can be found under `/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/` on hpc.
-
-```R
-library(reticulate)
-cell_type_mapper <- import("cell_type_mapper")
-
-## Map! Returns an S4 class with mapping results.
-mapMyCells.anno = mapHANNMapMyCells(AIT.anndata)
-
-## Extract mapping results from S4 mappingClass
-mapMyCells.results = getMappingResults(mapMyCells.anno)
-
-## Save
-save(mapMyCells.results, file="MapMyCells_mapping_results.rda")
 ```
