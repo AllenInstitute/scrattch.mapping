@@ -2,6 +2,7 @@
 
 export(corrMap)
 export(getMappingResults)
+export(mapHANNMapMyCells)
 export(map_dend)
 export(mappingClass)
 export(mappingMode)

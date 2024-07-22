@@ -26,7 +26,7 @@ Suggests: knitr, rmarkdown, testthat, future, parallel, doMC
 Encoding: UTF-8
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 NeedsCompilation: no
 Packaged: 2024-04-02 22:46:15 UTC; nelson.johansen
 Author: Changkyu Lee [aut, cre]
