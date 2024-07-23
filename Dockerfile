@@ -36,10 +36,18 @@ RUN R -e 'install.packages("arrow")'
 RUN R -e 'install.packages("anndata", update=TRUE)'
 RUN R -e 'install.packages("jsonlite", update=TRUE)'
 
+## 
+COPY matrixStats_1.3.0.tar.gz ./matrixStats_1.3.0.tar.gz
+RUN R -e 'install.packages("matrixStats_1.3.0.tar.gz", repos=NULL, type="source")'
+
 ## Seurat setup
 RUN apt-get update && \
     apt-get install -y libgeos-dev libglpk-dev
-RUN R -e 'install.packages("Seurat", update=TRUE)'
+RUN R -e 'install.packages("sp")'
+RUN R -e 'install.packages("spam")'
+RUN R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/Matrix/Matrix_1.6-4.tar.gz", repos=NULL, type="source",)'
+RUN R -e 'install.packages("SeuratObject")'
+RUN R -e 'install.packages("Seurat")'
 
 ## Remote installs
 RUN R -e 'install.packages("remotes", update=TRUE)'
@@ -53,6 +61,7 @@ RUN R -e 'remotes::install_github("cysouw/qlcMatrix")'
 RUN R -e 'remotes::install_github("AllenInstitute/CCN")'
 RUN R -e 'remotes::install_github("AllenInstitute/patchseqtools")' 
 RUN R -e 'remotes::install_github("AllenInstitute/tasic2016data")'
+RUN R -e 'remotes::install_github("AllenInstitute/hodge2019data")'
 RUN R -e 'remotes::install_github("AllenInstitute/scrattch.io", ref="dev")' 
 RUN R -e 'remotes::install_github("AllenInstitute/scrattch.vis")' 
 RUN R -e 'remotes::install_github("AllenInstitute/scrattch.hicat")' 
@@ -60,16 +69,18 @@ RUN R -e 'remotes::install_github("AllenInstitute/scrattch.bigcat")'
 RUN R -e 'remotes::install_github("AllenInstitute/mfishtools")'
 
 ## scrattch-taxonomy install from local source
-COPY scrattch.taxonomy_0.3.tar.gz ./scrattch.taxonomy_0.3.tar.gz
-RUN R -e 'install.packages("scrattch.taxonomy_0.3.tar.gz", repos=NULL, type="source")'
+COPY scrattch.taxonomy_0.5.11.tar.gz ./scrattch.taxonomy_0.5.11.tar.gz
+RUN R -e 'install.packages("scrattch.taxonomy_0.5.11.tar.gz", repos=NULL, type="source")'
 
 ## scrattch-mapping install from local source
-COPY scrattch.mapping_0.55.5.tar.gz ./scrattch.mapping_0.55.5.tar.gz
-RUN R -e 'install.packages("scrattch.mapping_0.55.5.tar.gz", repos=NULL, type="source")'
+COPY scrattch.mapping_0.6.1.tar.gz ./scrattch.mapping_0.6.1.tar.gz
+RUN R -e 'install.packages("scrattch.mapping_0.6.1.tar.gz", repos=NULL, type="source")'
 
-##
-COPY matrixStats_1.1.0.tar.gz ./matrixStats_1.1.0.tar.gz
-RUN R -e 'install.packages("matrixStats_1.1.0.tar.gz", repos=NULL, type="source")'
+# cell_type_mapper install from GitHub
+RUN git clone -b update/uns/to/precomp/stats/params --single-branch https://github.com/AllenInstitute/cell_type_mapper.git
+RUN pip install -r ./cell_type_mapper/requirements.txt
+RUN pip install -e ./cell_type_mapper
+RUN pip3 install numpy==1.26.4
 
 ## Clean up
 RUN rm -rf /var/lib/apt/lists/*
