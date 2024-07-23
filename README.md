@@ -19,10 +19,10 @@ We have setup a docker environemnt for scattch.mapping that contains all the req
 #### HPC usage:
 
 ##### Non-interactive
-`singularity exec --cleanenv docker://njjai/scrattch_mapping:0.55.5 Rscript YOUR_CODE.R`
+`singularity shell --cleanenv docker://kapen/scrattch_mapping:0.93 Rscript YOUR_CODE.R`
 
 ##### Interactive
-`singularity shell --cleanenv docker://njjai/scrattch_mapping:0.55.5`
+`singularity shell --cleanenv docker://kapen/scrattch_mapping:0.93`
 
 
 ## Installation
