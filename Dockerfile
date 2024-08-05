@@ -6,7 +6,7 @@ RUN export GITHUB_PAT=1000
 
 ## Would have liked to do these next 2 RUN under FROM:python3.8 but artifact passing wasn't immediatly clear. build-essential libxml2-dev python-is-python3
 RUN apt-get update
-RUN apt-get install -y wget python3-dev python3-pip
+RUN apt-get install -y wget python3-dev python3-venv python3-pip
 RUN pip3 install anndata==0.8.0 numpy
 
 RUN R -e 'install.packages("reticulate")'
@@ -30,15 +30,13 @@ RUN R -e 'BiocManager::install(c("beachmat", "BiocNeighbors"), dependenceis=NA, 
 RUN R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/Rcpp/Rcpp_1.0.5.tar.gz", repos=NULL, type="source")'
 RUN R -e 'install.packages("https://cloud.r-project.org/src/contrib/profmem_0.6.0.tar.gz", repos=NULL, type="source")'
 RUN R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/Hmisc/Hmisc_4.8-0.tar.gz", repos=NULL, type="source")'
+RUN R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/matrixStats/matrixStats_1.1.0.tar.gz", repos=NULL, type="source")'
 
 RUN R -e 'install.packages("reticulate")'
 RUN R -e 'install.packages("arrow")'
 RUN R -e 'install.packages("anndata", update=TRUE)'
 RUN R -e 'install.packages("jsonlite", update=TRUE)'
 
-## 
-COPY matrixStats_1.3.0.tar.gz ./matrixStats_1.3.0.tar.gz
-RUN R -e 'install.packages("matrixStats_1.3.0.tar.gz", repos=NULL, type="source")'
 
 ## Seurat setup
 RUN apt-get update && \
@@ -76,11 +74,23 @@ RUN R -e 'install.packages("scrattch.taxonomy_0.5.11.tar.gz", repos=NULL, type="
 COPY scrattch.mapping_0.6.1.tar.gz ./scrattch.mapping_0.6.1.tar.gz
 RUN R -e 'install.packages("scrattch.mapping_0.6.1.tar.gz", repos=NULL, type="source")'
 
+## set python virtual environment
+ENV VIRTUAL_ENV=/pyenv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 # cell_type_mapper install from GitHub
 RUN git clone -b update/uns/to/precomp/stats/params --single-branch https://github.com/AllenInstitute/cell_type_mapper.git
 RUN pip install -r ./cell_type_mapper/requirements.txt
 RUN pip install -e ./cell_type_mapper
-RUN pip3 install numpy==1.26.4
+RUN pip install anndata==0.8.0 numpy==1.26.4 
+
+## 
+#COPY matrixStats_1.1.0.tar.gz ./matrixStats_1.1.0.tar.gz
+#RUN R -e 'install.packages("matrixStats_1.1.0.tar.gz", repos=NULL, type="source")'
+RUN R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/matrixStats/matrixStats_1.1.0.tar.gz", repos=NULL, type="source")'
+
+
 
 ## Clean up
 RUN rm -rf /var/lib/apt/lists/*
