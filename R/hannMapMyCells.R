@@ -1,14 +1,15 @@
 #' @export
 
 mapHANNMapMyCells = function(AIT_anndata,
-                          anndata_path=NULL,
-                          chunk_size = 1000,
-                          n_processors = 3,
-                          normalization = "log2CPM",
-                          tmp_dir = NULL,
-                          user_extended_result_path=NULL,
-                          user_precomp_stats_path=NULL,
-                          user_query_markers_path=NULL){
+                            query_data,
+                            anndata_path=NULL,
+                            chunk_size = 1000,
+                            n_processors = 3,
+                            normalization = "log2CPM",
+                            tmp_dir = NULL,
+                            user_extended_result_path=NULL,
+                            user_precomp_stats_path=NULL,
+                            user_query_markers_path=NULL){
   tryCatch(
     {
       temp_folder = tmp_dir
@@ -35,6 +36,7 @@ mapHANNMapMyCells = function(AIT_anndata,
       if (file.exists(extended_result_path)) {
         stop(paste("ERROR. Extended result path already exists:", extended_result_path))
       }
+
       precomp_stats_output_path = user_precomp_stats_path
       precomp_stats_output_path = get_precomp_stats(AIT_anndata, anndata_path, 
                                                     precomp_stats_output_path, temp_folder)
@@ -42,7 +44,9 @@ mapHANNMapMyCells = function(AIT_anndata,
       query_markers_output_path = user_query_markers_path
       query_markers_output_path = get_marker_genes(AIT_anndata, query_markers_output_path, temp_folder)
 
-      get_mapmycells_results(anndata_path, extended_result_path, 
+      query_data_output_path = get_query_data_path(query_data, temp_folder)
+
+      get_mapmycells_results(query_data_output_path, extended_result_path, 
                              precomp_stats_output_path, query_markers_output_path, 
                              normalization, chunk_size, n_processors)
 
@@ -61,18 +65,9 @@ mapHANNMapMyCells = function(AIT_anndata,
               mapmycells_results_json$results[[hierarcy_level]]$avg_correlation
         }
       }
-      
-      ## Combine results into dataframe
-      mappingAnno = Reduce(cbind, mappingResults)
-      rownames(mappingAnno) = mapmycells_results_json$results$cell_id
-      colnames(mappingAnno) = names(mappingResults)
 
-      ## Build mapping class object
-      resultAnno <- mappingClass(annotations = as.data.frame(mappingAnno),
-                                 detailed_results = list("MapMyCellsHANN" = mapmycells_results_json))
-      
       ## Return annotations and detailed model results
-      return(resultAnno)
+      return(mappingResults)
     },
     error = function(e) {
       errorMessage <- conditionMessage(e)
@@ -85,6 +80,8 @@ mapHANNMapMyCells = function(AIT_anndata,
         unlink(temp_folder, recursive = TRUE)
       }
       else {
+        file.remove(query_data_output_path)
+
         # remove the files is they were code generated
         if(is.null(user_precomp_stats_path)) {
           file.remove(precomp_stats_output_path)
@@ -126,11 +123,23 @@ get_marker_genes = function(AIT_anndata, query_markers_output_path, temp_folder)
   return(query_markers_output_path)
 }
 
-get_mapmycells_results = function(anndata_path, extended_result_path, 
+get_query_data_path = function(query_data, temp_folder) {
+  query_data_filename = paste0(paste0("query_data_", format(Sys.time(), "%Y%m%d-%H%M%S")), ".h5ad")
+  query_data_output_path = file.path(temp_folder, query_data_filename)
+  query_mat = t(query_data)
+  adata_query = AnnData(X = query_mat,
+                        obs = data.frame(row.names = c(rownames(query_mat))),
+                        var = data.frame(row.names = c(colnames(query_mat)))
+                        )
+  adata_query$write_h5ad(query_data_output_path)
+  return(query_data_output_path)
+}
+
+get_mapmycells_results = function(query_data_output_path, extended_result_path, 
                 precomp_stats_output_path, query_markers_output_path, 
                 normalization, chunk_size, n_processors) {
   config <- list(
-    'query_path' = anndata_path,
+    'query_path' = query_data_output_path,
     'extended_result_path' = extended_result_path,
     'precomputed_stats'= list(
         'path' = precomp_stats_output_path

@@ -57,6 +57,10 @@ taxonomy_mapping = function(AIT.anndata, query.data,
     if(seurat.map == TRUE){ mappingResults[["Seurat"]] = seuratMap(AIT.anndata, query.data) } else{ mappingResults[["Seurat"]] = NULL }
 
     #############
+    ## ----- HANN mapping ------------------------------------------------------------------------------
+    if(hann.map == TRUE){ mappingResults[["HANN"]] = mapHANNMapMyCells(AIT.anndata, query.data) } else{ mappingResults[["HANN"]] = NULL }
+
+    #############
     ## Combine mapping results
     mappingAnno = Reduce(cbind, mappingResults)
     rownames(mappingAnno) = colnames(query.data)
