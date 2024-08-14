@@ -13,7 +13,7 @@
 #'
 #' @export
 taxonomy_mapping = function(AIT.anndata, query.data, 
-                            corr.map=TRUE, tree.map=TRUE, seurat.map=TRUE, 
+                            corr.map=TRUE, tree.map=TRUE, hierarchical.map=TRUE, seurat.map=TRUE, 
                             label.cols = c("cluster_label","subclass_label", "class_label")){
 
     print(paste("==============================","Mapping","======================="))
@@ -57,8 +57,8 @@ taxonomy_mapping = function(AIT.anndata, query.data,
     if(seurat.map == TRUE){ mappingResults[["Seurat"]] = seuratMap(AIT.anndata, query.data) } else{ mappingResults[["Seurat"]] = NULL }
 
     #############
-    ## ----- HANN mapping ------------------------------------------------------------------------------
-    if(hann.map == TRUE){ mappingResults[["HANN"]] = mapHANNMapMyCells(AIT.anndata, query.data) } else{ mappingResults[["HANN"]] = NULL }
+    ## ----- Hierarchical mapping ------------------------------------------------------------------------------
+    if(hierarchical.map == TRUE){ mappingResults[["hierarchical"]] = hierarchicalMapMyCells(AIT.anndata, query.data) } else{ mappingResults[["hierarchical"]] = NULL }
 
     #############
     ## Combine mapping results

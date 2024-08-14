@@ -23,13 +23,15 @@ taxonomyDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq
 AIT.anndata = loadTaxonomy(taxonomyDir = taxonomyDir, anndata_file="Tasic2016.h5ad")
 
 ## Map! Returns an S4 class with mapping results.
+## TODO: remove scores. Make primary_type_hierarchical
+## TODO: getMappingResults: add flag (scores = TRUE/FALSE) avg_correlation.hierarchical.broad_type_label
 mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata,
                                 query.data=query.data,
-                                label.cols="primary_type_label", ## Which obs in AIT.anndata contain annotations to map. E.g. "class", "subclass", etc.
+                                label.cols=c("broad_type_label", "primary_type_label"), ## Which obs in AIT.anndata contain annotations to map. E.g. "class", "subclass", etc.
                                 corr.map=TRUE,
                                 tree.map=FALSE,
-                                seurat.map=FALSE,
-                                hann.map == FALSE)
+                                hierarchical.map=TRUE,
+                                seurat.map=FALSE)
 
 ## Extract mapping results from S4 mappingClass
 mapping.results = getMappingResults(mapping.anno)
