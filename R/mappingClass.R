@@ -48,7 +48,7 @@ mappingClass <- function(annotations, detailed_results) {
 #'
 #' @export
 setGeneric("getMappingResults", 
-  function(x) standardGeneric("getMappingResults")
+  function(object, scores = FALSE) standardGeneric("getMappingResults")
 )
 
 #' Get cell type annotations
@@ -60,8 +60,13 @@ setGeneric("getMappingResults",
 #' @export
 setMethod(
   "getMappingResults",
-  signature = "mappingClass",
-  function(object) {
-    return(object@annotations)
+  signature(object="mappingClass", scores="logical"),
+  definition = function(object, scores = FALSE) {
+    mapping.anno = object@annotations
+    if (!scores) {
+      score.cols = sapply(mapping.anno, is.numeric)
+      mapping.anno = mapping.anno[, !score.cols]
+    }
+    return(mapping.anno)
   }
 )

@@ -1,11 +1,13 @@
-# Tutorial: Standard taxonomy mapping using flat, tree and Seurat.
+# Tutorial: Standard taxonomy mapping using flat, tree, hierarchical, and Seurat.
 
 In this tutorial we demonstrate how to run standard mapping algorithms using scrattch.mapping on the Tasic et al. 2016 study. Available taxonomies can be found under `/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/` on hpc.
 
 ```R
 ## Load scrattch.mapping
+library(reticulate)
 library(scrattch.mapping)
 library(scrattch.taxonomy)
+cell_type_mapper <- import("cell_type_mapper")
 
 ## Load in example count data
 library(tasic2016data)
@@ -26,33 +28,15 @@ mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata,
                                 label.cols="cluster_label", ## Which obs in AIT.anndata contain annotations to map. E.g. "class", "subclass", etc.
                                 corr.map=TRUE,
                                 tree.map=FALSE,
+                                hierarchical.map=TRUE,
                                 seurat.map=FALSE)
 
 ## Extract mapping results from S4 mappingClass
-mapping.results = getMappingResults(mapping.anno)
+mapping.results = getMappingResults(mapping.anno, scores = FALSE)
 
 ## Extract tree mapping bootstraping table (We will improve this in the near future.)
 tree.bootstraps = mapping.anno@detailed_results[["tree"]]
 
 ## Save
 save(mapping.results, file="mapping_results.rda")
-```
-
-# Tutorial: MapMyCells mapping with scrattch
-
-In this tutorial we demonstrate how to run MapMyCells HANN mapping algorithms using scrattch.mapping on the Tasic et al. 2016 study.
-
-```R
-## For now the user must import cell_type_mapper
-library(reticulate)
-cell_type_mapper <- import("cell_type_mapper")
-
-## Map! Returns an S4 class with mapping results.
-mapMyCells.anno = mapHANNMapMyCells(AIT.anndata)
-
-## Extract mapping results from S4 mappingClass
-mapMyCells.results = getMappingResults(mapMyCells.anno)
-
-## Save
-save(mapMyCells.results, file="MapMyCells_mapping_results.rda")
 ```
