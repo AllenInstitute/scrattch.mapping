@@ -4,7 +4,7 @@
 \alias{getMappingResults}
 \title{Get cell type annotations}
 \usage{
-getMappingResults(x)
+getMappingResults(object, scores = FALSE)
 }
 \value{
 mapping results as a data.frame with labels in map.Method and scores in score.Method

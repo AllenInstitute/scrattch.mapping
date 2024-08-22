@@ -9,6 +9,7 @@ taxonomy_mapping(
   query.data,
   corr.map = TRUE,
   tree.map = TRUE,
+  hierarchical.map = TRUE,
   seurat.map = TRUE,
   label.cols = c("cluster_label", "subclass_label", "class_label")
 )
