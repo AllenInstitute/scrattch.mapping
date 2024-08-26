@@ -15,7 +15,7 @@ corrMap = function(AIT.anndata, query.data){
         expr = {
             clReference  = setNames(factor(AIT.anndata$obs$cluster_label, levels=AIT.anndata$uns$clustersUse),
                                     AIT.anndata$obs_names)
-            corMapTarget = map_by_cor(t(AIT.anndata$X[,AIT.anndata$var$highly_variable_genes]), 
+            corMapTarget = map_by_cor(Matrix::t(AIT.anndata$X[,AIT.anndata$var$highly_variable_genes]), 
                                         clReference, 
                                         query.data[AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes],]) 
             mappingTarget = data.frame(map.Corr=as.character(corMapTarget[[1]]$pred.cl), 

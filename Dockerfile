@@ -20,7 +20,7 @@ RUN R -e 'BiocManager::install(c( "munsell", "rhdf5", "dplyr", \
                                   "ggplot2", "WGCNA"), dependenceis=NA, update=TRUE)' 
 RUN R -e 'BiocManager::install(c( "randomForest", "LaplacesDemon", "reshape2", \
                                   "feather", "future", "tibble", "dendextend", \
-                                  "Matrix" ), dependenceis=NA, update=TRUE)' 
+                                  "Matrix", "MatrixExtra"), dependenceis=NA, update=TRUE)' 
 RUN R -e 'BiocManager::install(c( "mgcv", "edgeR", "caret", \
                                   "ggbeeswarm", "pvclust", \
                                   "cowplot" ), dependenceis=NA, update=TRUE)'
@@ -67,12 +67,12 @@ RUN R -e 'remotes::install_github("AllenInstitute/scrattch.bigcat")'
 RUN R -e 'remotes::install_github("AllenInstitute/mfishtools")'
 
 ## scrattch-taxonomy install from local source
-COPY scrattch.taxonomy_0.5.11.tar.gz ./scrattch.taxonomy_0.5.11.tar.gz
-RUN R -e 'install.packages("scrattch.taxonomy_0.5.11.tar.gz", repos=NULL, type="source")'
+COPY scrattch.taxonomy_0.5.12.tar.gz ./scrattch.taxonomy_0.5.12.tar.gz
+RUN R -e 'install.packages("scrattch.taxonomy_0.5.12.tar.gz", repos=NULL, type="source")'
 
 ## scrattch-mapping install from local source
-COPY scrattch.mapping_0.6.1.tar.gz ./scrattch.mapping_0.6.1.tar.gz
-RUN R -e 'install.packages("scrattch.mapping_0.6.1.tar.gz", repos=NULL, type="source")'
+COPY scrattch.mapping_0.55.5.tar.gz ./scrattch.mapping_0.55.5.tar.gz
+RUN R -e 'install.packages("scrattch.mapping_0.55.5.tar.gz", repos=NULL, type="source")'
 
 ## set python virtual environment
 ENV VIRTUAL_ENV=/pyenv
@@ -89,8 +89,6 @@ RUN pip install anndata==0.8.0 numpy==1.26.4
 #COPY matrixStats_1.1.0.tar.gz ./matrixStats_1.1.0.tar.gz
 #RUN R -e 'install.packages("matrixStats_1.1.0.tar.gz", repos=NULL, type="source")'
 RUN R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/matrixStats/matrixStats_1.1.0.tar.gz", repos=NULL, type="source")'
-
-
 
 ## Clean up
 RUN rm -rf /var/lib/apt/lists/*

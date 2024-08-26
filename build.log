@@ -1,0 +1,168 @@
+#1 [internal] load .dockerignore
+#1 transferring context: 2B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 5.21kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/rocker/tidyverse:4.2
+#3 DONE 0.0s
+
+#4 [ 1/56] FROM docker.io/rocker/tidyverse:4.2
+#4 DONE 0.0s
+
+#5 [ 7/56] RUN R -e 'install.packages("anndata", update=TRUE)'
+#5 CACHED
+
+#6 [ 3/56] RUN apt-get update
+#6 CACHED
+
+#7 [ 8/56] RUN R -e 'install.packages("BiocManager", update=FALSE)'
+#7 CACHED
+
+#8 [ 4/56] RUN apt-get install -y wget python3-dev python3-venv python3-pip
+#8 CACHED
+
+#9 [ 2/56] RUN export GITHUB_PAT=1000
+#9 CACHED
+
+#10 [ 5/56] RUN pip3 install anndata==0.8.0 numpy
+#10 CACHED
+
+#11 [ 6/56] RUN R -e 'install.packages("reticulate")'
+#11 CACHED
+
+#12 [ 9/56] RUN R -e 'BiocManager::install(c( "AnnotationDbi", "data.table", "GO.db",                                   "impute", "limma", "preprocessCore", "xml2", "rols"), dependenceis=NA, update=TRUE)'
+#12 CACHED
+
+#13 [10/56] RUN R -e 'BiocManager::install(c( "munsell", "rhdf5", "dplyr",                                   "optparse", "foreach", "doParallel", "futile.logger",                                   "ggplot2", "WGCNA"), dependenceis=NA, update=TRUE)'
+#13 CACHED
+
+#14 [internal] load build context
+#14 transferring context: 2B done
+#14 DONE 0.0s
+
+#15 [18/56] RUN R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/matrixStats/matrixStats_1.1.0.tar.gz", repos=NULL, type="source")'
+#15 CACHED
+
+#16 [45/56] RUN R -e 'install.packages("scrattch.taxonomy_0.5.12.tar.gz", repos=NULL, type="source")'
+#16 CACHED
+
+#17 [37/56] RUN R -e 'remotes::install_github("AllenInstitute/tasic2016data")'
+#17 CACHED
+
+#18 [30/56] RUN R -e 'remotes::install_github("krlmlr/bindrcpp")'
+#18 CACHED
+
+#19 [35/56] RUN R -e 'remotes::install_github("AllenInstitute/CCN")'
+#19 CACHED
+
+#20 [42/56] RUN R -e 'remotes::install_github("AllenInstitute/scrattch.bigcat")'
+#20 CACHED
+
+#21 [13/56] RUN R -e 'BiocManager::install(c("bigstatsr", "umap"), dependenceis=NA, update=TRUE)'
+#21 CACHED
+
+#22 [28/56] RUN R -e 'install.packages("Seurat")'
+#22 CACHED
+
+#23 [16/56] RUN R -e 'install.packages("https://cloud.r-project.org/src/contrib/profmem_0.6.0.tar.gz", repos=NULL, type="source")'
+#23 CACHED
+
+#24 [34/56] RUN R -e 'remotes::install_github("cysouw/qlcMatrix")'
+#24 CACHED
+
+#25 [40/56] RUN R -e 'remotes::install_github("AllenInstitute/scrattch.vis")'
+#25 CACHED
+
+#26 [29/56] RUN R -e 'install.packages("remotes", update=TRUE)'
+#26 CACHED
+
+#27 [20/56] RUN R -e 'install.packages("arrow")'
+#27 CACHED
+
+#28 [26/56] RUN R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/Matrix/Matrix_1.6-4.tar.gz", repos=NULL, type="source",)'
+#28 CACHED
+
+#29 [43/56] RUN R -e 'remotes::install_github("AllenInstitute/mfishtools")'
+#29 CACHED
+
+#30 [33/56] RUN R -e 'remotes::install_github("PavlidisLab/patchSeqQC")'
+#30 CACHED
+
+#31 [22/56] RUN R -e 'install.packages("jsonlite", update=TRUE)'
+#31 CACHED
+
+#32 [39/56] RUN R -e 'remotes::install_github("AllenInstitute/scrattch.io", ref="dev")'
+#32 CACHED
+
+#33 [25/56] RUN R -e 'install.packages("spam")'
+#33 CACHED
+
+#34 [23/56] RUN apt-get update &&     apt-get install -y libgeos-dev libglpk-dev
+#34 CACHED
+
+#35 [24/56] RUN R -e 'install.packages("sp")'
+#35 CACHED
+
+#36 [14/56] RUN R -e 'BiocManager::install(c("beachmat", "BiocNeighbors"), dependenceis=NA, update=TRUE)'
+#36 CACHED
+
+#37 [15/56] RUN R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/Rcpp/Rcpp_1.0.5.tar.gz", repos=NULL, type="source")'
+#37 CACHED
+
+#38 [38/56] RUN R -e 'remotes::install_github("AllenInstitute/hodge2019data")'
+#38 CACHED
+
+#39 [31/56] RUN R -e 'remotes::install_github("igraph/rigraph")'
+#39 CACHED
+
+#40 [32/56] RUN R -e 'remotes::install_github("i-cyto/Rphenograph")'
+#40 CACHED
+
+#41 [19/56] RUN R -e 'install.packages("reticulate")'
+#41 CACHED
+
+#42 [21/56] RUN R -e 'install.packages("anndata", update=TRUE)'
+#42 CACHED
+
+#43 [17/56] RUN R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/Hmisc/Hmisc_4.8-0.tar.gz", repos=NULL, type="source")'
+#43 CACHED
+
+#44 [41/56] RUN R -e 'remotes::install_github("AllenInstitute/scrattch.hicat")'
+#44 CACHED
+
+#45 [36/56] RUN R -e 'remotes::install_github("AllenInstitute/patchseqtools")'
+#45 CACHED
+
+#46 [12/56] RUN R -e 'BiocManager::install(c( "mgcv", "edgeR", "caret",                                   "ggbeeswarm", "pvclust",                                   "cowplot" ), dependenceis=NA, update=TRUE)'
+#46 CACHED
+
+#47 [27/56] RUN R -e 'install.packages("SeuratObject")'
+#47 CACHED
+
+#48 [46/56] COPY scrattch.mapping_0.55.5.tar.gz ./scrattch.mapping_0.55.5.tar.gz
+#48 ERROR: failed to calculate checksum of ref moby::xpdh8nzukof43y3gk1ewqhh6u: "/scrattch.mapping_0.55.5.tar.gz": not found
+
+#49 [44/56] COPY scrattch.taxonomy_0.5.12.tar.gz ./scrattch.taxonomy_0.5.12.tar.gz
+#49 ERROR: failed to calculate checksum of ref moby::xpdh8nzukof43y3gk1ewqhh6u: "/scrattch.taxonomy_0.5.12.tar.gz": not found
+
+#50 [11/56] RUN R -e 'BiocManager::install(c( "randomForest", "LaplacesDemon", "reshape2",                                   "feather", "future", "tibble", "dendextend",                                   "Matrix", "MatrixExtra"), dependenceis=NA, update=TRUE)'
+#50 0.359 runc run failed: container process is already dead
+#50 CANCELED
+------
+ > [44/56] COPY scrattch.taxonomy_0.5.12.tar.gz ./scrattch.taxonomy_0.5.12.tar.gz:
+------
+------
+ > [46/56] COPY scrattch.mapping_0.55.5.tar.gz ./scrattch.mapping_0.55.5.tar.gz:
+------
+Dockerfile:74
+--------------------
+  72 |     
+  73 |     ## scrattch-mapping install from local source
+  74 | >>> COPY scrattch.mapping_0.55.5.tar.gz ./scrattch.mapping_0.55.5.tar.gz
+  75 |     RUN R -e 'install.packages("scrattch.mapping_0.55.5.tar.gz", repos=NULL, type="source")'
+  76 |     
+--------------------
+ERROR: failed to solve: failed to compute cache key: failed to calculate checksum of ref moby::xpdh8nzukof43y3gk1ewqhh6u: "/scrattch.mapping_0.55.5.tar.gz": not found
