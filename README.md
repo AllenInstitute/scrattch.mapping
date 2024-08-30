@@ -40,7 +40,7 @@ Note that this strategy might not work outside the docker due to complicated dep
 ## Usage examples
 
 1. [**Run Flat, Tree, and Seurat taxonomy mapping**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/mapping.md) This examples shows how to use scrattch.mapping for standard taxonomy mapping.
-2. [**Run MapMyCells HANN taxonomy mapping**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/mapping_MapMyCells.md) This tutorial shows how to run the MapMyCells python mapping algorithm against a taxonomy.
+2. [**Mapping to HMBA Basal Ganglia AIT**](https://github.com/AllenInstitute/scrattch-mapping/blob/main/examples/mapping_BasalGanglia.md) This tutorial shows how to map against the HMBA Human and Macaque Basal Ganglia consensus taxonomies.
 
 ## Reporting issues
 
