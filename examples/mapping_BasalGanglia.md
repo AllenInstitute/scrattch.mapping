@@ -12,7 +12,7 @@ cell_type_mapper <- import("cell_type_mapper") ## For now this has to be defined
 
 ## ------------------------------------------------------
 ## Build Shiny taxonomy
-AIT.anndata = loadTaxonomy(taxonomyDir=".",
+AIT.anndata = loadTaxonomy(taxonomyDir="/PATH/TO/AIT",
                             anndata_file="HMBA_Macaque_BG_082024_AIT.h5ad")
 
 ## Annotate! In this case we are mapping the taxonomy against itself. 
