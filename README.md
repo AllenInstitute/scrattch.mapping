@@ -46,25 +46,3 @@ Note that this strategy might not work outside the docker due to complicated dep
 
 If you run into any issues, please let Nelson and Jeremy know or [**create a new issue in the 'Issues' tab above**](https://github.com/AllenInstitute/scrattch-mapping/issues).
 
-## TODO
-
-- [ ] Generalize HANN mapping for external use.
-- [ ] Standardize output from multiple modes of mapping (RNA, Patch-Seq, spatial?)
-
-## Done
-
-- [x] Allow other values than 100 for bootstrapping
-- [x] Minor vignette updates (e.g, buildReference --> buildTaxonomy)
-- [x] Allow hGenes to impact corr and Seurat mapping, but have tree and HANN ignore it (it will break the node by node marker approach)
-- [x] Pass a dendrogram to buildTaxonomy if one exists already (I don't remember if this is allowed, but if not, it may be more complicated than it sounds, which is probably why I haven't done it).
-- [x] load the AIT.anndata directly from the .h5ad if it exists
-- [x] Fixes to addDendrogramMarker based on ET feedback.
-- [x] Package up the stand-alone script.
-- [x] Add stand-alone scripts for creating a reference sn/scRNA-seq taxonomy to package
-- [x] Accept various inputs (Seurat, Anndata, count matrix + metadata table, reading from reference taxonomy folder)?
-- [x] Write in a module for making the taxonomy compatible with tree mapping (adding markers to dendrogram). Perhaps this should be done after the taxonomy is made for generalization. (JM: I was planning to take this one)
-- [x] Add stand-alone scripts for patch-seq QC to package
-- [x] Output feather with gene counts along with required Shiny files for use with scVI/scANVI etc. I’ve had to manually make a few of these for the older BG taxonomies.
-- [x] This might be the same thing, but also output files for viewing data in existing patch-seq shiny folder format.
-- [x] Implement new tree mapping (Code from CK)
-- [x] Dockerize.
