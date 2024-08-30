@@ -1,3 +1,75 @@
+#' Map samples to a training dataset by correlation
+#' 
+#' @param train.dat Training data matrix, usually log-transformed CPM
+#' @param train.cl Training cluster factor object
+#' @param test.dat Data for cells to map to the training set. Should have the same genes as train.dat.
+#' @param method Which statistic to compare. "median" or "mean". Default is "median".
+#' 
+#' @return a list object containing two objects:
+#' \itemize{
+#' \item pred.df: a data.frame with two columns, pred.cl and pred.score with the predicted cluster and correlation scores.
+#' \item cor.matrix: a matrix object with correlation scores for each cluster.
+#' }
+#' 
+#' @export
+#' 
+map_by_cor <- function(cl.meds, 
+                       test.dat,
+                       method = "median") {
+  
+  method <- match.arg(arg = method, 
+                      choices = c("mean","median"))
+  
+  # Get medians or means for each cluster
+  if(method == "median"){
+    cl.meds <- tapply(names(train.cl), 
+                      train.cl, 
+                      function(x) {
+                        train.mat <- train.dat[, x, drop = F]
+                        train.mat <- as.matrix(train.mat)
+                        matrixStats::rowMedians(train.mat)
+                      }
+    )
+    
+    cl.dat <- do.call("cbind", cl.meds)
+  } else {
+    cl.dat <- get_cl_means(train.dat, train.cl)
+  }
+  row.names(cl.dat) <- row.names(train.dat)
+  
+  # Perform correlations
+  if(!is.matrix(test.dat) & nrow(test.dat)*ncol(test.dat) > 1e8){
+    test.cl.cor <- qlcMatrix::corSparse(test.dat, cl.dat)
+    colnames(test.cl.cor) = colnames(cl.dat)
+    row.names(test.cl.cor) = colnames(test.dat)
+  } else{
+    test.cl.cor <- cor(as.matrix(test.dat), cl.dat)
+  }
+  test.cl.cor[is.na(test.cl.cor)] <- 0
+  
+  # Find maximum correlation
+  max.cl.cor <- apply(test.cl.cor, 1, which.max)
+  pred.cl <- colnames(test.cl.cor)[max.cl.cor]
+  pred.cl <- setNames(pred.cl, row.names(test.cl.cor))
+  
+  # Get maximum correlation values
+  pred.score <- apply(test.cl.cor, 1, max)
+  
+  # Convert to factor if train.cl was a factor and match levels.
+  if(is.factor(train.cl)){
+    pred.cl <- setNames(factor(pred.cl, levels = levels(train.cl)), names(pred.cl))
+  }
+  
+  # Output results
+  pred.df <- data.frame(pred.cl = pred.cl,
+                        pred.score = pred.score)
+  
+  out_list <- list(pred.df = pred.df,
+                   cor.matrix = test.cl.cor)
+  
+  return(out_list)    
+}
+
 #' Function to set mapping mode
 #'
 #' @param AIT.anndata A vector of cluster names in the reference taxonomy.

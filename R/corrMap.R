@@ -15,11 +15,15 @@ corrMap = function(AIT.anndata, query.data){
         expr = {
             clReference  = setNames(factor(AIT.anndata$obs$cluster_label, levels=AIT.anndata$uns$clustersUse),
                                     AIT.anndata$obs_names)
-            corMapTarget = map_by_cor(Matrix::t(AIT.anndata$X[,AIT.anndata$var$highly_variable_genes]), 
-                                        clReference, 
-                                        query.data[AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes],]) 
-            mappingTarget = data.frame(map.Corr=as.character(corMapTarget[[1]]$pred.cl), 
-                                        score.Corr=corMapTarget[[1]]$pred.score)
+            ##
+            medianExpr = AIT.anndata$uns$stats[[AIT.anndata$uns$mode]]$medianExpr
+            rownames(medianExpr) = AIT.anndata$uns$stats[[AIT.anndata$uns$mode]]$features
+            colnames(medianExpr) = AIT.anndata$uns$stats[[AIT.anndata$uns$mode]]$clusters
+            ##
+            corMapTarget = cor_mapping_wrapper(query.data[AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes],], 
+                                               medianExpr)
+            mappingTarget = data.frame(map.Corr=as.character(corMapTarget$TopLeaf), 
+                                        score.Corr=corMapTarget$Value)
             mappingTarget
         },
         error = function(e){ 
@@ -37,7 +41,6 @@ corrMap = function(AIT.anndata, query.data){
 #'
 #' @param input_logcpm Inputted log2(CPM+1) values.
 #' @param reference_medians Median expression levels (log2(CPM+1)) of reference cell types.
-#' @param nGenes Number of high variance genes to include.
 #'
 #' @import WGCNA
 #' @import mfishtools
@@ -46,10 +49,10 @@ corrMap = function(AIT.anndata, query.data){
 #'
 #' @keywords internal
 cor <- function(...) WGCNA::cor(...)
-cor_mapping_wrapper <- function(input_logcpm, reference_medians, nGenes = 1000){
-  tmpGenes <- intersect(rownames(input_logcpm), rownames(reference_medians))
-  varGn    <- apply(reference_medians[tmpGenes,],1,function(x) diff(range(x))/(max(x)+1))
-  varGenes <- names(sort(-varGn))[1:nGenes]
-  mapping  <- corTreeMapping(input_logcpm[varGenes,], reference_medians[varGenes,])
+cor_mapping_wrapper <- function(input_logcpm, reference_medians){
+  # tmpGenes <- intersect(rownames(input_logcpm), rownames(reference_medians))
+  # varGn    <- apply(reference_medians[tmpGenes,],1,function(x) diff(range(x))/(max(x)+1))
+  # varGenes <- names(sort(-varGn))[1:nGenes]
+  mapping  <- corTreeMapping(input_logcpm, reference_medians)
   getTopMatch(memb.cl = mapping)
 }

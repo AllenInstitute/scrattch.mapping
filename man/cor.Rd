@@ -10,8 +10,6 @@ cor(...)
 \item{input_logcpm}{Inputted log2(CPM+1) values.}
 
 \item{reference_medians}{Median expression levels (log2(CPM+1)) of reference cell types.}
-
-\item{nGenes}{Number of high variance genes to include.}
 }
 \value{
 Correlation mapping results

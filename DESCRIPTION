@@ -18,7 +18,7 @@ Authors@R:
 Description: ADD
 License: GPL-3
 Depends: feather, anndata, dplyr, dendextend, viridis, feather, tibble,
-        Matrix, MatrixGenerics, foreach, pvclust, scrattch.io,
+        Matrix, MatrixGenerics, foreach, pvclust,
         scrattch.hicat, scrattch.bigcat, scrattch.taxonomy,
         scrattch.vis, mfishtools, patchseqtools, patchSeqQC, Seurat,
         cowplot, umap, arrow, BiocNeighbors, RANN, reticulate

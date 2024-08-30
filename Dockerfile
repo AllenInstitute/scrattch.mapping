@@ -66,14 +66,6 @@ RUN R -e 'remotes::install_github("AllenInstitute/scrattch.hicat")'
 RUN R -e 'remotes::install_github("AllenInstitute/scrattch.bigcat")'
 RUN R -e 'remotes::install_github("AllenInstitute/mfishtools")'
 
-## scrattch-taxonomy install from local source
-COPY scrattch.taxonomy_0.5.12.tar.gz ./scrattch.taxonomy_0.5.12.tar.gz
-RUN R -e 'install.packages("scrattch.taxonomy_0.5.12.tar.gz", repos=NULL, type="source")'
-
-## scrattch-mapping install from local source
-COPY scrattch.mapping_0.55.5.tar.gz ./scrattch.mapping_0.55.5.tar.gz
-RUN R -e 'install.packages("scrattch.mapping_0.55.5.tar.gz", repos=NULL, type="source")'
-
 ## set python virtual environment
 ENV VIRTUAL_ENV=/pyenv
 RUN python3 -m venv $VIRTUAL_ENV
@@ -84,6 +76,14 @@ RUN git clone -b update/uns/to/precomp/stats/params --single-branch https://gith
 RUN pip install -r ./cell_type_mapper/requirements.txt
 RUN pip install -e ./cell_type_mapper
 RUN pip install anndata==0.8.0 numpy==1.26.4 
+
+## scrattch-taxonomy install from local source
+COPY scrattch.taxonomy_0.5.12.tar.gz ./scrattch.taxonomy_0.5.12.tar.gz
+RUN R -e 'install.packages("scrattch.taxonomy_0.5.12.tar.gz", repos=NULL, type="source")'
+
+## scrattch-mapping install from local source
+COPY scrattch.mapping_0.55.5.tar.gz ./scrattch.mapping_0.55.5.tar.gz
+RUN R -e 'install.packages("scrattch.mapping_0.55.5.tar.gz", repos=NULL, type="source")'
 
 ## 
 #COPY matrixStats_1.1.0.tar.gz ./matrixStats_1.1.0.tar.gz

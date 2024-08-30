@@ -2,10 +2,6 @@
 
 Generalized mapping scripts for RNA-seq, Patch-seq or any gene expression data. Assumes that you have built an Allen Institute Taxonomy (AIT) object with [scrattch.taxonomy](https://github.com/AllenInstitute/scrattch.taxonomy).
 
-## Workflow
-
-![](https://github.com/AllenInstitute/scrattch-mapping/blob/main/schematic.png)
-
 ## Documentation
 
 You can find a detail description of all scrattch.mapping functions here: ![Documentation](https://github.com/AllenInstitute/scrattch-mapping/blob/main/scrattch.mapping_0.1.pdf)
