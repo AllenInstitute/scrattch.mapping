@@ -1,9 +1,0 @@
-cp /home/nelson.johansen/scripts/R/github/scrattch.mapping_0.55.5.tar.gz /allen/programs/celltypes/workgroups/hct/NelsonJ/docker/scrattch-mapping_dev
-cp /home/nelson.johansen/scripts/R/github/scrattch.taxonomy_0.5.12.tar.gz /allen/programs/celltypes/workgroups/hct/NelsonJ/docker/scrattch-mapping_dev
-cp /home/nelson.johansen/scripts/R/github/scrattch.mapping/Dockerfile /allen/programs/celltypes/workgroups/hct/NelsonJ/docker/scrattch-mapping_dev
-cd /allen/programs/celltypes/workgroups/hct/NelsonJ/docker/scrattch-mapping_dev
-sudo docker build . -t njjai/scrattch_mapping:0.6.2 --progress=plain 2>&1 | tee build.log
-sudo docker push njjai/scrattch_mapping:0.6.2
-singularity build scrattch_mapping_0_6_2.sif docker://njjai/scrattch_mapping:0.6.2
-
-## singularity shell --cleanenv docker://njjai/scrattch_mapping:0.6.2
