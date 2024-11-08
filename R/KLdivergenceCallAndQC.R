@@ -59,6 +59,7 @@ tree_quality_call <- function(AIT.anndata, query.mapping){
   
   ## NEED TO ADD ALL THE TESTS HERE 
   
+  # NEED TO EDIT location of "memb.ref" FROM separate file to specified location in uns
   load(file.path(AIT.anndata$uns$mode,"membership_information_reference.rda"))
   select.cl = intersect(colnames(memb.ref),unique(AIT.anndata$obs$cluster_label))
   memb.ref  = memb.ref[,select.cl]

@@ -36,7 +36,7 @@ buildMappingDirectory = function(AIT.anndata,
   ## Checks
   if(!all(colnames(query.data) == rownames(query.metadata))){stop("Colnames of `query.data` and rownames of `query.metadata` do not match.")}
 
-  # Merge mapping metadata inputs
+  # Merge mapping and metadata inputs
   if(length(setdiff(colnames(query.mapping),colnames(query.metadata)))>0){
     query.metadata <- cbind(query.metadata,query.mapping[,setdiff(colnames(query.mapping),colnames(query.metadata))])
     query.metadata[,colnames(query.mapping)] <- query.mapping # Overwrite any columns in query.metadata with same name in query.mapping
@@ -137,6 +137,10 @@ buildMappingDirectory = function(AIT.anndata,
   if(doPatchseqQC == TRUE){
     query.metadata <- applyPatchseqQC(AIT.anndata, query.data, query.metadata)
   }
+  
+  ## Add quality calls from KL divergence to the query metadata
+  query.metadata <- cbind(query.metadata, tree_quality_call(AIT.anndata, query.mapping))
+  
   
   ## Process and output metadata and desc files
   # Auto_annotate the data
