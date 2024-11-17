@@ -29,6 +29,9 @@ get_mapmycells_results(
 
 \item{n_processors}{Number of independent worker processes to spin up.}
 }
+\value{
+resuls
+}
 \description{
 This function maps query data against the AIT (Shiny) reference taxonomy using hierarchical mapping.
 }

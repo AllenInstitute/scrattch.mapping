@@ -86,6 +86,7 @@ hierarchicalMapMyCells = function(AIT_anndata,
       
       ## Extract additional hierarchical results from top 5 runner-ups
       runnerUps = get_hierarchical_extended_results(extended_result_path)
+      runnerUps = runnerUps[,unique(colnames(runnerUps))]  # If there are duplicates, take the first
 
       ## Return annotations and detailed model results
       return(list("result"=mappingResults, "detail"=runnerUps))
@@ -215,7 +216,7 @@ get_query_data_path = function(query_data, temp_folder) {
 #' @param n_processors Number of independent worker processes to spin up.
 #' @param normalization Normalization of the h5ad files; must be either 'raw' or 'log2CPM'.
 #' 
-#' @return 
+#' @return resuls
 #'
 #' @keywords internal
 get_mapmycells_results = function(query_data_output_path, extended_result_path, 

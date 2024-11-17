@@ -1,3 +1,16 @@
+## scrattch.mapping v0.55.6
+
+Updates to streamline and fix the examples
+
+### Major changes
+
+### Minor changes
+* Updated examples
+* Related minor bug fixes and function edits
+* Updated help files
+
+--
+
 ## scrattch.mapping v0.55.5
 
 Major updates correcting issues with hierarchical and Seurat mapping

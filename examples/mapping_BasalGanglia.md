@@ -16,16 +16,21 @@ AIT.anndata = loadTaxonomy(taxonomyDir="/PATH/TO/AIT",
                             anndata_file="HMBA_Macaque_BG_082024_AIT.h5ad")
 
 ## Annotate! In this case we are mapping the taxonomy against itself. 
-## At this time only correlation (corr.map) and hierarchical (MapMyCells) are supported.
+## At this time four mapping algorithms are supported:
+## -- (1) Simple correlation based mapping (corr.map)
+## -- (2) Hierarchical mapping (hierarchical.map) - this is the method used in MapMyCells as default for all taxonomies except SEA-AD
+## -- (3) Tree based mapping (tree.map) - This method requires a dendrogram and is the method used for several Patch-seq studies. NOT RECOMMENDED in most situations.
+## -- (4) Seurat based mapping (seurat.map) - Mapping using TransferData from Seurat v4.4 with largely default parameters
 ## Returns an S4 class with mapping results.
+hierarchy <- c("Neighborhood_label", "Class_label", "Subclass_label", "Group_label")
 mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata , ## Allen Institute Taxonomy loaded via `loadTaxonomy()`
                                 query.data=Matrix::t(AIT.anndata$X[1:100,]), ## Gene x Cell Matrix
-                                label.cols=c("Neighborhood_label", "Class_label", "Subclass_label", "Group_label"),
+                                label.cols=hierarchy,
                                 corr.map=TRUE,
                                 hierarchical.map=TRUE,
-                                tree.map=FALSE,
-                                seurat.map=FALSE)
+                                tree.map=TRUE,
+                                seurat.map=TRUE)
 
-## Extract mapping results from S4 mappingClass
-mapping.results = getMappingResults(mapping.anno, scores = FALSE)
+## Extract mapping results and associated scores from S4 mappingClass
+mapping.results = getMappingResults(mapping.anno, scores = TRUE)
 ```

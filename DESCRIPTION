@@ -1,7 +1,7 @@
 Package: scrattch.mapping
 Title: Generalized mapping of annotations from shiny taxonomy to query
         data.
-Version: 0.55.5
+Version: 0.55.6
 Authors@R: 
     person(given = "Nelson",
            family = "Johansen",

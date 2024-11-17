@@ -11,7 +11,7 @@ taxonomy_mapping(
   tree.map = TRUE,
   hierarchical.map = TRUE,
   seurat.map = TRUE,
-  label.cols = c("cluster_label", "subclass_label", "class_label")
+  label.cols = AIT.anndata$uns$hierarchy
 )
 }
 \arguments{
@@ -25,7 +25,7 @@ taxonomy_mapping(
 
 \item{seurat.map}{Should seurat mapping be performed?}
 
-\item{label.cols}{Column names of annotations to map against.  Note that this only works for metadata that represent clusters or groups of clusters (e.g., subclass, supertype, neighborhood, class)}
+\item{label.cols}{Column names of annotations to map against.  Note that this only works for metadata that represent clusters or groups of clusters (e.g., subclass, supertype, neighborhood, class) and will default to whatever is included in AIT.anndata$uns$hierarchy}
 }
 \value{
 Mapping results from all methods.
