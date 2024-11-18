@@ -9,7 +9,7 @@ mappingClass(annotations, detailed_results)
 \arguments{
 \item{annotations}{A reference taxonomy anndata object.}
 
-\item{detailed_results}{The number of cells to retain per cluster (default = 100).}
+\item{detailed_results}{a method-specific set of additional mapping output}
 }
 \value{
 Instance of mappingClass S4 class.

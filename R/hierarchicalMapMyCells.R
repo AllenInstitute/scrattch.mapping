@@ -48,7 +48,10 @@ hierarchicalMapMyCells = function(AIT_anndata,
       }
       
       if (file.exists(extended_result_path)) {
-        stop(paste("ERROR. Extended result path already exists:", extended_result_path))
+        old_result_path <- gsub(".json","_OLD.json",extended_result_path)
+        file.rename(extended_result_path,old_result_path)
+        warning(paste0("WARNING. Extended result path already exists: ", extended_result_path,
+                       ". Overwriting this file after moving existing file to ",gsub(".json","_OLD.json",extended_result_path)))
       }
 
       taxonomy_anndata_path = file.path(AIT_anndata$uns$taxonomyDir, paste0(AIT_anndata$uns$title, ".h5ad"))
@@ -80,9 +83,13 @@ hierarchicalMapMyCells = function(AIT_anndata,
               mapmycells_results_json$results[[hierarcy_level]]$avg_correlation
         }
       }
+      
+      ## Extract additional hierarchical results from top 5 runner-ups
+      runnerUps = get_hierarchical_extended_results(extended_result_path)
+      runnerUps = runnerUps[,unique(colnames(runnerUps))]  # If there are duplicates, take the first
 
       ## Return annotations and detailed model results
-      return(mappingResults)
+      return(list("result"=mappingResults, "detail"=runnerUps))
     },
     error = function(e) {
       errorMessage <- conditionMessage(e)
@@ -209,7 +216,7 @@ get_query_data_path = function(query_data, temp_folder) {
 #' @param n_processors Number of independent worker processes to spin up.
 #' @param normalization Normalization of the h5ad files; must be either 'raw' or 'log2CPM'.
 #' 
-#' @return 
+#' @return resuls
 #'
 #' @keywords internal
 get_mapmycells_results = function(query_data_output_path, extended_result_path, 
@@ -243,3 +250,86 @@ list_function_params = function() {
   output <- system(command, intern = TRUE) 
   cat(output, sep = "\n") 
 }
+
+
+
+#' This function returns names and bootstrap probabilities from all top mapped cell sets
+#'
+#' @param extended_result_path Full file path and name where the original mapping results will be saved.
+#' 
+#' @import jsonlite
+#' 
+#' @return A table of the top cell set names and bootstrap probabilities from top results and runner-up results for each level of the hierarchy included in the extended_result_path file.  By default, this is the top 5 most likely cell sets for either (1) multiple hierachy levels in hierarchical mapping or (2) a single hierarchy level for correlation mapping.
+#'
+#' @export
+get_hierarchical_extended_results <- function(extended_result_path){
+  
+  ## Extract mapping results
+  mapmycells_results_json = fromJSON(extended_result_path)
+  cell_id = as.character(as.matrix(mapmycells_results_json$results$cell_id))
+  
+  ## Build mapping results dataframe
+  results_all=NULL
+  for (hierarcy_level in names(mapmycells_results_json$results)) {
+    if (hierarcy_level != "cell_id") { 
+      # Pull in the information
+      results = list()
+      results[["assignment"]] = 
+        mapmycells_results_json$results[[hierarcy_level]]$runner_up_assignment
+      results[["probability"]] = 
+        mapmycells_results_json$results[[hierarcy_level]]$runner_up_probability
+      results[["correlation"]] = 
+        mapmycells_results_json$results[[hierarcy_level]]$runner_up_correlation
+      
+      # Determine how many runner up slots are needed	
+      maxLen <- 0
+      for (i in 1:length(results[["assignment"]])){
+        maxLen <- max(maxLen,length(results[["assignment"]][[i]]))
+      }
+      
+      # Create matrices for relevant info
+      assignment <- matrix(nrow=length(results[["assignment"]]),ncol=maxLen)
+      rownames(assignment) <- cell_id
+      probability <- correlation <- assignment
+      colnames(assignment) <- paste0(hierarcy_level,"_assignment_runner_up_",1:maxLen)
+      colnames(correlation) <- paste0(hierarcy_level,"_avg_correlation_runner_up_",1:maxLen)
+      colnames(probability) <- paste0(hierarcy_level,"_bootstrap_probability_runner_up_",1:maxLen)
+      
+      for (i in 1:length(results[["assignment"]])){
+        len = length(results[["assignment"]][[i]])
+        if(len>0){
+          assignment[i,1:len]  = results[["assignment"]][[i]]
+          correlation[i,1:len] = results[["correlation"]][[i]]
+          probability[i,1:len] = results[["probability"]][[i]]
+        }
+      }
+      assignment[is.na(assignment)]   = ""
+      correlation[is.na(correlation)] = 0
+      probability[is.na(probability)] = 0
+      
+      # Merge top results and runner-up results into a single data.frame
+      results_current <- data.frame(
+        XXXX = as.vector(mapmycells_results_json$results[[hierarcy_level]]$assignment),
+        assignment,
+        YYYY = as.vector(mapmycells_results_json$results[[hierarcy_level]]$bootstrapping_probability),
+        probability,
+        ZZZZ = as.vector(mapmycells_results_json$results[[hierarcy_level]]$avg_correlation),
+        correlation
+      )
+      colnames(results_current) <- gsub("XXXX",paste0(hierarcy_level,"_assignment_winner"),colnames(results_current)) 
+      colnames(results_current) <- gsub("YYYY",paste0(hierarcy_level,"_bootstrapping_probability_winner"),colnames(results_current)) 
+      colnames(results_current) <- gsub("ZZZZ",paste0(hierarcy_level,"_avg_correlation_winner"),colnames(results_current)) 
+    }
+    
+    # Combine current results into previous results data frame
+    if (length(results_all)==0) {
+      results_all = results_current
+    } else {
+      results_all = cbind(results_all,results_current)
+    }
+  }
+  
+  # Output results for the whole hierarchy
+  return(results_all)
+}
+

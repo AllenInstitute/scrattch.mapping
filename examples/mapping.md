@@ -1,6 +1,6 @@
 # Tutorial: Standard taxonomy mapping using flat, tree, hierarchical, and Seurat.
 
-In this tutorial we demonstrate how to run standard mapping algorithms using scrattch.mapping on the Tasic et al. 2016 study. Available taxonomies can be found under `/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/` on hpc.
+In this tutorial we demonstrate how to run standard mapping algorithms using scrattch.mapping on query data from [Gouwens, Sorensen, et al 2020 study](https://doi.org/10.1016/j.cell.2020.09.057) using the [Tasic et al. 2016 study](https://www.nature.com/articles/nn.4216) reference taxonomy created in the [scrattch.taxonomy example](https://github.com/AllenInstitute/scrattch.taxonomy/blob/main/examples/build_taxonomy.md). 
 
 ```R
 ## Load scrattch.mapping
@@ -9,34 +9,40 @@ library(scrattch.mapping)
 library(scrattch.taxonomy)
 cell_type_mapper <- import("cell_type_mapper")
 
-## Load in example count data
-library(tasic2016data)
+## Download some example patch-seq data to map
+## -- These data are from Gouwens et al 2020 and would be replaced by your query data
+patchFolder  <- "https://data.nemoarchive.org/other/AIBS/AIBS_patchseq/transcriptome/scell/SMARTseq/processed/analysis/20200611/"
+counts_url   <- "20200513_Mouse_PatchSeq_Release_count.csv.tar"
+download.file(paste0(patchFolder,counts_url),counts_url)
+untar(counts_url)
+query.counts <- as.matrix(data.table::fread("20200513_Mouse_PatchSeq_Release_count/20200513_Mouse_PatchSeq_Release_count.csv"),rownames=1)
 
 ## Compute log CPM
-query.data = tasic_2016_counts
-query.data = logCPM(query.data)
+query.data = logCPM(query.counts)
 
-## Specify which taxonomies to map against.
-taxonomyDir = "/allen/programs/celltypes/workgroups/rnaseqanalysis/shiny/10x_seq/tasic_2016"
-
-## Load the shiny taxonomy into a standard object for mapping.
+## Specify which reference taxonomy to map against.
+## -- Replace folder and file name with correct locations
+taxonomyDir = getwd() 
 AIT.anndata = loadTaxonomy(taxonomyDir = taxonomyDir, anndata_file="Tasic2016.h5ad")
 
 ## Map! Returns an S4 class with mapping results.
 mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata,
                                 query.data=query.data,
-                                label.cols="cluster_label", ## Which obs in AIT.anndata contain annotations to map. E.g. "class", "subclass", etc.
                                 corr.map=TRUE,
-                                tree.map=FALSE,
+                                tree.map=TRUE,
                                 hierarchical.map=TRUE,
-                                seurat.map=FALSE)
+                                seurat.map=TRUE)
 
-## Extract mapping results from S4 mappingClass
-mapping.results = getMappingResults(mapping.anno, scores = FALSE)
+## Extract mapping results and associated scores from S4 mappingClass
+mapping.results = getMappingResults(mapping.anno, scores = TRUE)
 
-## Extract tree mapping bootstraping table (We will improve this in the near future.)
+## Extract tree mapping bootstrapping table 
 tree.bootstraps = mapping.anno@detailed_results[["tree"]]
 
+## Extract hierachical mapping bootstrapping probabilities for the top five cell mapped hits 
+hierarchical.bootstraps = mapping.anno@detailed_results[["hierarchical"]]
+
 ## Save
-save(mapping.results, file="mapping_results.rda")
+save(mapping.anno, file="mapping_results.rda")
+write.csv(mapping.results,"mapping_results.csv")
 ```

@@ -14,25 +14,22 @@ seuratMap = function(AIT.anndata, query.data, dims=30, k.weight=5){
         expr = {
 
             ## Build Query Seruat object
-            query.seurat = CreateSeuratObject(query.data[AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes],])
-            query.seurat = SetAssayData(query.seurat, slot = "data", new.data = query.data[AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes],], assay = "RNA")
+            use.genes    = intersect(rownames(query.data),AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes])
+            query.seurat = suppressWarnings(CreateSeuratObject(query.data[use.genes,]))
+            query.seurat = suppressWarnings(SetAssayData(query.seurat, slot = "data", new.data = query.data[use.genes,], assay = "RNA"))
+            VariableFeatures(query.seurat) <- use.genes
             
             ## Build Ref Seurat object
-            ref.seurat = suppressWarnings(CreateSeuratObject(t(AIT.anndata$X[,AIT.anndata$var$highly_variable_genes]), meta.data=as.data.frame(AIT.anndata$obs)));
-            ref.seurat = SetAssayData(ref.seurat, slot = "data", new.data = t(AIT.anndata$X[,AIT.anndata$var$highly_variable_genes]), assay = "RNA")
-            
-            ## Create a data list for label transfer
-            seurat.list <- list(ref.seurat, query.seurat)
-            names(seurat.list) <- c("Reference", "Query")
-
-            ## Compute variable features for each object
-            for (i in 1:length(x = seurat.list)) VariableFeatures(seurat.list[[i]]) <- AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes]
+            ref.data   = as.matrix(BiocGenerics::t(AIT.anndata$X[,use.genes]))
+            ref.seurat = suppressWarnings(CreateSeuratObject(ref.data, meta.data=as.data.frame(AIT.anndata$obs)));
+            ref.seurat = suppressWarnings(SetAssayData(ref.seurat, slot = "data", new.data = ref.data, assay = "RNA"))
+            VariableFeatures(ref.seurat) <- use.genes
 
             ## Seurat label transfer (celltype)
-            Target.anchors <- FindTransferAnchors(reference = seurat.list[["Reference"]], query = seurat.list[["Query"]], 
-                                                  dims = 1:dims, verbose=FALSE, npcs=dims)
-            predictions    <- TransferData(anchorset = Target.anchors, refdata = seurat.list[["Reference"]]$cluster_label, 
-                                                  dims = 1:dims, verbose=FALSE, k.weight=k.weight)
+            Target.anchors <- suppressWarnings(FindTransferAnchors(reference = ref.seurat, query = query.seurat, 
+                                                                   dims = 1:dims, verbose=FALSE, npcs=dims))
+            predictions    <- suppressWarnings(TransferData(anchorset = Target.anchors, refdata = ref.seurat$cluster_label, 
+                                                  dims = 1:dims, verbose=FALSE, k.weight=k.weight))
             ## Create results data.frame
             mappingTarget = data.frame(map.Seurat=as.character(predictions$predicted.id), 
                                         score.Seurat=predictions$prediction.score.max)

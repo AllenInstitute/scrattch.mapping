@@ -16,7 +16,7 @@ setClass(
 #' This function instantiates a mappingClass S4 class object.
 #'
 #' @param annotations A reference taxonomy anndata object.
-#' @param detailed_results The number of cells to retain per cluster (default = 100).
+#' @param detailed_results a method-specific set of additional mapping output
 #'
 #' @examples
 #' resultAnno <- mappingClass(
@@ -48,7 +48,7 @@ mappingClass <- function(annotations, detailed_results) {
 #'
 #' @export
 setGeneric("getMappingResults", 
-  function(object, scores = FALSE) standardGeneric("getMappingResults")
+  function(object, scores = TRUE) standardGeneric("getMappingResults")
 )
 
 #' Get cell type annotations
@@ -61,7 +61,29 @@ setGeneric("getMappingResults",
 setMethod(
   "getMappingResults",
   signature(object="mappingClass", scores="logical"),
-  definition = function(object, scores = FALSE) {
+  definition = function(object, scores = TRUE) {
+    mapping.anno = object@annotations
+    if (!scores) {
+      score.cols = sapply(mapping.anno, is.numeric)
+      mapping.anno = mapping.anno[, !score.cols]
+    }
+    return(mapping.anno)
+  }
+)
+
+#' Get cell type annotations
+#'
+#' Extract cell type annotations from mappingClass S4 class
+#'
+#' @return mapping results as a data.frame with labels in map.Method and scores in score.Method 
+#'
+#' @export
+setMethod(
+  "getMappingResults",
+  signature(object="mappingClass", scores="missing"),
+  definition = function(object) {
+    # If scores not provided, set as TRUE by default.  Unclear why we need a separate solution for this.
+    scores = TRUE
     mapping.anno = object@annotations
     if (!scores) {
       score.cols = sapply(mapping.anno, is.numeric)

@@ -1,0 +1,10 @@
+---
+title: "Go to examples"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Go to examples}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc} 
+---
+  
+Vignettes are located on the main website for scrattch.mapping: https://github.com/AllenInstitute/scrattch.mapping

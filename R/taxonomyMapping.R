@@ -4,7 +4,7 @@
 #'
 #' @param AIT.anndata A reference taxonomy object.
 #' @param query.data A logCPM normalized matrix to be annotated.
-#' @param label.cols Column names of annotations to map against.  Note that this only works for metadata that represent clusters or groups of clusters (e.g., subclass, supertype, neighborhood, class)
+#' @param label.cols Column names of annotations to map against.  Note that this only works for metadata that represent clusters or groups of clusters (e.g., subclass, supertype, neighborhood, class) and will default to whatever is included in AIT.anndata$uns$hierarchy
 #' @param corr.map Should correlation mapping be performed?
 #' @param tree.map Should tree mapping be performed?
 #' @param seurat.map Should seurat mapping be performed?
@@ -14,11 +14,15 @@
 #' @export
 taxonomy_mapping = function(AIT.anndata, query.data, 
                             corr.map=TRUE, tree.map=TRUE, hierarchical.map=TRUE, seurat.map=TRUE, 
-                            label.cols = c("cluster_label","subclass_label", "class_label")){
+                            label.cols = AIT.anndata$uns$hierarchy){  # NOTE THE NEW DEFAULT
+                            #label.cols = c("cluster_label","subclass_label", "class_label")){
 
+  suppressWarnings({ # wrapping the whole function in suppressWarnings to avoid having this printed a zillion times: 'useNames = NA is deprecated. Instead, specify either useNames = TRUE or useNames = FALSE.'
+  
     print(paste("==============================","Mapping","======================="))
     print(date())
     mappingResults=list()
+    if(sum(class(label.cols)=="list")<1) label.cols = as.character(hierarchy) # Convert from list to character for this function
 
     ## Sanity check on user input and taxonomy/reference annotations
     if(!all(label.cols %in% colnames(AIT.anndata$uns$clusterInfo))){
@@ -50,7 +54,12 @@ taxonomy_mapping = function(AIT.anndata, query.data,
     
     #############
     ## ----- Tree mapping -------------------------------------------------------------------------------
-    if(tree.map == TRUE & !is.null(AIT.anndata$uns$dend)){ mappingTree = treeMap(AIT.anndata, query.data); mappingResults[["Tree"]] = mappingTree[["result"]] } else{ mappingTree = NULL }
+    if(tree.map == TRUE & !is.null(AIT.anndata$uns$dend)){ 
+      mappingTree = treeMap(AIT.anndata, query.data); 
+      mappingResults[["Tree"]] = mappingTree[["result"]] 
+    } else { 
+      mappingTree = NULL
+    }
     
     #############
     ## ----- Seurat mapping ------------------------------------------------------------------------------
@@ -58,7 +67,12 @@ taxonomy_mapping = function(AIT.anndata, query.data,
 
     #############
     ## ----- Hierarchical mapping ------------------------------------------------------------------------------
-    if(hierarchical.map == TRUE){ mappingResults[["hierarchical"]] = hierarchicalMapMyCells(AIT.anndata, query.data) } else{ mappingResults[["hierarchical"]] = NULL }
+    if(hierarchical.map == TRUE){ 
+      mappingHierarchical <- hierarchicalMapMyCells(AIT.anndata, query.data) 
+      mappingResults[["hierarchical"]] <- mappingHierarchical[["result"]]
+    } else { 
+      mappingHierarchical = NULL
+    }
 
     #############
     ## Combine mapping results
@@ -80,10 +94,13 @@ taxonomy_mapping = function(AIT.anndata, query.data,
 
     ## Build mapping class object
     resultAnno <- mappingClass(annotations = mappingAnno,
-                                detailed_results = list("corr" = NA, 
-                                                        "tree" = mappingTree[["detail"]], 
-                                                        "seurat" = NA))
+                               detailed_results = list("corr" = NA, 
+                                                       "tree" = mappingTree[["detail"]], 
+                                                       "seurat" = NA,
+                                                       "hierarchical" = mappingHierarchical[["detail"]]))
     
     ## Return annotations and detailed model results
     return(resultAnno)
+    
+  }) # End suppressWarnings
 }

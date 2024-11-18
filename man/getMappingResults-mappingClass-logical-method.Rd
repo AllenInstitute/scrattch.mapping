@@ -4,7 +4,7 @@
 \alias{getMappingResults,mappingClass,logical-method}
 \title{Get cell type annotations}
 \usage{
-\S4method{getMappingResults}{mappingClass,logical}(object, scores = FALSE)
+\S4method{getMappingResults}{mappingClass,logical}(object, scores = TRUE)
 }
 \value{
 mapping results as a data.frame with labels in map.Method and scores in score.Method
