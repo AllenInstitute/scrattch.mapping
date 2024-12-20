@@ -2,26 +2,44 @@
 #'
 #' @param AIT.anndata A reference taxonomy anndata object.
 #' @param query.data A logCPM normalized matrix to be annotated.
+#' @param genes.to.use The set of genes to use for correlation calculation (default is the highly_variable_genes associated with the current mode). Can either be a character vector of gene names or a TRUE/FALSE (logical) vector of which genes to include.
 #'
 #' @import scrattch.hicat
 #'
 #' @return Correlation mapping results as a data.frame.
 #'
 #' @export
-corrMap = function(AIT.anndata, query.data){
+corrMap = function(AIT.anndata, 
+                   query.data,
+                   genes.to.use = NULL){
     print("Correlation-based mapping")
     ## Attempt Correlation mapping
     mappingTarget = tryCatch(
         expr = {
-            clReference  = setNames(factor(AIT.anndata$obs$cluster_label, levels=AIT.anndata$uns$clustersUse),
-                                    AIT.anndata$obs_names)
+            ## Create the vector of genes to use.
+            if(is.null(genes.to.use)){
+              # If null, default to correct set of highly variable genes
+              genes.to.use.vector <- AIT.anndata$var[,paste0("highly_variable_genes_",AIT.anndata$uns$mode)]
+            } else if (is.logical(genes.to.use)) {
+              if (length(genes.to.use)!=dim(AIT.anndata)[2]) stop("If genes.to.use is logical it must be the same length as the total number of genes in AIT.anndata.")
+              genes.to.use.vector = genes.to.use
+            } else if (is.character(genes.to.use)){
+              genes.to.use <- intersect(genes.to.use,AIT.anndata$var_names)
+              if (length(genes.to.use)==0) stop("No valid gene names provided in genes.to.use.")
+              if (length(genes.to.use)<=2) stop("More than 2 valid gene names must be provided in genes.to.use to calculate correlation.")
+              genes.to.use.vector <- is.element(AIT.anndata$var_names,genes.to.use)
+            } else {
+              stop("genes.to.use must be a character or logical vector.")
+            }
+          
             ##
             medianExpr = AIT.anndata$uns$stats[[AIT.anndata$uns$mode]]$medianExpr
             rownames(medianExpr) = AIT.anndata$uns$stats[[AIT.anndata$uns$mode]]$features
             colnames(medianExpr) = AIT.anndata$uns$stats[[AIT.anndata$uns$mode]]$clusters
             ##
-            corMapTarget = cor_mapping_wrapper(query.data[AIT.anndata$var_names[AIT.anndata$var$highly_variable_genes],], 
-                                               medianExpr)
+            mapping.genes = intersect(rownames(query.data),AIT.anndata$var_names[genes.to.use.vector])
+            if(length(mapping.genes)<=2) stop("Too few intersecting variable genes with query genes to perform mapping.")
+            corMapTarget  = cor_mapping_wrapper(query.data[mapping.genes,], medianExpr)
             mappingTarget = data.frame(map.Corr=as.character(corMapTarget$TopLeaf), 
                                         score.Corr=corMapTarget$Value)
             mappingTarget

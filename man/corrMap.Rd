@@ -4,12 +4,14 @@
 \alias{corrMap}
 \title{Correlation based mapping}
 \usage{
-corrMap(AIT.anndata, query.data)
+corrMap(AIT.anndata, query.data, genes.to.use = NULL)
 }
 \arguments{
 \item{AIT.anndata}{A reference taxonomy anndata object.}
 
 \item{query.data}{A logCPM normalized matrix to be annotated.}
+
+\item{genes.to.use}{The set of genes to use for correlation calculation (default is the highly_variable_genes associated with the current mode). Can either be a character vector of gene names or a TRUE/FALSE (logical) vector of which genes to include.}
 }
 \value{
 Correlation mapping results as a data.frame.
