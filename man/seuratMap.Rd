@@ -4,12 +4,27 @@
 \alias{seuratMap}
 \title{Seurat based mapping}
 \usage{
-seuratMap(AIT.anndata, query.data, dims = 30, k.weight = 5)
+seuratMap(
+  AIT.anndata,
+  query.data,
+  dims = 30,
+  k.weight = 5,
+  genes.to.use = NULL,
+  cells.to.use = NULL
+)
 }
 \arguments{
 \item{AIT.anndata}{A reference taxonomy anndata object.}
 
 \item{query.data}{A logCPM normalized matrix to be annotated.}
+
+\item{dims}{Number of principle component dimensions to use for FindTransferAnchors and TransferData (default = 30)}
+
+\item{k.weight}{k.weight parameter for TransferData Seurat function (default = 5)}
+
+\item{genes.to.use}{The set of genes to use for Seurat variable genes (default is the highly_variable_genes associated with the current mode). Can either be a character vector of gene names or a TRUE/FALSE (logical) vector of which genes to include.}
+
+\item{cells.to.use}{The set of cells to include in Seurat integration (default is the filtered cell set associated with the current mode). Can either be a character vector of cell names or a TRUE/FALSE (logical) vector of which cells to include.}
 }
 \value{
 Seurat mapping results as a data.frame.

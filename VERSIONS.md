@@ -1,3 +1,20 @@
+## scrattch.mapping v0.7.1
+
+Updates to improve correlation mapping
+
+### Major changes
+* Updated `taxonomyMapping` wrapper to allow flexibility, while keeping defaults and back-compatibility intact
+* Updated `corrMap` to allow gene list or logical input, and to default to appropriate variable gene set
+* Updated `seuratMap` the same way, and also to only pull mode-specific cells and clusters
+* Updated all three of the above functions to properly consider the current mode  
+
+### Minor changes
+* Synchronized versions between scrattch.taxonomy, scrattch.mapping, an scrattch.patchseq
+* Error correction
+* Improved documentation on mapping methods
+
+--
+
 ## scrattch.mapping v0.55.6
 
 Updates to streamline and fix the examples
