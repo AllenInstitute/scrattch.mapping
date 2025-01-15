@@ -20,18 +20,24 @@
 #' @export
 hierarchicalMapMyCells = function(AIT_anndata,
                             query_data,
-                            chunk_size = 1000,
-                            n_processors = 3,
-                            normalization = "log2CPM",
+                            mapping_params_list = list(),
                             tmp_dir = NULL,
                             user_extended_result_path=NULL,
                             user_precomp_stats_path=NULL,
                             user_query_markers_path=NULL){
-  print("Hierarchical mapping")
+  print("Hierarchical mapping.")
+  print("Run \'list_hierarchical_params()\' to get a full list of parameters that can be passed to the mapping function as hierarchical_params_list.")
   tryCatch(
     {
       temp_folder = tmp_dir
       extended_result_path = user_extended_result_path
+      default_mapping_params_list = list('type_assignment' = list(
+                                              'normalization' = "log2CPM",
+                                              'chunk_size' = 1000,
+                                              'n_processors' = 3),
+                                          'flatten' = FALSE
+                                          )
+      mapping_params_list = modifyList(default_mapping_params_list, mapping_params_list)
 
       if (is.null(AIT_anndata$uns$hierarchical[[AIT.anndata$uns$mode]])){
         stop(paste("ERROR. Provided mode doesn't exists for hierarchical:", AIT.anndata$uns$mode))
@@ -51,7 +57,8 @@ hierarchicalMapMyCells = function(AIT_anndata,
         old_result_path <- gsub(".json","_OLD.json",extended_result_path)
         file.rename(extended_result_path,old_result_path)
         warning(paste0("WARNING. Extended result path already exists: ", extended_result_path,
-                       ". Overwriting this file after moving existing file to ",gsub(".json","_OLD.json",extended_result_path)))
+                       ". Overwriting this file after moving existing file to ",
+                       gsub(".json","_OLD.json",extended_result_path)))
       }
 
       taxonomy_anndata_path = file.path(AIT_anndata$uns$taxonomyDir, paste0(AIT_anndata$uns$title, ".h5ad"))
@@ -66,7 +73,7 @@ hierarchicalMapMyCells = function(AIT_anndata,
 
       get_mapmycells_results(query_data_output_path, extended_result_path, 
                              precomp_stats_output_path, query_markers_output_path, 
-                             normalization, chunk_size, n_processors)
+                             mapping_params_list)
 
       ## Extract mapping results
       mapmycells_results_json = fromJSON(extended_result_path)
@@ -104,7 +111,7 @@ hierarchicalMapMyCells = function(AIT_anndata,
       else {
         file.remove(query_data_output_path)
 
-        # remove the files is they were code generated
+        # remove the files only if they were code generated, but not the temp folder
         if(!file.exists(taxonomy_anndata_path)) {
           file.remove(anndata_path)
         }
@@ -221,7 +228,7 @@ get_query_data_path = function(query_data, temp_folder) {
 #' @keywords internal
 get_mapmycells_results = function(query_data_output_path, extended_result_path, 
                 precomp_stats_output_path, query_markers_output_path, 
-                normalization, chunk_size, n_processors) {
+                mapping_params_list) {
   config <- list(
     'query_path' = query_data_output_path,
     'extended_result_path' = extended_result_path,
@@ -230,13 +237,10 @@ get_mapmycells_results = function(query_data_output_path, extended_result_path,
     ),
     'query_markers'= list(
         'serialized_lookup' = query_markers_output_path
-    ),
-    'type_assignment' = list(
-        'normalization' = normalization,
-        'chunk_size' = chunk_size,
-        'n_processors' = n_processors
     )
   )
+  config <- modifyList(config, mapping_params_list)
+  
   runner <- cell_type_mapper$cli$from_specified_markers$FromSpecifiedMarkersRunner(
     args=c(),
     input_data=config)
@@ -244,13 +248,12 @@ get_mapmycells_results = function(query_data_output_path, extended_result_path,
 }
 
 #' Lists all the function parameters and their descriptions. 
-#' @keywords internal
-list_function_params = function() {
+#' @export
+list_hierarchical_params = function() {
   command <- "python -m cell_type_mapper.cli.from_specified_markers --help"
   output <- system(command, intern = TRUE) 
   cat(output, sep = "\n") 
 }
-
 
 
 #' This function returns names and bootstrap probabilities from all top mapped cell sets

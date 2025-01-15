@@ -29,7 +29,8 @@ taxonomy_mapping = function(AIT.anndata,
                             hierarchical.map=TRUE, 
                             seurat.map=TRUE, 
                             label.cols = AIT.anndata$uns$hierarchy,  # NOTE THE NEW DEFAULT
-                            genes.to.use = NULL){ 
+                            genes.to.use = NULL,
+                            hierarchical_params_list = list()){ 
 
   suppressWarnings({ # wrapping the whole function in suppressWarnings to avoid having this printed a zillion times: 'useNames = NA is deprecated. Instead, specify either useNames = TRUE or useNames = FALSE.'
   
@@ -103,7 +104,7 @@ taxonomy_mapping = function(AIT.anndata,
     #############
     ## ----- Hierarchical mapping ------------------------------------------------------------------------------
     if(hierarchical.map == TRUE){ 
-      mappingHierarchical <- hierarchicalMapMyCells(AIT.anndata, query.data) 
+      mappingHierarchical <- hierarchicalMapMyCells(AIT.anndata, query.data, hierarchical_params_list) 
       mappingResults[["hierarchical"]] <- mappingHierarchical[["result"]]
     } else { 
       mappingHierarchical = NULL
