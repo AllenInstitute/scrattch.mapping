@@ -34,8 +34,10 @@ hierarchicalMapMyCells = function(AIT_anndata,
       default_mapping_params_list = list('type_assignment' = list(
                                               'normalization' = "log2CPM",
                                               'chunk_size' = 1000,
-                                              'n_processors' = 3),
-                                          'flatten' = FALSE
+                                              'n_processors' = 3,
+                                              'bootstrap_iteration' = 1,
+                                              'bootstrap_factor' = 1.0),
+                                          'flatten' = TRUE
                                           )
       mapping_params_list = modifyList(default_mapping_params_list, mapping_params_list)
 
