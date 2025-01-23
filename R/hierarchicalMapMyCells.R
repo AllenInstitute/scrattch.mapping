@@ -276,7 +276,8 @@ get_hierarchical_extended_results <- function(extended_result_path){
   ## Build mapping results dataframe
   results_all=NULL
   for (hierarcy_level in names(mapmycells_results_json$results)) {
-    if (hierarcy_level != "cell_id") { 
+    if (hierarcy_level != "cell_id" || 
+        mapmycells_results_json$results[[hierarcy_level]]$directly_assigned == TRUE)) { 
       # Pull in the information
       results = list()
       results[["assignment"]] = 
