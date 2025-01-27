@@ -33,8 +33,8 @@ hierarchicalMapMyCells = function(AIT_anndata,
       temp_folder = tmp_dir
       extended_result_path = user_extended_result_path
 
-      if (is.null(AIT_anndata$uns$hierarchical[[AIT.anndata$uns$mode]])){
-        stop(paste("ERROR. Provided mode doesn't exists for hierarchical:", AIT.anndata$uns$mode))
+      if (is.null(AIT_anndata$uns$hierarchical[[AIT_anndata$uns$mode]])){
+        stop(paste("ERROR. Provided mode doesn't exists for hierarchical:", AIT_anndata$uns$mode))
       }
 
       if (is.null(temp_folder) || temp_folder == "") {
@@ -54,8 +54,7 @@ hierarchicalMapMyCells = function(AIT_anndata,
                        ". Overwriting this file after moving existing file to ",gsub(".json","_OLD.json",extended_result_path)))
       }
 
-      taxonomy_anndata_path = file.path(AIT_anndata$uns$taxonomyDir, paste0(AIT_anndata$uns$title, ".h5ad"))
-      anndata_path = get_anndata_path(taxonomy_anndata_path, temp_folder)
+      anndata_path = get_anndata_path(AIT_anndata, temp_folder)
 
       precomp_stats_output_path = get_precomp_stats(AIT_anndata, anndata_path, 
                                                     user_precomp_stats_path, temp_folder)
@@ -127,9 +126,16 @@ hierarchicalMapMyCells = function(AIT_anndata,
 #' @return Local file path to the AIT reference taxonomy h5ad file.
 #'
 #' @keywords internal
-get_anndata_path = function(anndata_path, temp_folder) {
-  # Check if anndata path exists; if does not, write it out to temp - show WARNING
-  if (!file.exists(anndata_path)) {
+get_anndata_path = function(AIT_anndata, temp_folder) {
+  anndata_path = NULL
+  # Use AIT path stored in AIT.anndata$uns, if not null.
+  if (!is.null(AIT_anndata$uns$taxonomyDir) && !is.null(AIT_anndata$uns$title)){
+    # Check if the file name already ends with .h5ad, if not, append it
+    anndata_path <- file.path(AIT_anndata$uns$taxonomyDir, paste0(AIT_anndata$uns$title, 
+                              ifelse(!grepl("\\.h5ad$", AIT_anndata$uns$title), ".h5ad", "")))
+  }
+  # Check if anndata path exists; if does not, write it out to temp - show WARNING.
+  if (is.null(anndata_path) || !file.exists(anndata_path)) {
     print(paste0(paste("WARNING: INVALID FILE PATH, ERROR in AIT.anndata$uns taxonomyDir and taxonomyName:", anndata_path),
           ". Writing the AIT.anndata to temperary location, SAVE anndata or FIX path to OPTIMIZE this step."))
     anndata_filename <- paste0(paste0("temp_anndata_", format(Sys.time(), "%Y%m%d-%H%M%S")), ".h5ad")
@@ -173,7 +179,7 @@ get_precomp_stats = function(AIT_anndata, anndata_path, precomp_stats_output_pat
 get_marker_genes = function(AIT_anndata, query_markers_output_path, temp_folder) {
   # retrieve query markers from anndata
   if(is.null(query_markers_output_path)) {
-    serialized_query_markers <- AIT_anndata$uns$hierarchical[[AIT.anndata$uns$mode]][["query_markers"]]
+    serialized_query_markers <- AIT_anndata$uns$hierarchical[[AIT_anndata$uns$mode]][["query_markers"]]
     query_markers_filename <- paste0(paste0("query_markers_", format(Sys.time(), "%Y%m%d-%H%M%S")), ".json")
     query_markers_output_path <- file.path(temp_folder, query_markers_filename)
 
