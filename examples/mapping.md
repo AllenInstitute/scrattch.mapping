@@ -29,9 +29,10 @@ AIT.anndata = loadTaxonomy(taxonomyDir = taxonomyDir, anndata_file="Tasic2016.h5
 mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata,
                                 query.data=query.data,
                                 corr.map=TRUE,
-                                tree.map=TRUE,
-                                hierarchical.map=TRUE,
-                                seurat.map=TRUE)
+                                tree.map=FALSE,
+                                mapmycells.hierarchical.map=FALSE,
+                                mapmycells.flat.map=TRUE,
+                                seurat.map=FALSE)
 
 ## Extract mapping results and associated scores from S4 mappingClass
 mapping.results = getMappingResults(mapping.anno, scores = TRUE)

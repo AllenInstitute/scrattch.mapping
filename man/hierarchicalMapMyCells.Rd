@@ -7,9 +7,8 @@
 hierarchicalMapMyCells(
   AIT_anndata,
   query_data,
-  chunk_size = 1000,
-  n_processors = 3,
-  normalization = "log2CPM",
+  mapping_params_list = list(),
+  flat_mapping = FALSE,
   tmp_dir = NULL,
   user_extended_result_path = NULL,
   user_precomp_stats_path = NULL,
@@ -21,12 +20,6 @@ hierarchicalMapMyCells(
 
 \item{query_data}{A logCPM normalized matrix to be annotated.}
 
-\item{chunk_size}{Number of rows each worker process should load at a time from the query dataset.}
-
-\item{n_processors}{Number of independent worker processes to spin up.}
-
-\item{normalization}{Normalization of the h5ad files; must be either 'raw' or 'log2CPM'.}
-
 \item{tmp_dir}{Temporary directory for writing out the hierarchical files.}
 
 \item{user_extended_result_path}{Full file path and name where the original mapping results will be saved.}
@@ -37,6 +30,12 @@ hierarchicalMapMyCells(
 
 Note: this hierarchical mapping is a wrapper around cell_type_mapper,
 and call's it's functions to generate needed files needed for mapping.}
+
+\item{chunk_size}{Number of rows each worker process should load at a time from the query dataset.}
+
+\item{n_processors}{Number of independent worker processes to spin up.}
+
+\item{normalization}{Normalization of the h5ad files; must be either 'raw' or 'log2CPM'.}
 }
 \value{
 List of mapping results with labels and scores.

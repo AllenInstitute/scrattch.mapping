@@ -21,6 +21,7 @@
 hierarchicalMapMyCells = function(AIT_anndata,
                             query_data,
                             mapping_params_list = list(),
+                            flat_mapping=FALSE,
                             tmp_dir = NULL,
                             user_extended_result_path=NULL,
                             user_precomp_stats_path=NULL,
@@ -32,13 +33,13 @@ hierarchicalMapMyCells = function(AIT_anndata,
       temp_folder = tmp_dir
       extended_result_path = user_extended_result_path
       default_mapping_params_list = list('type_assignment' = list(
-                                              'normalization' = "log2CPM",
-                                              'chunk_size' = 1000,
-                                              'n_processors' = 3,
-                                              'bootstrap_iteration' = 1,
-                                              'bootstrap_factor' = 1.0),
-                                          'flatten' = TRUE
-                                          )
+                                         'normalization' = "log2CPM",
+                                         'chunk_size' = 1000,
+                                         'n_processors' = 3,
+                                         'bootstrap_iteration' = 1,
+                                         'bootstrap_factor' = 1.0),
+                                         'flatten' = flat_mapping
+                                        )
       mapping_params_list = modifyList(default_mapping_params_list, mapping_params_list)
 
       if (is.null(AIT_anndata$uns$hierarchical[[AIT_anndata$uns$mode]])){
@@ -81,23 +82,28 @@ hierarchicalMapMyCells = function(AIT_anndata,
 
       ## Build mapping results dataframe
       mappingResults=list()
+      if (flat_mapping) {
+        mapping_method = "Flat"
+      } else {
+        mapping_method = "Hierarchical" 
+      }
       for (hierarcy_level in names(mapmycells_results_json$results)) {
         if (hierarcy_level != "cell_id") {
-          mappingResults[[paste0(hierarcy_level, "_Hierarchical")]] = 
+          mappingResults[[paste0(hierarcy_level, "_", mapping_method)]] = 
               mapmycells_results_json$results[[hierarcy_level]]$assignment
-          mappingResults[[paste0("bootstrapping_probability.Hierarchical.", hierarcy_level)]] = 
+          mappingResults[[paste0("bootstrapping_probability.", mapping_method, ".", hierarcy_level)]] = 
               mapmycells_results_json$results[[hierarcy_level]]$bootstrapping_probability
-          mappingResults[[paste0("avg_correlation.Hierarchical.", hierarcy_level)]] = 
+          mappingResults[[paste0("avg_correlation.", mapping_method, ".", hierarcy_level)]] = 
               mapmycells_results_json$results[[hierarcy_level]]$avg_correlation
         }
       }
       
       ## Extract additional hierarchical results from top 5 runner-ups
-      runnerUps = get_hierarchical_extended_results(extended_result_path)
-      runnerUps = runnerUps[,unique(colnames(runnerUps))]  # If there are duplicates, take the first
+      #runnerUps = get_hierarchical_extended_results(extended_result_path)
+      #runnerUps = runnerUps[,unique(colnames(runnerUps))]  # If there are duplicates, take the first
 
       ## Return annotations and detailed model results
-      return(list("result"=mappingResults, "detail"=runnerUps))
+      return(list("result"=mappingResults, "detail"=NULL))
     },
     error = function(e) {
       errorMessage <- conditionMessage(e)
@@ -283,7 +289,7 @@ get_hierarchical_extended_results <- function(extended_result_path){
   results_all=NULL
   for (hierarcy_level in names(mapmycells_results_json$results)) {
     if (hierarcy_level != "cell_id" || 
-        mapmycells_results_json$results[[hierarcy_level]]$directly_assigned == TRUE)) { 
+        all(mapmycells_results_json$results[[hierarcy_level]]$directly_assigned) == TRUE) { 
       # Pull in the information
       results = list()
       results[["assignment"]] = 
