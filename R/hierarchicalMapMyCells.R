@@ -99,11 +99,11 @@ hierarchicalMapMyCells = function(AIT_anndata,
       }
       
       ## Extract additional hierarchical results from top 5 runner-ups
-      #runnerUps = get_hierarchical_extended_results(extended_result_path)
-      #runnerUps = runnerUps[,unique(colnames(runnerUps))]  # If there are duplicates, take the first
+      runnerUps = get_hierarchical_extended_results(extended_result_path)
+      runnerUps = runnerUps[,unique(colnames(runnerUps))]  # If there are duplicates, take the first
 
       ## Return annotations and detailed model results
-      return(list("result"=mappingResults, "detail"=NULL))
+      return(list("result"=mappingResults, "detail"=runnerUps))
     },
     error = function(e) {
       errorMessage <- conditionMessage(e)
@@ -286,9 +286,9 @@ get_hierarchical_extended_results <- function(extended_result_path){
   cell_id = as.character(as.matrix(mapmycells_results_json$results$cell_id))
   
   ## Build mapping results dataframe
-  results_all=NULL
+  results_all = results_current = NULL
   for (hierarcy_level in names(mapmycells_results_json$results)) {
-    if (hierarcy_level != "cell_id" || 
+    if (hierarcy_level != "cell_id" &&                                         # using && so in case of the cell_id block next term is not evaluated as it does not have 'directly_assigned' field.
         all(mapmycells_results_json$results[[hierarcy_level]]$directly_assigned) == TRUE) { 
       # Pull in the information
       results = list()
@@ -306,13 +306,16 @@ get_hierarchical_extended_results <- function(extended_result_path){
       }
       
       # Create matrices for relevant info
+      
       assignment <- matrix(nrow=length(results[["assignment"]]),ncol=maxLen)
       rownames(assignment) <- cell_id
       probability <- correlation <- assignment
-      colnames(assignment) <- paste0(hierarcy_level,"_assignment_runner_up_",1:maxLen)
-      colnames(correlation) <- paste0(hierarcy_level,"_avg_correlation_runner_up_",1:maxLen)
-      colnames(probability) <- paste0(hierarcy_level,"_bootstrap_probability_runner_up_",1:maxLen)
-      
+      if (maxLen != 0) {
+        colnames(assignment) <- paste0(hierarcy_level,"_assignment_runner_up_",1:maxLen)
+        colnames(correlation) <- paste0(hierarcy_level,"_avg_correlation_runner_up_",1:maxLen)
+        colnames(probability) <- paste0(hierarcy_level,"_bootstrap_probability_runner_up_",1:maxLen)
+      }
+
       for (i in 1:length(results[["assignment"]])){
         len = length(results[["assignment"]][[i]])
         if(len>0){
