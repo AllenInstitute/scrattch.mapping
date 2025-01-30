@@ -26,8 +26,13 @@ hierarchicalMapMyCells = function(AIT_anndata,
                             user_extended_result_path=NULL,
                             user_precomp_stats_path=NULL,
                             user_query_markers_path=NULL){
-  print("Hierarchical mapping.")
+  if (flat_mapping==FALSE) { 
+    print("MapMyCells Hierarchical mapping.") 
+    } else { 
+    print("MapMyCells Flat mapping.") 
+  }
   print("Run \'list_hierarchical_params()\' to get a full list of parameters that can be passed to the mapping function as hierarchical_params_list.")
+  
   tryCatch(
     {
       temp_folder = tmp_dir
@@ -35,9 +40,7 @@ hierarchicalMapMyCells = function(AIT_anndata,
       default_mapping_params_list = list('type_assignment' = list(
                                          'normalization' = "log2CPM",
                                          'chunk_size' = 1000,
-                                         'n_processors' = 3,
-                                         'bootstrap_iteration' = 1,
-                                         'bootstrap_factor' = 1.0),
+                                         'n_processors' = 3),
                                          'flatten' = flat_mapping
                                         )
       mapping_params_list = modifyList(default_mapping_params_list, mapping_params_list)
