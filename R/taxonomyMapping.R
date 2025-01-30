@@ -7,7 +7,8 @@
 #' @param label.cols Column names of annotations to map against.  Note that this only works for metadata that represent clusters or groups of clusters (e.g., subclass, supertype, neighborhood, class) and will default to whatever is included in AIT.anndata$uns$hierarchy. This is highly related to the variable called "hierarchy" in other functions.
 #' @param corr.map Should correlation mapping be performed? (see methods)
 #' @param tree.map Should tree mapping be performed? (see methods)
-#' @param hierarchical.map Should hierarchical mapping be performed? (see methods)
+#' @param mapmycells.hierarchical.map Should mapmycells' hierarchical mapping be performed? (see methods)
+#' @param mapmycells.flat.map Should mapmycells' flat mapping be performed? (see methods)
 #' @param seurat.map Should seurat mapping be performed? (see methods)
 #' @param genes.to.use The set of genes to use for correlation calculation and/or Seurat integration (default is the highly_variable_genes associated with the current mode). Can either be a character vector of gene names or a TRUE/FALSE (logical) vector of which genes to include.
 #'
@@ -15,8 +16,8 @@
 #' 
 #' 1. **corr.map**: This method calculates the Pearson correlation between each cell and each cluster median, and returns the cluster with the highest correlation along with the associated correlation score. Despite being a very simple method, this works quite well in some circumstances.  
 #' 2. **tree.map**: Historical implementation of tree mapping used for assigning cell types to patch-seq cells in several studies of mouse visual cortex. This method requires a dendogram and iteratively walks down the tree from the root node to the leave nodes deciding the most likely cell type based on a distict set of marker genes at each node. By subsampling genes, this method provides a bootstrapping probability/confidence. *Implementation of tree mapping herein is not fully tested, so use with caution.*  
-#' 3. **hierarchical.map**: Current version of iterative (or hierarchical) mapping used in MapMyCells, this function imports the python `cell_type_mapper` library. It requires a leveled hierarchy (e.g., cluster columns corresponding to cell type definitions at different levels of resolutions such as "cluster" and "subclass" and "class") and performs correlation-based mapping with different marker genes for each level, iterating through the levels similar to tree mapping. Like tree mapping this method provides a bootstrapping probability/confidence by subsampling genes. We find that this method works quite well in some circumstances.  
-#' 4. **flat.map** (coming soon!): A single-level implementation of hierarchical mapping. Essentially it is the same as corr.map, except that it uses a prespecified set of marker genes for calculating the correlation and that it outputs bootstrapping probabilities.
+#' 3. **mapmycells.hierarchical.map**: Current version of iterative (or hierarchical) mapping used in MapMyCells, this function imports the python `cell_type_mapper` library. It requires a leveled hierarchy (e.g., cluster columns corresponding to cell type definitions at different levels of resolutions such as "cluster" and "subclass" and "class") and performs correlation-based mapping with different marker genes for each level, iterating through the levels similar to tree mapping. Like tree mapping this method provides a bootstrapping probability/confidence by subsampling genes. We find that this method works quite well in some circumstances.  
+#' 4. **mapmycells.flat.map**: A single-level implementation of hierarchical mapping. Essentially it is the same as corr.map, except that it uses a prespecified set of marker genes for calculating the correlation and that it outputs bootstrapping probabilities.
 #' 5. **seurat.map**: Historical implementation of Seurat mapping for assigning cell types to patch-seq cells in a study of human temporal cortex. This method performs integration and label transfer using `FindTransferAnchors` and `TransferData` functions in Seurat (v4.4.0) with a prespecified set of variable genes and a reasonable set of parameters. *We are not maintaining this method for compatibility in Seurat versions 5.0 or higher, and therefore this function will likely fail outside of the Docker environment.*  
 #'
 #' @return Mapping results from all methods.
@@ -26,10 +27,12 @@ taxonomy_mapping = function(AIT.anndata,
                             query.data, 
                             corr.map=TRUE, 
                             tree.map=TRUE, 
-                            hierarchical.map=TRUE, 
+                            mapmycells.hierarchical.map=TRUE,
+                            mapmycells.flat.map=TRUE,
                             seurat.map=TRUE, 
                             label.cols = AIT.anndata$uns$hierarchy,  # NOTE THE NEW DEFAULT
-                            genes.to.use = NULL){ 
+                            genes.to.use = NULL,
+                            mapmycells_params_list = list()){ 
 
   suppressWarnings({ # wrapping the whole function in suppressWarnings to avoid having this printed a zillion times: 'useNames = NA is deprecated. Instead, specify either useNames = TRUE or useNames = FALSE.'
   
@@ -102,11 +105,20 @@ taxonomy_mapping = function(AIT.anndata,
 
     #############
     ## ----- Hierarchical mapping ------------------------------------------------------------------------------
-    if(hierarchical.map == TRUE){ 
-      mappingHierarchical <- hierarchicalMapMyCells(AIT.anndata, query.data) 
-      mappingResults[["hierarchical"]] <- mappingHierarchical[["result"]]
+    if(mapmycells.hierarchical.map == TRUE){ 
+      mappingHierarchical <- hierarchicalMapMyCells(AIT.anndata, query.data, mapping_params_list=mapmycells_params_list) 
+      mappingResults[["Hierarchical"]] <- mappingHierarchical[["result"]]
     } else { 
       mappingHierarchical = NULL
+    }
+
+    #############
+    ## ----- Flat mapping ------------------------------------------------------------------------------
+    if(mapmycells.flat.map == TRUE){ 
+      mappingFlat <- hierarchicalMapMyCells(AIT.anndata, query.data, mapping_params_list=mapmycells_params_list, flat_mapping=TRUE) 
+      mappingResults[["Flat"]] <- mappingFlat[["result"]]
+    } else { 
+      mappingFlat = NULL
     }
 
     #############
@@ -132,7 +144,8 @@ taxonomy_mapping = function(AIT.anndata,
                                detailed_results = list("corr" = NA, 
                                                        "tree" = mappingTree[["detail"]], 
                                                        "seurat" = NA,
-                                                       "hierarchical" = mappingHierarchical[["detail"]]))
+                                                       "hierarchical" = mappingHierarchical[["detail"]],
+                                                       "flat" = mappingFlat[["detail"]]))
     
     ## Return annotations and detailed model results
     return(resultAnno)

@@ -30,7 +30,8 @@ mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata,
                                 query.data=query.data,
                                 corr.map=TRUE,
                                 tree.map=TRUE,
-                                hierarchical.map=TRUE,
+                                mapmycells.hierarchical.map=TRUE,
+                                mapmycells.flat.map=TRUE,
                                 seurat.map=TRUE)
 
 ## Extract mapping results and associated scores from S4 mappingClass

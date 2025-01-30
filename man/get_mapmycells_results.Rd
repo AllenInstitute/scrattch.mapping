@@ -9,9 +9,7 @@ get_mapmycells_results(
   extended_result_path,
   precomp_stats_output_path,
   query_markers_output_path,
-  normalization,
-  chunk_size,
-  n_processors
+  mapping_params_list
 )
 }
 \arguments{
@@ -23,11 +21,11 @@ get_mapmycells_results(
 
 \item{query_markers_output_path}{Full file path to the query markers JSON file.}
 
-\item{normalization}{Normalization of the h5ad files; must be either 'raw' or 'log2CPM'.}
-
 \item{chunk_size}{Number of rows each worker process should load at a time from the query dataset.}
 
 \item{n_processors}{Number of independent worker processes to spin up.}
+
+\item{normalization}{Normalization of the h5ad files; must be either 'raw' or 'log2CPM'.}
 }
 \value{
 resuls

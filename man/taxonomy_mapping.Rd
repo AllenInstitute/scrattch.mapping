@@ -9,10 +9,12 @@ taxonomy_mapping(
   query.data,
   corr.map = TRUE,
   tree.map = TRUE,
-  hierarchical.map = TRUE,
+  mapmycells.hierarchical.map = TRUE,
+  mapmycells.flat.map = TRUE,
   seurat.map = TRUE,
   label.cols = AIT.anndata$uns$hierarchy,
-  genes.to.use = NULL
+  genes.to.use = NULL,
+  mapmycells_params_list = list()
 )
 }
 \arguments{
@@ -24,7 +26,9 @@ taxonomy_mapping(
 
 \item{tree.map}{Should tree mapping be performed? (see methods)}
 
-\item{hierarchical.map}{Should hierarchical mapping be performed? (see methods)}
+\item{mapmycells.hierarchical.map}{Should mapmycells' hierarchical mapping be performed? (see methods)}
+
+\item{mapmycells.flat.map}{Should mapmycells' flat mapping be performed? (see methods)}
 
 \item{seurat.map}{Should seurat mapping be performed? (see methods)}
 
@@ -36,8 +40,8 @@ Mapping methods currently available in \code{taxonomy_mapping} include:
 \enumerate{
 \item \strong{corr.map}: This method calculates the Pearson correlation between each cell and each cluster median, and returns the cluster with the highest correlation along with the associated correlation score. Despite being a very simple method, this works quite well in some circumstances.
 \item \strong{tree.map}: Historical implementation of tree mapping used for assigning cell types to patch-seq cells in several studies of mouse visual cortex. This method requires a dendogram and iteratively walks down the tree from the root node to the leave nodes deciding the most likely cell type based on a distict set of marker genes at each node. By subsampling genes, this method provides a bootstrapping probability/confidence. \emph{Implementation of tree mapping herein is not fully tested, so use with caution.}
-\item \strong{hierarchical.map}: Current version of iterative (or hierarchical) mapping used in MapMyCells, this function imports the python \code{cell_type_mapper} library. It requires a leveled hierarchy (e.g., cluster columns corresponding to cell type definitions at different levels of resolutions such as "cluster" and "subclass" and "class") and performs correlation-based mapping with different marker genes for each level, iterating through the levels similar to tree mapping. Like tree mapping this method provides a bootstrapping probability/confidence by subsampling genes. We find that this method works quite well in some circumstances.
-\item \strong{flat.map} (coming soon!): A single-level implementation of hierarchical mapping. Essentially it is the same as corr.map, except that it uses a prespecified set of marker genes for calculating the correlation and that it outputs bootstrapping probabilities.
+\item \strong{mapmycells.hierarchical.map}: Current version of iterative (or hierarchical) mapping used in MapMyCells, this function imports the python \code{cell_type_mapper} library. It requires a leveled hierarchy (e.g., cluster columns corresponding to cell type definitions at different levels of resolutions such as "cluster" and "subclass" and "class") and performs correlation-based mapping with different marker genes for each level, iterating through the levels similar to tree mapping. Like tree mapping this method provides a bootstrapping probability/confidence by subsampling genes. We find that this method works quite well in some circumstances.
+\item \strong{mapmycells.flat.map}: A single-level implementation of hierarchical mapping. Essentially it is the same as corr.map, except that it uses a prespecified set of marker genes for calculating the correlation and that it outputs bootstrapping probabilities.
 \item \strong{seurat.map}: Historical implementation of Seurat mapping for assigning cell types to patch-seq cells in a study of human temporal cortex. This method performs integration and label transfer using \code{FindTransferAnchors} and \code{TransferData} functions in Seurat (v4.4.0) with a prespecified set of variable genes and a reasonable set of parameters. \emph{We are not maintaining this method for compatibility in Seurat versions 5.0 or higher, and therefore this function will likely fail outside of the Docker environment.}
 }}
 }
