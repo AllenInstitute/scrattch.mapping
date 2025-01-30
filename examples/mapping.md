@@ -29,10 +29,10 @@ AIT.anndata = loadTaxonomy(taxonomyDir = taxonomyDir, anndata_file="Tasic2016.h5
 mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata,
                                 query.data=query.data,
                                 corr.map=TRUE,
-                                tree.map=FALSE,
-                                mapmycells.hierarchical.map=FALSE,
+                                tree.map=TRUE,
+                                mapmycells.hierarchical.map=TRUE,
                                 mapmycells.flat.map=TRUE,
-                                seurat.map=FALSE,
+                                seurat.map=TRUE,
                                 mapmycells_params_list = list())    #Run list_hierarchical_params() to get a full list of parameters. 
                                                                     #Ex: mapmycells_params_list = list('type_assignment' = list('bootstrap_iteration' = 100, 'bootstrap_factor' = 0.9))
 
