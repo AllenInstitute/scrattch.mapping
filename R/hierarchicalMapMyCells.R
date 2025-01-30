@@ -266,7 +266,7 @@ get_mapmycells_results = function(query_data_output_path, extended_result_path,
 
 #' Lists all the function parameters and their descriptions. 
 #' @export
-list_hierarchical_params = function() {
+list_mapmycells_params = function() {
   command <- "python -m cell_type_mapper.cli.from_specified_markers --help"
   output <- system(command, intern = TRUE) 
   cat(output, sep = "\n") 
@@ -309,7 +309,6 @@ get_hierarchical_extended_results <- function(extended_result_path){
       }
       
       # Create matrices for relevant info
-      
       assignment <- matrix(nrow=length(results[["assignment"]]),ncol=maxLen)
       rownames(assignment) <- cell_id
       probability <- correlation <- assignment
