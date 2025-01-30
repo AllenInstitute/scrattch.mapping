@@ -18,7 +18,8 @@ AIT.anndata = loadTaxonomy(taxonomyDir="/PATH/TO/AIT",
 ## Annotate! In this case we are mapping the taxonomy against itself. 
 ## At this time four mapping algorithms are supported:
 ## -- (1) Simple correlation based mapping (corr.map)
-## -- (2) Hierarchical mapping (mapmycells.hierarchical.map) - this is the method used in MapMyCells as default for all taxonomies except SEA-AD
+## -- (2) Hierarchical mapping (mapmycells.hierarchical.map) - this is the method used in MapMyCells as default for all taxonomies
+## -- (2) Flat mapping (mapmycells.flat.map) - this is the method used in MapMyCells for all taxonomies
 ## -- (3) Tree based mapping (tree.map) - This method requires a dendrogram and is the method used for several Patch-seq studies. NOT RECOMMENDED in most situations.
 ## -- (4) Seurat based mapping (seurat.map) - Mapping using TransferData from Seurat v4.4 with largely default parameters
 ## Returns an S4 class with mapping results.
@@ -28,8 +29,15 @@ mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata , ## Allen Institute Tax
                                 label.cols=hierarchy,
                                 corr.map=TRUE,
                                 mapmycells.hierarchical.map=TRUE,
+                                mapmycells.flat.map=TRUE,
                                 tree.map=TRUE,
-                                seurat.map=TRUE)
+                                seurat.map=TRUE,
+                                mapmycells_params_list = list())
+
+                                #Run list_hierarchical_params() to get a full list of parameters.
+                                #Ex: mapmycells_params_list = list('type_assignment' = 
+                                #                             list('bootstrap_iteration' = 100, 
+                                #                             'bootstrap_factor' = 0.9))
 
 ## Extract mapping results and associated scores from S4 mappingClass
 mapping.results = getMappingResults(mapping.anno, scores = TRUE)

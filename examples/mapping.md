@@ -32,7 +32,13 @@ mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata,
                                 tree.map=TRUE,
                                 mapmycells.hierarchical.map=TRUE,
                                 mapmycells.flat.map=TRUE,
-                                seurat.map=TRUE)
+                                seurat.map=TRUE,
+                                mapmycells_params_list = list())
+                                
+                                #Run list_hierarchical_params() to get a full list of parameters.
+                                #Ex: mapmycells_params_list = list('type_assignment' = 
+                                #                             list('bootstrap_iteration' = 100, 
+                                #                             'bootstrap_factor' = 0.9))
 
 ## Extract mapping results and associated scores from S4 mappingClass
 mapping.results = getMappingResults(mapping.anno, scores = TRUE)
@@ -40,8 +46,11 @@ mapping.results = getMappingResults(mapping.anno, scores = TRUE)
 ## Extract tree mapping bootstrapping table 
 tree.bootstraps = mapping.anno@detailed_results[["tree"]]
 
-## Extract hierachical mapping bootstrapping probabilities for the top five cell mapped hits 
+## Extract mapmycells hierachical mapping bootstrapping probabilities for the top five cell mapped hits 
 hierarchical.bootstraps = mapping.anno@detailed_results[["hierarchical"]]
+
+## Extract mapmycells flat mapping bootstrapping probabilities for the top five cell mapped hits 
+flat.bootstraps = mapping.anno@detailed_results[["flat"]]
 
 ## Save
 save(mapping.anno, file="mapping_results.rda")
