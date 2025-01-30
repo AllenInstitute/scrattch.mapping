@@ -19,6 +19,7 @@ AIT.anndata = loadTaxonomy(taxonomyDir="/PATH/TO/AIT",
 ## At this time four mapping algorithms are supported:
 ## -- (1) Simple correlation based mapping (corr.map)
 ## -- (2) Hierarchical mapping (mapmycells.hierarchical.map) - this is the method used in MapMyCells as default for all taxonomies except SEA-AD
+## -- (2) Flat mapping (mapmycells.flat.map) - this is the method used in MapMyCells for all taxonomies except SEA-AD
 ## -- (3) Tree based mapping (tree.map) - This method requires a dendrogram and is the method used for several Patch-seq studies. NOT RECOMMENDED in most situations.
 ## -- (4) Seurat based mapping (seurat.map) - Mapping using TransferData from Seurat v4.4 with largely default parameters
 ## Returns an S4 class with mapping results.
