@@ -28,8 +28,11 @@ mapping.anno = taxonomy_mapping(AIT.anndata=AIT.anndata , ## Allen Institute Tax
                                 label.cols=hierarchy,
                                 corr.map=TRUE,
                                 mapmycells.hierarchical.map=TRUE,
+                                mapmycells.flat.map=TRUE,
                                 tree.map=TRUE,
-                                seurat.map=TRUE)
+                                seurat.map=TRUE,
+                                mapmycells_params_list = list())            #Run list_hierarchical_params() to get a full list of parameters.
+                                                                            #Ex: mapmycells_params_list = list('type_assignment' = list('bootstrap_iteration' = 100, 'bootstrap_factor' = 0.9))
 
 ## Extract mapping results and associated scores from S4 mappingClass
 mapping.results = getMappingResults(mapping.anno, scores = TRUE)

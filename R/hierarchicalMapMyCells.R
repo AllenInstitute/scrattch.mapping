@@ -41,8 +41,7 @@ hierarchicalMapMyCells = function(AIT_anndata,
                                          'normalization' = "log2CPM",
                                          'chunk_size' = 1000,
                                          'n_processors' = 3),
-                                         'flatten' = flat_mapping
-                                        )
+                                         'flatten' = flat_mapping)
       mapping_params_list = modifyList(default_mapping_params_list, mapping_params_list)
 
       if (is.null(AIT_anndata$uns$hierarchical[[AIT_anndata$uns$mode]])){
