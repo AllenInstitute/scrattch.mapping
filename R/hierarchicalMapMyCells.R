@@ -44,7 +44,7 @@ hierarchicalMapMyCells = function(AIT_anndata,
                                          'flatten' = flat_mapping)
       mapping_params_list = modifyList(default_mapping_params_list, mapping_params_list)
 
-      if (is.null(AIT_anndata$uns$hierarchical[[AIT_anndata$uns$mode]])){
+      if (is.null(AIT.anndata$uns$mapmycells[[AIT_anndata$uns$mode]])){
         stop(paste("ERROR. Provided mode doesn't exists for hierarchical:", AIT_anndata$uns$mode))
       }
 
@@ -176,7 +176,7 @@ get_anndata_path = function(AIT_anndata, temp_folder) {
 get_precomp_stats = function(AIT_anndata, anndata_path, precomp_stats_output_path, temp_folder) {
   # retrieve precompute stats from anndata
   if(is.null(precomp_stats_output_path)) {
-    uns_keys = list("hierarchical", AIT_anndata$uns$mode, "precomp_stats")
+    uns_keys = list("mapmycells", AIT_anndata$uns$mode, "precomp_stats")
     precomp_stats_output_path <- toString(cell_type_mapper$utils$output_utils$uns_to_precomputed_stats(h5ad_path=anndata_path, 
                                       uns_keys_list=uns_keys, tmp_dir=temp_folder))
   }
@@ -196,7 +196,7 @@ get_precomp_stats = function(AIT_anndata, anndata_path, precomp_stats_output_pat
 get_marker_genes = function(AIT_anndata, query_markers_output_path, temp_folder) {
   # retrieve query markers from anndata
   if(is.null(query_markers_output_path)) {
-    serialized_query_markers <- AIT_anndata$uns$hierarchical[[AIT_anndata$uns$mode]][["query_markers"]]
+    serialized_query_markers <- AIT.anndata$uns$mapmycells[[AIT_anndata$uns$mode]][["query_markers"]]
     query_markers_filename <- paste0(paste0("query_markers_", format(Sys.time(), "%Y%m%d-%H%M%S")), ".json")
     query_markers_output_path <- file.path(temp_folder, query_markers_filename)
 
