@@ -39,11 +39,13 @@ taxonomy_mapping = function(AIT.anndata,
     print(paste("==============================","Mapping","======================="))
     print(date())
     mappingResults=list()
-    if(sum(class(label.cols)=="list")<1) label.cols = as.character(label.cols) # Convert from list to character for this function
+    if(sum(class(label.cols)=="list")>=1) 
+      label.cols = names(AIT.anndata$uns$hierarchy[order(-as.numeric(as.character(label.cols)))]) 
+      # Convert from list to character for this function, from highest to lowest resolution (opposite normal order)
 
     ## Sanity check on user input and taxonomy/reference annotations
-    if(!all(label.cols %in% colnames(AIT.anndata$uns$clusterInfo))){
-      stop("Not all label.cols exists in AIT.anndata$uns$clusterInfo")
+    if(!all(label.cols %in% colnames(AIT.anndata$uns$cluster_info))){
+      stop("Not all label.cols exists in AIT.anndata$uns$cluster_info")
     }
 
     ## Modify taxonomy based on mapping mode
@@ -58,8 +60,8 @@ taxonomy_mapping = function(AIT.anndata,
       }
       ## Remove off-target cell types and/or subsampled cells
       AIT.anndata = AIT.anndata[!AIT.anndata$uns$filter[[AIT.anndata$uns$mode]]]
-      AIT.anndata$uns$clusterInfo = AIT.anndata$uns$clusterInfo %>% filter(cluster_label %in% unique(AIT.anndata$obs$cluster_label))
-      AIT.anndata$uns$clustersUse = unique(AIT.anndata$obs$cluster_label)
+      AIT.anndata$uns$cluster_info = AIT.anndata$uns$cluster_info %>% filter(cluster_id %in% unique(AIT.anndata$obs$cluster_id))
+      AIT.anndata$uns$clustersUse = as.character(unique(AIT.anndata$obs$cluster_id))
       AIT.anndata$uns$filter[[AIT.anndata$uns$mode]] <- rep(FALSE,sum(!AIT.anndata$uns$filter[[AIT.anndata$uns$mode]])) # New for compatibility with Seurat mapping updates
     }
 
@@ -133,7 +135,7 @@ taxonomy_mapping = function(AIT.anndata,
 
     ## Now map back up the tree to subclass and class based on cluster labels
     for(method in names(methods)){
-        convert <- AIT.anndata$uns$clusterInfo[match(mappingAnno[,methods[names(methods) == method]], AIT.anndata$uns$clusterInfo$cluster_label), label.cols, drop=F]
+        convert <- AIT.anndata$uns$cluster_info[match(mappingAnno[,methods[names(methods) == method]], AIT.anndata$uns$cluster_info$cluster_id), label.cols, drop=F]
         colnames(convert) <- gsub("label", method, colnames(convert))
         mappingAnno <- cbind(mappingAnno, convert)
     }

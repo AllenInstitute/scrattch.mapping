@@ -1,3 +1,17 @@
+## scrattch.mapping v1.2
+
+Improvements for mapping and patch-seq for schema.
+
+### Major changes
+* `taxonomyMapping` now works correctly for all algorithms except mapmycells.flat.map and mapmycells.hierarchical.map
+
+### Minor changes
+* Bug fixes
+* Updated documentation
+
+
+--
+
 ## scrattch.mapping v0.7.1
 
 Updates to improve correlation mapping
