@@ -42,7 +42,7 @@ treeMap = function(AIT.anndata,
             #old_allMarkers = Reduce(intersect, list(allMarkers, AIT.anndata$var_names[AIT.anndata$var[,paste0("highly_variable_genes_",AIT.anndata$uns$mode)]]))  # NOT used, but saved for historic reasons
             ## Perform tree mapping
             invisible(capture.output({  # Avoid printing lots of numbers to the screen
-              membNode = rfTreeMapping(dend, 
+              membNode = scrattch.mapping::rfTreeMapping(dend, 
                                        Matrix::t(AIT.anndata$X[,allMarkers]), 
                                        clReference, 
                                        query.data[allMarkers,],
