@@ -39,7 +39,7 @@ treeMap = function(AIT.anndata,
             ## Gather marker genes
             allMarkers = unique(unlist(get_dend_markers(dend)))
             allMarkers = Reduce(intersect, list(allMarkers, AIT.anndata$var_names)) # I think this was an error [AIT.anndata$var$common_genes]))
-            old_allMarkers = Reduce(intersect, list(allMarkers, AIT.anndata$var[,paste0("highly_variable_genes_",AIT.anndata$uns$mode)]))
+            #old_allMarkers = Reduce(intersect, list(allMarkers, AIT.anndata$var_names[AIT.anndata$var[,paste0("highly_variable_genes_",AIT.anndata$uns$mode)]]))  # NOT used, but saved for historic reasons
             ## Perform tree mapping
             invisible(capture.output({  # Avoid printing lots of numbers to the screen
               membNode = rfTreeMapping(dend, 

@@ -52,6 +52,10 @@ seuratMap = function(AIT.anndata,
             } else {
               stop("cells.to.use must be a character or logical vector.")
             }
+          
+            ## Convert query data to sparse matrix if not already
+            if ("dgRMatrix" %in% class(query.data2))
+              query.data = as(query.data, "dgCMatrix")
 
             ## Build Query Seurat object
             use.genes    = intersect(rownames(query.data),AIT.anndata$var_names[genes.to.use.vector])
