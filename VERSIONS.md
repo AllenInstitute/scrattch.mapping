@@ -4,12 +4,12 @@ Improvements for mapping and patch-seq for schema.
 
 ### Major changes
 * `taxonomyMapping` now works correctly for all algorithms except mapmycells.flat.map and mapmycells.hierarchical.map
-* Fixes an error to tree mapping that was removing many genes from the mapping
+* Adding html documentation for functions
 
 ### Minor changes
 * Bug fixes
 * Updated documentation
-
+* Possibly fixes an error to tree mapping that was removing many genes from the mapping
 
 --
 
