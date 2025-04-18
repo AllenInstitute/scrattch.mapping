@@ -23,14 +23,26 @@ treeMap = function(AIT.anndata,
         expr = {
             ## Load dendrogram
             dend = json_to_dend(AIT.anndata$uns$dend[[AIT.anndata$uns$mode]])
+            ## Check if AIT.anndata is set up for tree mapping by seeing if marker genes are on the root node
+            if (is.null(attr(dend, "markers"))){
+              stop("AIT.anndata does not appear to be set up for tree mapping. Try running AIT.anndata = addDendrogramMarkers(AIT.anndata) prior to mapping.")
+            }
             ##
-            clReference  = setNames(factor(AIT.anndata$obs$cluster_label, levels=AIT.anndata$uns$clustersUse), AIT.anndata$obs_names)
+            
+            # A few things to fix
+            # 0) There is an error in addDendrogramMarkers for the testing taxonomy... fix this FIRST
+            # 1) Allow for filtering genes (default is NOT to do this)
+            # 2) Allow for filtering cells (default is to use current mode, matching Seurat filtering)
+            # 3) Filter the cells from the cl Reference and the matrix shared to rfTreeMapping
+            
+            clReference  = setNames(factor(AIT.anndata$obs$cluster_id, levels= AIT.anndata$uns$clusterStatsColumns[[AIT.anndata$uns$mode]]), AIT.anndata$obs_names)
             ## Gather marker genes
             allMarkers = unique(unlist(get_dend_markers(dend)))
-            allMarkers = Reduce(intersect, list(allMarkers, AIT.anndata$var_names[AIT.anndata$var$common_genes]))
+            allMarkers = Reduce(intersect, list(allMarkers, AIT.anndata$var_names)) # I think this was an error [AIT.anndata$var$common_genes]))
+            #old_allMarkers = Reduce(intersect, list(allMarkers, AIT.anndata$var_names[AIT.anndata$var[,paste0("highly_variable_genes_",AIT.anndata$uns$mode)]]))  # NOT used, but saved for historic reasons
             ## Perform tree mapping
             invisible(capture.output({  # Avoid printing lots of numbers to the screen
-              membNode = rfTreeMapping(dend, 
+              membNode = scrattch.mapping::rfTreeMapping(dend, 
                                        Matrix::t(AIT.anndata$X[,allMarkers]), 
                                        clReference, 
                                        query.data[allMarkers,],
@@ -40,7 +52,7 @@ treeMap = function(AIT.anndata,
                                        seed=seed)
             },type="message"))
             ## Gather results
-            topLeaf = getTopMatch(membNode[,AIT.anndata$uns$clustersUse])
+            topLeaf = getTopMatch(membNode[, AIT.anndata$uns$clusterStatsColumns[[AIT.anndata$uns$mode]]])
             topLeaf = topLeaf[colnames(query.data),]
             ## Create results data.frame
             mappingTarget = data.frame(map.Tree=as.character(topLeaf$TopLeaf), 

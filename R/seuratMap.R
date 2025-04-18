@@ -39,7 +39,7 @@ seuratMap = function(AIT.anndata,
           
             ## Create the vector of cells to use.
             if(is.null(cells.to.use)){
-              # If null, default to correct set of highly variable genes
+              # If null, default to default filter for the current mode
               cells.to.use.vector <- !AIT.anndata$uns$filter[[AIT.anndata$uns$mode]]
             } else if (is.logical(cells.to.use)) {
               if (length(cells.to.use)!=dim(AIT.anndata)[1]) stop("If cells.to.use is logical it must be the same length as the total number of cells in AIT.anndata.")
@@ -52,6 +52,10 @@ seuratMap = function(AIT.anndata,
             } else {
               stop("cells.to.use must be a character or logical vector.")
             }
+          
+            ## Convert query data to sparse matrix if not already
+            if ("dgRMatrix" %in% class(query.data2))
+              query.data = as(query.data, "dgCMatrix")
 
             ## Build Query Seurat object
             use.genes    = intersect(rownames(query.data),AIT.anndata$var_names[genes.to.use.vector])
@@ -69,7 +73,7 @@ seuratMap = function(AIT.anndata,
             ## Seurat label transfer (celltype)
             Target.anchors <- suppressWarnings(FindTransferAnchors(reference = ref.seurat, query = query.seurat, 
                                                                    dims = 1:dims, verbose=FALSE, npcs=dims))
-            predictions    <- suppressWarnings(TransferData(anchorset = Target.anchors, refdata = ref.seurat$cluster_label, 
+            predictions    <- suppressWarnings(TransferData(anchorset = Target.anchors, refdata = ref.seurat$cluster_id, 
                                                   dims = 1:dims, verbose=FALSE, k.weight=k.weight))
             ## Create results data.frame
             mappingTarget = data.frame(map.Seurat=as.character(predictions$predicted.id), 

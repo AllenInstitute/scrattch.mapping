@@ -33,9 +33,9 @@ corrMap = function(AIT.anndata,
             }
           
             ##
-            medianExpr = AIT.anndata$uns$stats[[AIT.anndata$uns$mode]]$medianExpr
-            rownames(medianExpr) = AIT.anndata$uns$stats[[AIT.anndata$uns$mode]]$features
-            colnames(medianExpr) = AIT.anndata$uns$stats[[AIT.anndata$uns$mode]]$clusters
+            medianExpr = AIT.anndata$varm[[paste0("cluster_id_median_expr_",AIT.anndata$uns$mode)]]
+            rownames(medianExpr) = rownames(AIT.anndata$var)
+            colnames(medianExpr) = AIT.anndata$uns$clusterStatsColumns[[AIT.anndata$uns$mode]]
             ##
             mapping.genes = intersect(rownames(query.data),AIT.anndata$var_names[genes.to.use.vector])
             if(length(mapping.genes)<=2) stop("Too few intersecting variable genes with query genes to perform mapping.")

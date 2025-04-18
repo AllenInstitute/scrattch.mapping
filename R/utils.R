@@ -166,7 +166,7 @@ top_binary_genes <- function(data, cluster.names, gene.count=2000){
 #'   as tree node/leafs.  Values indicate the fraction of permutations in which the cell
 #'   mapped to that node/leaf using the subset of cells/genes in map_dend
 #'
-#' @keywords internal
+#' @export
 rfTreeMapping <- function (dend, refDat, clustersF, mapDat = refDat, p = 0.7, 
                            low.th = 0.15, bootstrap = 100, seed = 1) 
 {
