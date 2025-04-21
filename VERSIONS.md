@@ -9,6 +9,7 @@ Improvements for mapping and patch-seq for schema.
 ### Minor changes
 * Bug fixes
 * Updated documentation
+* Allow query.data to be inputted as either cellxgene or genexcell for `taxonomyMapping`
 * Possibly fixes an error to tree mapping that was removing many genes from the mapping
 
 --
