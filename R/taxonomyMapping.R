@@ -67,10 +67,23 @@ taxonomy_mapping = function(AIT.anndata,
 
     ############
     ## ----- data and annotation variables -------------------------------------------------------------
+    
+    ## Determine common genes and transpose if needed
+    common_genes <- AIT.anndata$var$gene %in% rownames(query.data)
+    if(sum(common_genes)<10){
+      warning("Too few common genes found between query and reference data set.  Attempting to transpose query data.")
+      query.data <- t(query.data)
+      if("dgRMatrix" %in% as.character(class(taxonomy.counts)))
+        query.data <- as(query.data, "dgCMatrix")
+      common_genes <- AIT.anndata$var$gene %in% rownames(query.data)
+      if(sum(common_genes)<10){
+        stop("Too few common genes found between query and reference data set. Ensure gene names in two data sets match (e.g., both exist and are gene symbols in row or column names of matrices).")
+      }
+    }
 
     ## Ensure variable features are in common across data
     ## -- UPDATE: pull from the mode-based highly variable gene set rather than the generic one
-    AIT.anndata$var$common_genes = AIT.anndata$var$gene %in% rownames(query.data)
+    AIT.anndata$var$common_genes = common_genes 
     highvar.check <- paste0("highly_variable_genes_",AIT.anndata$uns$mode)
     if(!is.element(highvar.check,colnames(AIT.anndata$var))){
       print(paste("Highly variable genes for",AIT.anndata$uns$mode,"not found! Defaulting to global highly variable genes."))
