@@ -10,6 +10,7 @@ treeMap(
   p = 0.8,
   low.th = 0.1,
   bootstrap = 100,
+  genes.to.use = rep(TRUE, dim(AIT.anndata)[2]),
   seed = 1
 )
 }
@@ -23,6 +24,8 @@ treeMap(
 \item{low.th}{The minimum difference in Pearson correlation to the reference cluster mean gene expression between the top-matched cluster and others. If the difference is higher than low.th, the mapping process continues; otherwise, a random branch is chosen.}
 
 \item{bootstrap}{Number of bootstrapping runs to calculate the membership from (default = 100)}
+
+\item{genes.to.use}{The set of genes to use for tree mapping (default is all marker genes in the tree). Can be (1) a character vector of gene names, (2) a TRUE/FALSE (logical) vector of which genes to include, or (3) a column name in AIT.anndata$var corresponding to a logical vector of variable genes. If anything is provided the set of genes used is the intersection of all marker genes and the gene set here.}
 
 \item{seed}{Value of the seed for reproducibility}
 }

@@ -75,7 +75,7 @@ taxonomy_mapping = function(AIT.anndata,
     ## ----- data and annotation variables -------------------------------------------------------------
     
     ## Find and reformat inputted genes.to.use
-    genes.to.use = genes.to.use.convert_gene_input_to_vector(AIT.anndata,genes.to.use)
+    genes.to.use = .convert_gene_input_to_vector(AIT.anndata,genes.to.use)
     
     ## Determine common genes and transpose if needed
     common_genes <- AIT.anndata$var$gene %in% rownames(query.data)
@@ -149,7 +149,7 @@ taxonomy_mapping = function(AIT.anndata,
     ## ---- Convert cell type mappings for all hierarchy levels -------------------------------
     methods <- sort(colnames(mappingAnno)[grepl("map", colnames(mappingAnno))])
     names(methods) <- gsub("map.", "", methods)
-
+    
     ## Now map back up the tree to subclass and class based on cluster labels
     for(method in names(methods)){
         convert <- AIT.anndata$uns$cluster_info[match(mappingAnno[,methods[names(methods) == method]], AIT.anndata$uns$cluster_info[,celltypeColumn]), label.cols, drop=F]
@@ -158,6 +158,7 @@ taxonomy_mapping = function(AIT.anndata,
         mappingAnno <- cbind(mappingAnno, convert)
     }
     colnames(mappingAnno) <- gsub("map.",paste0(celltypeColumn,"."),colnames(mappingAnno))
+    mappingAnno <- mappingAnno[,match(unique(colnames(mappingAnno)),colnames(mappingAnno))]
 
     ## Build mapping class object
     resultAnno <- mappingClass(annotations = mappingAnno,

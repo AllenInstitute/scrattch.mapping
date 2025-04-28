@@ -21,6 +21,12 @@ seuratMap = function(AIT.anndata,
     ## Attempt Seurat mapping
     mappingTarget = tryCatch(
         expr = {
+            ## Determine the cluster column 
+            hierarchy = AIT.anndata$uns$hierarchy
+            hierarchy = hierarchy[order(unlist(hierarchy))]
+            if(is.null(hierarchy)) stop("Hierarchy must be included in the standard AIT mode in proper format to create a mode.  Please run checkTaxonomy().")
+            celltypeColumn = names(hierarchy)[length(hierarchy)][[1]]
+          
             ## Find and reformat inputted genes.to.use
             genes.to.use = .convert_gene_input_to_vector(AIT.anndata,genes.to.use)
           
@@ -45,7 +51,7 @@ seuratMap = function(AIT.anndata,
               query.data = as(query.data, "dgCMatrix")
 
             ## Build Query Seurat object
-            use.genes    = intersect(rownames(query.data),AIT.anndata$var_names[genes.to.use.vector])
+            use.genes    = intersect(rownames(query.data),AIT.anndata$var_names[genes.to.use])
             query.seurat = suppressWarnings(CreateSeuratObject(query.data[use.genes,]))
             query.seurat = suppressWarnings(SetAssayData(query.seurat, slot = "data", new.data = query.data[use.genes,], assay = "RNA"))
             VariableFeatures(query.seurat) <- use.genes
@@ -56,11 +62,11 @@ seuratMap = function(AIT.anndata,
             ref.seurat = suppressWarnings(CreateSeuratObject(ref.data, meta.data=as.data.frame(AIT.anndata$obs)[cells.to.use.vector,]));
             ref.seurat = suppressWarnings(SetAssayData(ref.seurat, slot = "data", new.data = ref.data, assay = "RNA"))
             VariableFeatures(ref.seurat) <- use.genes
-
+            
             ## Seurat label transfer (celltype)
             Target.anchors <- suppressWarnings(FindTransferAnchors(reference = ref.seurat, query = query.seurat, 
                                                                    dims = 1:dims, verbose=FALSE, npcs=dims))
-            predictions    <- suppressWarnings(TransferData(anchorset = Target.anchors, refdata = ref.seurat$cluster_id, 
+            predictions    <- suppressWarnings(TransferData(anchorset = Target.anchors, refdata = as.character(ref.seurat[[celltypeColumn]][,1]), 
                                                   dims = 1:dims, verbose=FALSE, k.weight=k.weight))
             ## Create results data.frame
             mappingTarget = data.frame(map.Seurat=as.character(predictions$predicted.id), 

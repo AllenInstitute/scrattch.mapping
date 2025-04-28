@@ -5,6 +5,7 @@
 #' @param p The proportion of marker genes to include in each iteration of the mapping algorithm.
 #' @param low.th The minimum difference in Pearson correlation to the reference cluster mean gene expression between the top-matched cluster and others. If the difference is higher than low.th, the mapping process continues; otherwise, a random branch is chosen.
 #' @param bootstrap Number of bootstrapping runs to calculate the membership from (default = 100)
+#' @param genes.to.use The set of genes to use for tree mapping (default is all marker genes in the tree). Can be (1) a character vector of gene names, (2) a TRUE/FALSE (logical) vector of which genes to include, or (3) a column name in AIT.anndata$var corresponding to a logical vector of variable genes. If anything is provided the set of genes used is the intersection of all marker genes and the gene set here.
 #' @param seed Value of the seed for reproducibility
 #'
 #' @return Tree mapping results as a data.frame.
@@ -15,6 +16,7 @@ treeMap = function(AIT.anndata,
                    p = 0.8,
                    low.th = 0.1,
                    bootstrap = 100,
+                   genes.to.use = rep(TRUE,dim(AIT.anndata)[2]),
                    seed = 1)
   {
     print("Tree-based mapping")
@@ -29,22 +31,31 @@ treeMap = function(AIT.anndata,
             }
             ##
             
-            # A few things to fix
-            # 0) There is an error in addDendrogramMarkers for the testing taxonomy... fix this FIRST
-            # 1) Allow for filtering genes (default is NOT to do this)
-            # 2) Allow for filtering cells (default is to use current mode, matching Seurat filtering)
-            # 3) Filter the cells from the cl Reference and the matrix shared to rfTreeMapping
+            ## Find and reformat inputted genes.to.use, for use in gathering marker genes below
+            genes.to.use = .convert_gene_input_to_vector(AIT.anndata,genes.to.use)
             
-            clReference  = setNames(factor(AIT.anndata$obs$cluster_id, levels= AIT.anndata$uns$clusterStatsColumns[[AIT.anndata$uns$mode]]), AIT.anndata$obs_names)
+            ## Filter cells
+            retainCells <- !AIT.anndata$uns$filter[[AIT.anndata$uns$mode]]
+            
+            ## Determine the cluster column, then set clReference
+            hierarchy = AIT.anndata$uns$hierarchy
+            hierarchy = hierarchy[order(unlist(hierarchy))]
+            if(is.null(hierarchy)) stop("Hierarchy must be included in the standard AIT mode in proper format to create a mode.  Please run checkTaxonomy().")
+            celltypeColumn = names(hierarchy)[length(hierarchy)][[1]]
+            
+            clReference  = setNames(factor(AIT.anndata$obs[,celltypeColumn], levels= AIT.anndata$uns$clusterStatsColumns[[AIT.anndata$uns$mode]]), AIT.anndata$obs_names)
             ## Gather marker genes
+            commonGenes = intersect(AIT.anndata$var_names[genes.to.use],rownames(query.data))
             allMarkers = unique(unlist(get_dend_markers(dend)))
-            allMarkers = Reduce(intersect, list(allMarkers, AIT.anndata$var_names)) # I think this was an error [AIT.anndata$var$common_genes]))
+            allMarkers = Reduce(intersect, list(allMarkers, commonGenes)) 
             #old_allMarkers = Reduce(intersect, list(allMarkers, AIT.anndata$var_names[AIT.anndata$var[,paste0("highly_variable_genes_",AIT.anndata$uns$mode)]]))  # NOT used, but saved for historic reasons
             ## Perform tree mapping
             invisible(capture.output({  # Avoid printing lots of numbers to the screen
+              referenceMatrix = Matrix::t(AIT.anndata$X[,allMarkers])
+              referenceMatrix = as.matrix(referenceMatrix)[,retainCells]
               membNode = scrattch.mapping::rfTreeMapping(dend, 
-                                       Matrix::t(AIT.anndata$X[,allMarkers]), 
-                                       clReference, 
+                                       referenceMatrix, 
+                                       droplevels(clReference[retainCells]), 
                                        query.data[allMarkers,],
                                        p=p, 
                                        low.th=low.th, 

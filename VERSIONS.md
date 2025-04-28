@@ -5,12 +5,14 @@ Improvements for mapping and patch-seq for schema.
 ### Major changes
 * `taxonomyMapping` now works correctly for all algorithms except mapmycells.flat.map and mapmycells.hierarchical.map
 * Adding html documentation for functions
+* Fix for any hierarchy names (not just cluster_id or cluster_label)
+* Correct treatment of high variance / marker genes
 
 ### Minor changes
 * Bug fixes
 * Updated documentation
 * Allow query.data to be inputted as either cellxgene or genexcell for `taxonomyMapping`
-* Possibly fixes an error to tree mapping that was removing many genes from the mapping
+* Possibly fixes an error to tree mapping that was removing many genes from the mapping <- need to confirm!
 
 --
 
