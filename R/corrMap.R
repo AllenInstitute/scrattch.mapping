@@ -2,7 +2,8 @@
 #'
 #' @param AIT.anndata A reference taxonomy anndata object.
 #' @param query.data A logCPM normalized matrix to be annotated.
-#' @param genes.to.use The set of genes to use for correlation calculation (default is the highly_variable_genes associated with the current mode). Can either be a character vector of gene names or a TRUE/FALSE (logical) vector of which genes to include.
+#' @param genes.to.use The set of genes to use for correlation calculation and/or Seurat integration (default is the highly_variable_genes associated with the current mode). Can be (1) a character vector of gene names, (2) a TRUE/FALSE (logical) vector of which genes to include, or (3) a column name in AIT.anndata$var corresponding to a logical vector of variable genes.
+#' @param normalize.if.needed Should query.data be automatically log-normalized if it contains exceedingly large values (>30). Default = TRUE.
 #'
 #' @import scrattch.hicat
 #'
@@ -11,33 +12,28 @@
 #' @export
 corrMap = function(AIT.anndata, 
                    query.data,
-                   genes.to.use = NULL){
+                   genes.to.use = NULL,
+                   normalize.if.needed=TRUE){
     print("Correlation-based mapping")
     ## Attempt Correlation mapping
     mappingTarget = tryCatch(
         expr = {
-            ## Create the vector of genes to use.
-            if(is.null(genes.to.use)){
-              # If null, default to correct set of highly variable genes
-              genes.to.use.vector <- AIT.anndata$var[,paste0("highly_variable_genes_",AIT.anndata$uns$mode)]
-            } else if (is.logical(genes.to.use)) {
-              if (length(genes.to.use)!=dim(AIT.anndata)[2]) stop("If genes.to.use is logical it must be the same length as the total number of genes in AIT.anndata.")
-              genes.to.use.vector = genes.to.use
-            } else if (is.character(genes.to.use)){
-              genes.to.use <- intersect(genes.to.use,AIT.anndata$var_names)
-              if (length(genes.to.use)==0) stop("No valid gene names provided in genes.to.use.")
-              if (length(genes.to.use)<=2) stop("More than 2 valid gene names must be provided in genes.to.use to calculate correlation.")
-              genes.to.use.vector <- is.element(AIT.anndata$var_names,genes.to.use)
-            } else {
-              stop("genes.to.use must be a character or logical vector.")
+            ## Find and reformat inputted genes.to.use
+            genes.to.use = .convert_gene_input_to_vector(AIT.anndata,genes.to.use)
+            
+            ## Check values of query data and if it seems to be a count matrix, log normalize
+            if ((max(query.data)>25)&normalize.if.needed){
+              warning("Data does not appear to be log-normalized. Trying to log-normalize.")
+              query.data <- logCPM(query.data)
             }
           
             ##
-            medianExpr = AIT.anndata$varm[[paste0("cluster_id_median_expr_",AIT.anndata$uns$mode)]]
+            medianExpr = AIT.anndata$varm[["cluster_id_median_expr_standard"]]
             rownames(medianExpr) = rownames(AIT.anndata$var)
-            colnames(medianExpr) = AIT.anndata$uns$clusterStatsColumns[[AIT.anndata$uns$mode]]
+            colnames(medianExpr) = AIT.anndata$uns$clusterStatsColumns[["standard"]]
+            medianExpr = medianExpr[,AIT.anndata$uns$clusterStatsColumns[[AIT.anndata$uns$mode]]]
             ##
-            mapping.genes = intersect(rownames(query.data),AIT.anndata$var_names[genes.to.use.vector])
+            mapping.genes = intersect(rownames(query.data),AIT.anndata$var_names[genes.to.use])
             if(length(mapping.genes)<=2) stop("Too few intersecting variable genes with query genes to perform mapping.")
             corMapTarget  = cor_mapping_wrapper(query.data[mapping.genes,], medianExpr)
             mappingTarget = data.frame(map.Corr=as.character(corMapTarget$TopLeaf), 

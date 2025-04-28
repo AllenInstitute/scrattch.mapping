@@ -10,7 +10,7 @@
 #' @param mapmycells.hierarchical.map Should mapmycells' hierarchical mapping be performed? (see methods)
 #' @param mapmycells.flat.map Should mapmycells' flat mapping be performed? (see methods)
 #' @param seurat.map Should seurat mapping be performed? (see methods)
-#' @param genes.to.use The set of genes to use for correlation calculation and/or Seurat integration (default is the highly_variable_genes associated with the current mode). Can either be a character vector of gene names or a TRUE/FALSE (logical) vector of which genes to include.
+#' @param genes.to.use The set of genes to use for correlation calculation and/or Seurat integration (default is the highly_variable_genes associated with the current mode). Can be (1) a character vector of gene names, (2) a TRUE/FALSE (logical) vector of which genes to include, or (3) a column name in AIT.anndata$var corresponding to a logical vector of variable genes.
 #'
 #' Mapping methods currently available in `taxonomy_mapping` include:  
 #' 
@@ -31,7 +31,7 @@ taxonomy_mapping = function(AIT.anndata,
                             mapmycells.flat.map=TRUE,
                             seurat.map=TRUE, 
                             label.cols = AIT.anndata$uns$hierarchy,  # NOTE THE NEW DEFAULT
-                            genes.to.use = NULL,
+                            genes.to.use = paste0("highly_variable_genes_",AIT.anndata$uns$mode),
                             mapmycells_params_list = list()){ 
 
   suppressWarnings({ # wrapping the whole function in suppressWarnings to avoid having this printed a zillion times: 'useNames = NA is deprecated. Instead, specify either useNames = TRUE or useNames = FALSE.'
@@ -47,6 +47,12 @@ taxonomy_mapping = function(AIT.anndata,
     if(!all(label.cols %in% colnames(AIT.anndata$uns$cluster_info))){
       stop("Not all label.cols exists in AIT.anndata$uns$cluster_info")
     }
+    
+    ## Determine the cluster column 
+    hierarchy = AIT.anndata$uns$hierarchy
+    hierarchy = hierarchy[order(unlist(hierarchy))]
+    if(is.null(hierarchy)) stop("Hierarchy must be included in the standard AIT mode in proper format to create a mode.  Please run checkTaxonomy().")
+    celltypeColumn = names(hierarchy)[length(hierarchy)][[1]]
 
     ## Modify taxonomy based on mapping mode
     if(!is.element("mode", names(AIT.anndata$uns))){
@@ -60,25 +66,34 @@ taxonomy_mapping = function(AIT.anndata,
       }
       ## Remove off-target cell types and/or subsampled cells
       AIT.anndata = AIT.anndata[!AIT.anndata$uns$filter[[AIT.anndata$uns$mode]]]
-      AIT.anndata$uns$cluster_info = AIT.anndata$uns$cluster_info %>% filter(cluster_id %in% unique(AIT.anndata$obs$cluster_id))
-      #AIT.anndata$uns$clustersUse = as.character(unique(AIT.anndata$obs$cluster_id))
+      AIT.anndata$uns$cluster_info = AIT.anndata$uns$cluster_info[AIT.anndata$uns$cluster_info[,celltypeColumn] %in% AIT.anndata$obs[,celltypeColumn],]
+      #AIT.anndata$uns$clustersUse = as.character(unique(AIT.anndata$obs[,celltypeColumn]))  # This doesn't appear to be used for anything?
       AIT.anndata$uns$filter[[AIT.anndata$uns$mode]] <- rep(FALSE,sum(!AIT.anndata$uns$filter[[AIT.anndata$uns$mode]])) # New for compatibility with Seurat mapping updates
     }
 
     ############
     ## ----- data and annotation variables -------------------------------------------------------------
+    
+    ## Find and reformat inputted genes.to.use
+    genes.to.use = .convert_gene_input_to_vector(AIT.anndata,genes.to.use)
+    
+    ## Determine common genes and transpose if needed
+    common_genes <- AIT.anndata$var$gene %in% rownames(query.data)
+    if(sum(common_genes)<10){
+      warning("Too few common genes found between query and reference data set.  Attempting to transpose query data.")
+      query.data <- t(query.data)
+      if("dgRMatrix" %in% as.character(class(taxonomy.counts)))
+        query.data <- as(query.data, "dgCMatrix")
+      common_genes <- AIT.anndata$var$gene %in% rownames(query.data)
+      if(sum(common_genes)<10){
+        stop("Too few common genes found between query and reference data set. Ensure gene names in two data sets match (e.g., both exist and are gene symbols in row or column names of matrices).")
+      }
+    }
 
     ## Ensure variable features are in common across data
-    ## -- UPDATE: pull from the mode-based highly variable gene set rather than the generic one
-    AIT.anndata$var$common_genes = AIT.anndata$var$gene %in% rownames(query.data)
-    highvar.check <- paste0("highly_variable_genes_",AIT.anndata$uns$mode)
-    if(!is.element(highvar.check,colnames(AIT.anndata$var))){
-      print(paste("Highly variable genes for",AIT.anndata$uns$mode,"not found! Defaulting to global highly variable genes."))
-      highly_variable_genes_mode = AIT.anndata$var$highly_variable_genes
-    } else {
-      highly_variable_genes_mode = AIT.anndata$var[,highvar.check]
-    }
-    AIT.anndata$var$highly_variable_genes = highly_variable_genes_mode & AIT.anndata$var$common_genes
+    AIT.anndata$var$common_genes = common_genes 
+    AIT.anndata$var$highly_variable_genes = genes.to.use & AIT.anndata$var$common_genes
+    genes.to.use = rownames(AIT.anndata$var)[genes.to.use]
 
     ############
     ## ----- Correlation mapping ------------------------------------------------------------------------
@@ -134,15 +149,16 @@ taxonomy_mapping = function(AIT.anndata,
     ## ---- Convert cell type mappings for all hierarchy levels -------------------------------
     methods <- sort(colnames(mappingAnno)[grepl("map", colnames(mappingAnno))])
     names(methods) <- gsub("map.", "", methods)
-
+    
     ## Now map back up the tree to subclass and class based on cluster labels
     for(method in names(methods)){
-        convert <- AIT.anndata$uns$cluster_info[match(mappingAnno[,methods[names(methods) == method]], AIT.anndata$uns$cluster_info$cluster_id), label.cols, drop=F]
+        convert <- AIT.anndata$uns$cluster_info[match(mappingAnno[,methods[names(methods) == method]], AIT.anndata$uns$cluster_info[,celltypeColumn]), label.cols, drop=F]
         convert <- convert[,setdiff(colnames(convert),"cluster_id")] # Remove cluster_id to avoid duplication
         colnames(convert) <- paste0(colnames(convert),".",method)
         mappingAnno <- cbind(mappingAnno, convert)
     }
-    colnames(mappingAnno) <- gsub("map.","cluster_id.",colnames(mappingAnno))
+    colnames(mappingAnno) <- gsub("map.",paste0(celltypeColumn,"."),colnames(mappingAnno))
+    mappingAnno <- mappingAnno[,match(unique(colnames(mappingAnno)),colnames(mappingAnno))]
 
     ## Build mapping class object
     resultAnno <- mappingClass(annotations = mappingAnno,

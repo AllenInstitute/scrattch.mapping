@@ -22,7 +22,7 @@ seuratMap(
 
 \item{k.weight}{k.weight parameter for TransferData Seurat function (default = 5)}
 
-\item{genes.to.use}{The set of genes to use for Seurat variable genes (default is the highly_variable_genes associated with the current mode). Can either be a character vector of gene names or a TRUE/FALSE (logical) vector of which genes to include.}
+\item{genes.to.use}{The set of genes to use for correlation calculation and/or Seurat integration (default is the highly_variable_genes associated with the current mode). Can be (1) a character vector of gene names, (2) a TRUE/FALSE (logical) vector of which genes to include, or (3) a column name in AIT.anndata$var corresponding to a logical vector of variable genes.}
 
 \item{cells.to.use}{The set of cells to include in Seurat integration (default is the filtered cell set associated with the current mode). Can either be a character vector of cell names or a TRUE/FALSE (logical) vector of which cells to include.}
 }

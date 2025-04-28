@@ -1,3 +1,34 @@
+#' Convert entered gene set to a logical vector, or return errors
+#'
+#' @param AIT.anndata A reference taxonomy object.
+#' @param genes.to.use The set of genes to use for correlation calculation and/or Seurat integration (default is the highly_variable_genes associated with the current mode). Can be (1) a character vector of gene names, (2) a TRUE/FALSE (logical) vector of which genes to include, or (3) a column name in AIT.anndata$var corresponding to a logical vector of variable genes.
+#' 
+#' @return entered gene set as a logical vector
+#' 
+#' @keywords internal
+.convert_gene_input_to_vector <- function(AIT.anndata, genes.to.use){
+  if(is.null(genes.to.use))
+    genes.to.use = paste0("highly_variable_genes_",AIT.anndata$uns$mode)
+  if(length(genes.to.use)==1){
+    if(!is.element(genes.to.use,colnames(AIT.anndata$var))){
+      options <- setdiff(colnames(AIT.anndata$var),c("gene","ensembl_id","common_genes"))
+      if(length(options>0)){
+        stop(paste("Highly variable genes for",genes.to.use,"not found! Options include",paste(options,collapse=" or "),"or you can enter your own set of variable genes in genes.to.use if you want to run correlation or Seurat mapping."))  
+      } else {
+        stop(paste("Highly variable genes for",genes.to.use,"not found, and no available gene lists are embedded in AIT file.  Please enter your own set of variable genes in genes.to.use if you want to run correlation or Seurat mapping."))
+      }
+      highly_variable_genes_mode = AIT.anndata$var$highly_variable_genes
+    } else {
+      genes.to.use = AIT.anndata$var[,genes.to.use]
+    }
+  } else if (length(genes.to.use)!=dim(AIT.anndata$var)[1]){
+    genes.to.use <- rownames(AIT.anndata$var) %in% genes.to.use
+  }
+  genes.to.use
+}
+
+
+
 #' Map samples to a training dataset by correlation
 #' 
 #' @param train.dat Training data matrix, usually log-transformed CPM

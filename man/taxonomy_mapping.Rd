@@ -13,7 +13,7 @@ taxonomy_mapping(
   mapmycells.flat.map = TRUE,
   seurat.map = TRUE,
   label.cols = AIT.anndata$uns$hierarchy,
-  genes.to.use = NULL,
+  genes.to.use = paste0("highly_variable_genes_", AIT.anndata$uns$mode),
   mapmycells_params_list = list()
 )
 }
@@ -34,7 +34,7 @@ taxonomy_mapping(
 
 \item{label.cols}{Column names of annotations to map against.  Note that this only works for metadata that represent clusters or groups of clusters (e.g., subclass, supertype, neighborhood, class) and will default to whatever is included in AIT.anndata$uns$hierarchy. This is highly related to the variable called "hierarchy" in other functions.}
 
-\item{genes.to.use}{The set of genes to use for correlation calculation and/or Seurat integration (default is the highly_variable_genes associated with the current mode). Can either be a character vector of gene names or a TRUE/FALSE (logical) vector of which genes to include.
+\item{genes.to.use}{The set of genes to use for correlation calculation and/or Seurat integration (default is the highly_variable_genes associated with the current mode). Can be (1) a character vector of gene names, (2) a TRUE/FALSE (logical) vector of which genes to include, or (3) a column name in AIT.anndata$var corresponding to a logical vector of variable genes.
 
 Mapping methods currently available in \code{taxonomy_mapping} include:
 \enumerate{
