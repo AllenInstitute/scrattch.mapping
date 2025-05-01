@@ -85,7 +85,7 @@
 
 
 <dt id="arg-genes-to-use">genes.to.use<a class="anchor" aria-label="anchor" href="#arg-genes-to-use"></a></dt>
-<dd><p>The set of genes to use for Seurat variable genes (default is the highly_variable_genes associated with the current mode). Can either be a character vector of gene names or a TRUE/FALSE (logical) vector of which genes to include.</p></dd>
+<dd><p>The set of genes to use for correlation calculation and/or Seurat integration (default is the highly_variable_genes associated with the current mode). Can be (1) a character vector of gene names, (2) a TRUE/FALSE (logical) vector of which genes to include, or (3) a column name in AIT.anndata$var corresponding to a logical vector of variable genes.</p></dd>
 
 
 <dt id="arg-cells-to-use">cells.to.use<a class="anchor" aria-label="anchor" href="#arg-cells-to-use"></a></dt>

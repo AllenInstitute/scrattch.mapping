@@ -63,7 +63,7 @@
 <span>  mapmycells.flat.map <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  seurat.map <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  label.cols <span class="op">=</span> <span class="va">AIT.anndata</span><span class="op">$</span><span class="va">uns</span><span class="op">$</span><span class="va">hierarchy</span>,</span>
-<span>  genes.to.use <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  genes.to.use <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"highly_variable_genes_"</span>, <span class="va">AIT.anndata</span><span class="op">$</span><span class="va">uns</span><span class="op">$</span><span class="va">mode</span><span class="op">)</span>,</span>
 <span>  mapmycells_params_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -105,7 +105,7 @@
 
 
 <dt id="arg-genes-to-use">genes.to.use<a class="anchor" aria-label="anchor" href="#arg-genes-to-use"></a></dt>
-<dd><p>The set of genes to use for correlation calculation and/or Seurat integration (default is the highly_variable_genes associated with the current mode). Can either be a character vector of gene names or a TRUE/FALSE (logical) vector of which genes to include.</p>
+<dd><p>The set of genes to use for correlation calculation and/or Seurat integration (default is the highly_variable_genes associated with the current mode). Can be (1) a character vector of gene names, (2) a TRUE/FALSE (logical) vector of which genes to include, or (3) a column name in AIT.anndata$var corresponding to a logical vector of variable genes.</p>
 <p>Mapping methods currently available in <code>taxonomy_mapping</code> include:</p><ol><li><p><strong>corr.map</strong>: This method calculates the Pearson correlation between each cell and each cluster median, and returns the cluster with the highest correlation along with the associated correlation score. Despite being a very simple method, this works quite well in some circumstances.</p></li>
 <li><p><strong>tree.map</strong>: Historical implementation of tree mapping used for assigning cell types to patch-seq cells in several studies of mouse visual cortex. This method requires a dendogram and iteratively walks down the tree from the root node to the leave nodes deciding the most likely cell type based on a distict set of marker genes at each node. By subsampling genes, this method provides a bootstrapping probability/confidence. <em>Implementation of tree mapping herein is not fully tested, so use with caution.</em></p></li>
 <li><p><strong>mapmycells.hierarchical.map</strong>: Current version of iterative (or hierarchical) mapping used in MapMyCells, this function imports the python <code>cell_type_mapper</code> library. It requires a leveled hierarchy (e.g., cluster columns corresponding to cell type definitions at different levels of resolutions such as "cluster" and "subclass" and "class") and performs correlation-based mapping with different marker genes for each level, iterating through the levels similar to tree mapping. Like tree mapping this method provides a bootstrapping probability/confidence by subsampling genes. We find that this method works quite well in some circumstances.</p></li>
