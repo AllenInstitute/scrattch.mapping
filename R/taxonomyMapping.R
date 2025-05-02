@@ -47,7 +47,7 @@ taxonomy_mapping = function(AIT.anndata,
     if(!all(label.cols %in% colnames(AIT.anndata$uns$cluster_info))){
       stop("Not all label.cols exists in AIT.anndata$uns$cluster_info")
     }
-
+    
     ## Modify taxonomy based on mapping mode
     if(!is.element("mode", names(AIT.anndata$uns))){
       print("Mapping in mode: `standard` with no subsampling. No filtering.")
@@ -61,7 +61,7 @@ taxonomy_mapping = function(AIT.anndata,
       ## Remove off-target cell types and/or subsampled cells
       AIT.anndata = AIT.anndata[!AIT.anndata$uns$filter[[AIT.anndata$uns$mode]]]
       AIT.anndata$uns$cluster_info = AIT.anndata$uns$cluster_info %>% filter(cluster_id %in% unique(AIT.anndata$obs$cluster_id))
-      #AIT.anndata$uns$clustersUse = as.character(unique(AIT.anndata$obs$cluster_id))
+      #AIT.anndata$uns$clustersUse = as.character(unique(AIT.anndata$obs[[celltypeColumn]]))
       AIT.anndata$uns$filter[[AIT.anndata$uns$mode]] <- rep(FALSE,sum(!AIT.anndata$uns$filter[[AIT.anndata$uns$mode]])) # New for compatibility with Seurat mapping updates
     }
 
