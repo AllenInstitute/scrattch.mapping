@@ -54,7 +54,12 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">corrMap</span><span class="op">(</span><span class="va">AIT.anndata</span>, <span class="va">query.data</span>, genes.to.use <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">corrMap</span><span class="op">(</span></span>
+<span>  <span class="va">AIT.anndata</span>,</span>
+<span>  <span class="va">query.data</span>,</span>
+<span>  genes.to.use <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  normalize.if.needed <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -70,7 +75,11 @@
 
 
 <dt id="arg-genes-to-use">genes.to.use<a class="anchor" aria-label="anchor" href="#arg-genes-to-use"></a></dt>
-<dd><p>The set of genes to use for correlation calculation (default is the highly_variable_genes associated with the current mode). Can either be a character vector of gene names or a TRUE/FALSE (logical) vector of which genes to include.</p></dd>
+<dd><p>The set of genes to use for correlation calculation and/or Seurat integration (default is the highly_variable_genes associated with the current mode). Can be (1) a character vector of gene names, (2) a TRUE/FALSE (logical) vector of which genes to include, or (3) a column name in AIT.anndata$var corresponding to a logical vector of variable genes.</p></dd>
+
+
+<dt id="arg-normalize-if-needed">normalize.if.needed<a class="anchor" aria-label="anchor" href="#arg-normalize-if-needed"></a></dt>
+<dd><p>Should query.data be automatically log-normalized if it contains exceedingly large values (&gt;30). Default = TRUE.</p></dd>
 
 </dl></div>
     <div id="value">
